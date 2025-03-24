@@ -1,9 +1,41 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {router} from "expo-router";
+import { router } from "expo-router";
+import axios from "axios";
 
 export default function RegistroScreen() {
+    const [nombre, setNombre] = useState("");
+
+    const handleRegister = async () => {
+        if (!nombre.trim()) {
+            Alert.alert("Error", "Por favor ingresa tu nombre.");
+            return;
+        }
+
+        try {
+            const response = await axios.post("http://192.168.0.20:8000/api/register", {
+                nickname: nombre,
+            });
+
+            const token = response.data.token;
+
+            // Podés guardar el token en AsyncStorage si querés mantener sesión
+            //await AsyncStorage.setItem("auth_token", token);
+
+            Alert.alert("¡Registro exitoso!");
+
+            // Redirigir (por ahora a perfiles, o donde corresponda)
+            router.push("/(tabs)/perfiles");
+
+        } catch (error) {
+            // @ts-ignore
+            console.log(error.response?.data || error.message);
+            // @ts-ignore
+            Alert.alert("Error", error.response?.data?.message || "Algo salió mal 😢");
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.profileContainer}>
@@ -12,19 +44,25 @@ export default function RegistroScreen() {
 
             <Text style={styles.welcomeText}>¡Bienvenido!</Text>
 
-            <TextInput style={styles.input} placeholder="Ingresa tu nombre" placeholderTextColor="#999" />
+            <TextInput
+                style={styles.input}
+                placeholder="Ingresa tu nombre"
+                placeholderTextColor="#999"
+                value={nombre}
+                onChangeText={setNombre}
+            />
 
             <TouchableOpacity style={styles.voiceButton}>
                 <Ionicons name="mic" size={24} color="white" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.nextButton}
-                              onPress={() => router.push("/(tabs)/perfiles")} >
+            <TouchableOpacity style={styles.nextButton} onPress={handleRegister}>
                 <Ionicons name="arrow-forward" size={24} color="white" />
             </TouchableOpacity>
         </SafeAreaView>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: {
