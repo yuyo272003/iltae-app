@@ -10,11 +10,18 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import axios, {AxiosError} from "axios";
+import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Speech from "expo-speech";
 
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState("");
+
+    const reproducirInstrucciones = () => {
+        const mensaje =
+            "¡Bienvenido! Aquí te registraras usando el microfono azul que encontraras abajo.";
+        Speech.speak(mensaje, { language: "es-ES" });
+    };
 
     const handleRegister = async () => {
         if (!nombre.trim()) {
@@ -26,50 +33,66 @@ export default function RegistroScreen() {
             const response = await axios.post("http://192.168.0.20:8000/api/register", {
                 name: nombre,
             });
-            //poner tu ip
 
             const token = response.data.token;
-
-            // Guardar el token para mantener sesión
             await AsyncStorage.setItem("auth_token", token);
 
             Alert.alert("¡Registro exitoso!");
-
-            // Redirigir (ajustá esta ruta según tu navegación)
             router.push("/(tabs)/perfiles");
 
         } catch (error) {
             const err = error as AxiosError;
-
             console.log(err.response?.data || err.message);
 
-            Alert.alert("Error", (err.response?.data as any)?.message || "Algo salió mal 😢");
+            Alert.alert(
+                "Error",
+                (err.response?.data as any)?.message || "Algo salió mal 😢"
+            );
         }
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.profileContainer}>
-                <Ionicons name="person-circle" size={100} color="#1E6ADB" />
+            <View style={styles.content}>
+                <View style={styles.profileContainer}>
+                    <Ionicons name="person-circle" size={100} color="#1E6ADB" />
+                </View>
+
+                <View style={styles.headerSection}>
+                    <TouchableOpacity style={styles.speakerButton} onPress={reproducirInstrucciones}>
+                        <Ionicons name="volume-high" size={20} color="white" />
+                    </TouchableOpacity>
+
+                    <Text style={styles.welcomeText}>¡Bienvenido!</Text>
+                </View>
+
+                <TextInput
+                    style={styles.input}
+                    placeholder="Ingresa tu nombre"
+                    placeholderTextColor="#999"
+                    value={nombre}
+                    onChangeText={setNombre}
+                    autoFocus={false}
+                    returnKeyType="done"
+                    blurOnSubmit={true}
+                />
+
+                <TouchableOpacity
+                    style={styles.voiceButton}
+                    onPress={() =>
+                        Alert.alert(
+                            "Dictado",
+                            "Presiona el ícono del micrófono en tu teclado para dictar tu nombre."
+                        )
+                    }
+                >
+                    <Ionicons name="mic" size={24} color="white" />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.nextButton} onPress={handleRegister}>
+                    <Ionicons name="arrow-forward" size={24} color="white" />
+                </TouchableOpacity>
             </View>
-
-            <Text style={styles.welcomeText}>¡Bienvenido!</Text>
-
-            <TextInput
-                style={styles.input}
-                placeholder="Ingresa tu nombre"
-                placeholderTextColor="#999"
-                value={nombre}
-                onChangeText={setNombre}
-            />
-
-            <TouchableOpacity style={styles.voiceButton}>
-                <Ionicons name="mic" size={24} color="white" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.nextButton} onPress={handleRegister}>
-                <Ionicons name="arrow-forward" size={24} color="white" />
-            </TouchableOpacity>
         </SafeAreaView>
     );
 }
@@ -83,8 +106,27 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 20,
     },
+    content: {
+        width: 327,
+        alignItems: "flex-start",
+    },
     profileContainer: {
+        alignSelf: "center",
         marginBottom: 30,
+    },
+    headerSection: {
+        width: "100%",
+        marginBottom: 20,
+    },
+    speakerButton: {
+        backgroundColor: "#1E6ADB",
+        width: 52,
+        height: 30,
+        borderRadius: 20, // para hacerlo circular
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 10,
+
     },
     welcomeText: {
         fontSize: 24,
@@ -93,7 +135,7 @@ const styles = StyleSheet.create({
         color: "#000",
     },
     input: {
-        width: 327,
+        width: "100%",
         height: 48,
         backgroundColor: "white",
         borderRadius: 8,
@@ -104,7 +146,7 @@ const styles = StyleSheet.create({
         borderColor: "#ccc",
     },
     voiceButton: {
-        width: 327,
+        width: "100%",
         height: 48,
         backgroundColor: "#1E6ADB",
         alignItems: "center",
@@ -113,7 +155,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     nextButton: {
-        width: 327,
+        width: "100%",
         height: 48,
         backgroundColor: "#28C940",
         alignItems: "center",
