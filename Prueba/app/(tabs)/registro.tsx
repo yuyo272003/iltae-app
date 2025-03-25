@@ -1,8 +1,17 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Alert } from "react-native";
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    SafeAreaView,
+    StyleSheet,
+    Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import axios from "axios";
+import axios, {AxiosError} from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState("");
@@ -15,24 +24,26 @@ export default function RegistroScreen() {
 
         try {
             const response = await axios.post("http://192.168.0.20:8000/api/register", {
-                nickname: nombre,
+                name: nombre,
             });
+            //poner tu ip
 
             const token = response.data.token;
 
-            // Podés guardar el token en AsyncStorage si querés mantener sesión
-            //await AsyncStorage.setItem("auth_token", token);
+            // Guardar el token para mantener sesión
+            await AsyncStorage.setItem("auth_token", token);
 
             Alert.alert("¡Registro exitoso!");
 
-            // Redirigir (por ahora a perfiles, o donde corresponda)
+            // Redirigir (ajustá esta ruta según tu navegación)
             router.push("/(tabs)/perfiles");
 
         } catch (error) {
-            // @ts-ignore
-            console.log(error.response?.data || error.message);
-            // @ts-ignore
-            Alert.alert("Error", error.response?.data?.message || "Algo salió mal 😢");
+            const err = error as AxiosError;
+
+            console.log(err.response?.data || err.message);
+
+            Alert.alert("Error", (err.response?.data as any)?.message || "Algo salió mal 😢");
         }
     };
 
@@ -63,7 +74,6 @@ export default function RegistroScreen() {
     );
 }
 
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -71,10 +81,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         backgroundColor: "#EEF3FF",
         paddingHorizontal: 20,
-        paddingVertical: 20, // Añadir algo de padding vertical para más espacio
+        paddingVertical: 20,
     },
     profileContainer: {
-        marginBottom: 30, // Espacio entre el ícono y el siguiente texto
+        marginBottom: 30,
     },
     welcomeText: {
         fontSize: 24,
