@@ -14,30 +14,30 @@ import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Speech from "expo-speech";
 
-export default function RegistroScreen() {
+export default function LoginScreen() {
     const [nombre, setNombre] = useState("");
 
     const reproducirInstrucciones = () => {
         const mensaje =
-            "¡Bienvenido! Aquí te registraras usando el microfono azul que encontraras abajo.";
+            "¡Bienvenido de nuevo! Por favor, di tu nombre o escríbelo en el campo. Luego presiona el botón verde para continuar.";
         Speech.speak(mensaje, { language: "es-ES" });
     };
 
-    const handleRegister = async () => {
+    const handleLogin = async () => {
         if (!nombre.trim()) {
             Alert.alert("Error", "Por favor ingresa tu nombre.");
             return;
         }
 
         try {
-            const response = await axios.post("http://148.226.202.226:8000/api/register", {
+            const response = await axios.post("http://148.226.202.226:8000/api/login", {
                 name: nombre,
             });
 
             const token = response.data.token;
             await AsyncStorage.setItem("auth_token", token);
 
-            Alert.alert("¡Registro exitoso!");
+            Alert.alert("¡Ingreso exitoso!");
             router.push("/(tabs)/perfiles");
 
         } catch (error) {
@@ -46,7 +46,7 @@ export default function RegistroScreen() {
 
             Alert.alert(
                 "Error",
-                (err.response?.data as any)?.message || "Algo salió mal 😢"
+                (err.response?.data as any)?.message || "No se pudo iniciar sesión 😢"
             );
         }
     };
@@ -63,7 +63,7 @@ export default function RegistroScreen() {
                         <Ionicons name="volume-high" size={20} color="white" />
                     </TouchableOpacity>
 
-                    <Text style={styles.welcomeText}>¡Bienvenido!</Text>
+                    <Text style={styles.welcomeText}>¡Bienvenido, a Iniciar Sesión!</Text>
                 </View>
 
                 <TextInput
@@ -89,15 +89,27 @@ export default function RegistroScreen() {
                     <Ionicons name="mic" size={24} color="white" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.nextButton} onPress={handleRegister}>
+                <TouchableOpacity style={styles.nextButton} onPress={handleLogin}>
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </TouchableOpacity>
+
+
+                <TouchableOpacity onPress={() => router.push("/(tabs)/registro")}>
+                    <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
+                </TouchableOpacity>
+
             </View>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    link: {
+        color: "#007AFF",
+        textDecorationLine: "underline",
+        marginTop: 20,
+        textAlign: "center",
+    },
     container: {
         flex: 1,
         alignItems: "center",
@@ -122,11 +134,10 @@ const styles = StyleSheet.create({
         backgroundColor: "#1E6ADB",
         width: 52,
         height: 30,
-        borderRadius: 20, // para hacerlo circular
+        borderRadius: 20,
         alignItems: "center",
         justifyContent: "center",
         marginBottom: 10,
-
     },
     welcomeText: {
         fontSize: 24,

@@ -1,6 +1,8 @@
 import React from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+
 
 const ProfileScreen = () => {
     return (
@@ -8,12 +10,16 @@ const ProfileScreen = () => {
             {/* Perfiles */}
             <View style={styles.profileContainer}>
                 {/* Perfil existente */}
-                <TouchableOpacity style={styles.profileButton}>
+                <TouchableOpacity
+                    style={styles.profileButton}
+                    onPress={() => router.push("/(tabs)/niveles")} // Ajusta la ruta según tu estructura
+                >
                     <Ionicons name="person-outline" size={40} color="white" />
                     <View style={styles.editIcon}>
                         <Ionicons name="pencil" size={14} color="#006FFD" />
                     </View>
                 </TouchableOpacity>
+
 
                 {/* Agregar perfil */}
                 <TouchableOpacity style={styles.addButton}>

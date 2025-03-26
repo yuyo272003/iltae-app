@@ -23,7 +23,10 @@ const WelcomeScreen = () => {
                 <MaterialIcons name="arrow-forward" size={24} color="green" />
             </TouchableOpacity>
 
-            <Text style={styles.link}>¿Y si sé leer y escribir?</Text>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/login")}>
+                <Text style={styles.link}>¿Y si sé leer y escribir?</Text>
+            </TouchableOpacity>
+
         </LinearGradient>
     );
 };
