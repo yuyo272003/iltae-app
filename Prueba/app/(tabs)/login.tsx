@@ -30,11 +30,14 @@ export default function LoginScreen() {
         }
 
         try {
-            const response = await axios.post("http://148.226.202.226:8000/api/login", {
+            const response = await axios.post("http://148.226.203.235:8000/api/login", {
                 name: nombre,
             });
 
-            const token = response.data.token;
+            const { user, token } = response.data;
+
+            console.log("Usuario autenticado:", user); // 👈 Aquí se imprime el usuario
+
             await AsyncStorage.setItem("auth_token", token);
 
             Alert.alert("¡Ingreso exitoso!");

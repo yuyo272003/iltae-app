@@ -4,9 +4,11 @@ import {
     Text,
     TouchableOpacity,
     FlatList,
-    StyleSheet
+    StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Nivel = {
     id: number;
@@ -55,6 +57,30 @@ const NivelItem = ({ nivel }: { nivel: Nivel }): JSX.Element => {
 export default function NivelesScreen() {
     const [selectedTab, setSelectedTab] = useState<string>('Todos');
 
+    const handleLogout = async () => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+
+            const response = await fetch('http://148.226.203.235/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                await AsyncStorage.removeItem('token');
+                router.replace('/(tabs)/perfiles');
+            } else {
+                console.error('Error en logout:', await response.json());
+            }
+        } catch (error) {
+            console.error('Error cerrando sesión:', error);
+        }
+    };
+
     const filteredNiveles = niveles.filter(nivel => {
         if (selectedTab === 'Todos') return true;
         if (selectedTab === 'En progreso') return nivel.estado === 'en progreso';
@@ -64,6 +90,14 @@ export default function NivelesScreen() {
 
     return (
         <View style={styles.container}>
+            {/* Botón de cerrar sesión con flecha */}
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={handleLogout}
+            >
+                <Ionicons name="arrow-back" size={24} color="blue" />
+            </TouchableOpacity>
+
             <Text style={styles.title}>Niveles</Text>
 
             {/* Tabs */}
@@ -99,6 +133,12 @@ export default function NivelesScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+    backButton: {
+        position: 'absolute',
+        top: 20,
+        left: 10,
+        zIndex: 1,
+    },
     title: { fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 16 },
     tabsContainer: {
         flexDirection: 'row',

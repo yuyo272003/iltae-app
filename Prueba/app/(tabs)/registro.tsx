@@ -30,7 +30,7 @@ export default function RegistroScreen() {
         }
 
         try {
-            const response = await axios.post("http://148.226.202.226:8000/api/register", {
+            const response = await axios.post("http://148.226.203.235:8000/api/register", {
                 name: nombre,
             });
 
