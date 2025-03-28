@@ -12,10 +12,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@/contexts/AuthContext";
 import * as Speech from "expo-speech";
 
 export default function LoginScreen() {
     const [nombre, setNombre] = useState("");
+    const { setUser } = useAuth();
+
 
     const reproducirInstrucciones = () => {
         const mensaje =
@@ -30,15 +33,16 @@ export default function LoginScreen() {
         }
 
         try {
-            const response = await axios.post("http://148.226.203.235:8000/api/login", {
+            const response = await axios.post("http://148.226.202.122:8000/api/login", {
                 name: nombre,
             });
 
             const { user, token } = response.data;
 
-            console.log("Usuario autenticado:", user); // 👈 Aquí se imprime el usuario
-
             await AsyncStorage.setItem("auth_token", token);
+            setUser(user); // 🔥 Aquí usamos el contexto
+
+            console.log("Usuario autenticado:", user);
 
             Alert.alert("¡Ingreso exitoso!");
             router.push("/(tabs)/perfiles");
@@ -66,7 +70,7 @@ export default function LoginScreen() {
                         <Ionicons name="volume-high" size={20} color="white" />
                     </TouchableOpacity>
 
-                    <Text style={styles.welcomeText}>¡Bienvenido, a Iniciar Sesión!</Text>
+                    <Text style={styles.welcomeText}>¡Iniciar Sesión!</Text>
                 </View>
 
                 <TextInput

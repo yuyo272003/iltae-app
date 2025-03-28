@@ -23,19 +23,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
             const token = await AsyncStorage.getItem("auth_token");
 
-            await fetch("http://148.226.203.235/api/logout", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
-                },
-            });
-
-            await AsyncStorage.removeItem("auth_token");
-            setUser(null);
-            router.replace("/perfiles"); // o '/welcome' si prefieres
+            if (token) {
+                await fetch("http://148.226.202.122:8000/api/logout", {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                    },
+                });
+            }
         } catch (error) {
             console.error("Error cerrando sesión:", error);
+        } finally {
+            await AsyncStorage.removeItem("auth_token");
+            setUser(null);
+            router.replace("/(tabs)/perfiles");
         }
     };
 

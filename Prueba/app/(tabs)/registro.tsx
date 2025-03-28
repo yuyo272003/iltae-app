@@ -13,9 +13,13 @@ import { router } from "expo-router";
 import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Speech from "expo-speech";
+import { useAuth } from "@/contexts/AuthContext"; // ajusta la ruta si cambia
+
 
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState("");
+    const { setUser } = useAuth();
+
 
     const reproducirInstrucciones = () => {
         const mensaje =
@@ -30,12 +34,14 @@ export default function RegistroScreen() {
         }
 
         try {
-            const response = await axios.post("http://148.226.203.235:8000/api/register", {
+            const response = await axios.post("http://148.226.202.122:8000/api/register", {
                 name: nombre,
             });
 
-            const token = response.data.token;
+            const { token, user } = response.data;
+
             await AsyncStorage.setItem("auth_token", token);
+            setUser(user); // 🔥 AuthContext en acción
 
             Alert.alert("¡Registro exitoso!");
             router.push("/(tabs)/perfiles");
@@ -50,6 +56,7 @@ export default function RegistroScreen() {
             );
         }
     };
+
 
     return (
         <SafeAreaView style={styles.container}>
