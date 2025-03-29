@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import api from "@/scripts/api";
 
 // Define el tipo del usuario (ajústalo a lo que te devuelve tu backend)
 export type User = {
@@ -24,14 +25,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const token = await AsyncStorage.getItem("auth_token");
 
             if (token) {
-                await fetch("http://148.226.202.122:8000/api/logout", {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
-                });
+                await api.post(
+                    "/logout",
+                    {},
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            Accept: "application/json",
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
             }
         } catch (error) {
             console.error("Error cerrando sesión:", error);

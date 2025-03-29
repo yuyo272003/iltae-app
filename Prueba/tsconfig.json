@@ -5,7 +5,8 @@
     "paths": {
       "@/*": [
         "./*"
-      ]
+      ],
+      "@assets/*": ["assets/*"]
     }
   },
   "include": [
@@ -15,3 +16,4 @@
     "expo-env.d.ts"
   ]
 }
+

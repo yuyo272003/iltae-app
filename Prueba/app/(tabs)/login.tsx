@@ -14,6 +14,7 @@ import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/contexts/AuthContext";
 import * as Speech from "expo-speech";
+import api from '@/scripts/api';
 
 export default function LoginScreen() {
     const [nombre, setNombre] = useState("");
@@ -33,7 +34,7 @@ export default function LoginScreen() {
         }
 
         try {
-            const response = await axios.post("http://148.226.202.122:8000/api/login", {
+            const response = await api.post('/login', {
                 name: nombre,
             });
 

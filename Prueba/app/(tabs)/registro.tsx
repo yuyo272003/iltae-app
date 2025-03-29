@@ -13,8 +13,8 @@ import { router } from "expo-router";
 import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Speech from "expo-speech";
-import { useAuth } from "@/contexts/AuthContext"; // ajusta la ruta si cambia
-
+import { useAuth } from "@/contexts/AuthContext";
+import api from '@/scripts/api';
 
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState("");
@@ -34,9 +34,10 @@ export default function RegistroScreen() {
         }
 
         try {
-            const response = await axios.post("http://148.226.202.122:8000/api/register", {
+            const response = await api.post('/register', {
                 name: nombre,
             });
+
 
             const { token, user } = response.data;
 
