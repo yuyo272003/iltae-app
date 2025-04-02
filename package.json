@@ -8,7 +8,9 @@
   },
   "private": true,
   "dependencies": {
+    "@terrylinla/react-native-sketch-canvas": "^0.8.0",
     "axios": "^1.8.4",
+    "react-native-signature-canvas": "^1.4.2",
     "react-native-vector-icons": "^10.2.0"
   }
 }

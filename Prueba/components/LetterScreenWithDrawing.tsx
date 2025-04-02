@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import { Canvas } from '@benjeau/react-native-draw';  // Correcto import
+import SignatureScreen from 'react-native-signature-canvas';  // Importamos el componente
 
 type LetterScreenProps = {
-    letter: string;
+    imageSource: any;  // Usamos una imagen en lugar de la letra
     letterAudio: any;
     practiceAudio: any;
 };
@@ -13,15 +13,13 @@ type LetterScreenProps = {
 const screenHeight = Dimensions.get('window').height;
 
 export default function LetterScreenWithDrawing({
-                                                    letter,
+                                                    imageSource,
                                                     letterAudio,
                                                     practiceAudio,
                                                 }: LetterScreenProps) {
     const [sound, setSound] = useState();
 
-    // Usamos useRef para manejar el Canvas
-    const canvasRef = useRef(null);
-
+    // Función para reproducir el audio
     const playSound = async (file: AVPlaybackSource) => {
         const { sound } = await Audio.Sound.createAsync(file);
         // @ts-ignore
@@ -29,40 +27,43 @@ export default function LetterScreenWithDrawing({
         await sound.playAsync();
     };
 
+    // Manejar lo que ocurre cuando se guarda el dibujo
+    const handleOK = (signature: string) => {
+        console.log('Signature saved:', signature); // Aquí obtienes la firma como base64
+    };
+
+    // Manejar lo que ocurre cuando se limpia el dibujo
+    const handleClear = () => {
+        console.log('Signature cleared');
+    };
+
     return (
         <View style={styles.container}>
-            {/* Letra principal */}
-            <Text style={styles.letterText}>{letter}</Text>
+            {/* Imagen que muestra las instrucciones de la letra */}
+            <Image source={imageSource} style={styles.letterImage} />
 
             {/* Pizarrón para dibujar */}
-            <Canvas
-                ref={canvasRef} // Usamos useRef aquí
-                style={styles.canvas}
-                // @ts-ignore
-                strokeColor="black"
-                strokeWidth={5}
-                contentWidth={Dimensions.get('window').width * 0.9} // Ajusta el tamaño
-                contentHeight={screenHeight * 0.5} // Ajusta el tamaño
-                scrollEnabled={false}  // Desactivar desplazamiento
-            />
-
-            {/* Botón de bocina para audio de la letra */}
-            <TouchableOpacity
-                style={styles.soundButton}
-                onPress={() => playSound(letterAudio)}
-            >
-                <Ionicons name="volume-high" size={24} color="white" />
-            </TouchableOpacity>
-
-            {/* Botón de Play para practicar la letra */}
-            <TouchableOpacity
-                style={styles.playButton}
-                onPress={() => playSound(practiceAudio)}
-            >
-                <Ionicons name="play" size={24} color="white" />
-            </TouchableOpacity>
+            <View style={styles.canvasContainer}>
+                <SignatureScreen
+                    onOK={handleOK}
+                    onClear={handleClear}
+                    backgroundColor="transparent"
+                    // @ts-ignore
+                    strokeColor="black"
+                    strokeWidth={5}
+                    viewMode="portrait"
+                />
+            </View>
 
             <View style={styles.bottomPanel}>
+                {/* Botón de play con icono de audio */}
+                <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={() => playSound(practiceAudio)}
+                >
+                    <Ionicons name="volume-high" size={24} color="white" />
+                </TouchableOpacity>
+
                 {/* Barra de progreso */}
                 <View style={styles.progressBarContainer}>
                     <View style={styles.progressBarFill} />
@@ -82,25 +83,27 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'white',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingBottom: 200, // Espacio para el panel inferior
+        justifyContent: 'flex-start',  // Alineamos el contenido al principio
+        paddingBottom: 20, // Espacio reducido para el panel inferior
     },
-    letterText: {
-        fontSize: 96,
-        fontWeight: 'bold',
-        color: '#2b2b2b',
+    letterImage: {
+        width: '70%', // Reducción de la imagen a un 70% del ancho
+        height: screenHeight * 0.2, // Ajustamos el tamaño de la imagen a un 20% de la altura de la pantalla
+        marginTop: 40, // Espacio superior
+        marginBottom: 20, // Espacio inferior
+        resizeMode: 'contain',  // Ajusta la imagen sin deformarla
     },
     soundButton: {
-        marginTop: 16,
         backgroundColor: '#2e6ef7',
         padding: 12,
         borderRadius: 8,
+        marginBottom: 16,  // Separación entre botones
     },
     playButton: {
         backgroundColor: '#2e6ef7',
         padding: 16,
         borderRadius: 12,
-        width: '100%',
+        width: '80%',  // Hacemos el botón un poco más grande
         alignItems: 'center',
         marginBottom: 16,
     },
@@ -109,11 +112,11 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 300,
+        height: 200,  // Reducción en la altura del panel inferior
         backgroundColor: '#2b2b2b',
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
-        padding: 24,
+        padding: 16,
         alignItems: 'center',
         elevation: 10,
     },
@@ -138,14 +141,10 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         padding: 16,
     },
-    canvas: {
-        backgroundColor: 'white',
+    canvasContainer: {
+        flex: 1,
+        flexDirection: 'row',
         width: '90%',
-        height: screenHeight * 0.5, // Ajusta el tamaño del área para dibujar
-        borderRadius: 10,
-        borderColor: '#2b2b2b',
-        borderWidth: 2,
         marginBottom: 20,
-        overflow: 'hidden',  // Asegura que el dibujo no se salga del área
     },
 });

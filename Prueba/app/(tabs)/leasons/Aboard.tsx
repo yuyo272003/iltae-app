@@ -1,12 +1,13 @@
 import React from 'react';
-import LetterScreenWithCanvas from '../../../components/LetterScreenWithCanvas';
+import LetterScreenWithDrawing from '../../../components/LetterScreenWithDrawing';
 
 export default function Leccion1() {
     return (
-        <LetterScreenWithCanvas
-            letter="Aa"
+        <LetterScreenWithDrawing
+            imageSource={require('@assets/images/lecciones/nivel1/lessons/letterA.png')}  // Aquí importas la imagen
             letterAudio={require('@assets/audio/lecciones/nivel1/intro.wav')}
             practiceAudio={require('@assets/audio/lecciones/nivel1/intro.wav')}
         />
     );
 }
+
