@@ -7,26 +7,34 @@ import { Audio } from "expo-av";
 
 const WelcomeScreen = () => {
     const [sound, setSound] = useState<Audio.Sound | null>(null);
-    const [isPlaying, setIsPlaying] = useState(false); // Estado para controlar si el audio está sonando
+    const [isPlaying, setIsPlaying] = useState(false); // Estado para saber si está sonando
+    const [isPaused, setIsPaused] = useState(false);   // Estado para saber si está pausado
 
-    const playAudio = async () => {
-        // Si ya hay un sonido cargado y se está reproduciendo, lo pausamos
-        if (isPlaying && sound) {
-            await sound.stopAsync();  // Detenemos el audio
-            setIsPlaying(false);  // Actualizamos el estado a "no está reproduciéndose"
+    const handlePlayPause = async () => {
+        if (sound && isPlaying) {
+            await sound.pauseAsync();       // Pausar el audio
+            setIsPlaying(false);
+            setIsPaused(true);
+        } else if (sound && isPaused) {
+            await sound.playAsync();        // Reanudar desde donde se pausó
+            setIsPlaying(true);
+            setIsPaused(false);
         } else {
-            // Si no hay audio o no se está reproduciendo, lo cargamos y reproducimos
-            if (sound) {
-                await sound.unloadAsync(); // Liberamos cualquier recurso previamente cargado
-                setSound(null); // Restablecemos el estado del sonido
-            }
-
+            // Si no hay sonido cargado, lo cargamos y lo reproducimos
             const { sound: newSound } = await Audio.Sound.createAsync(
-                require("../../assets/audio/bienvenida.wav") // reemplaza con tu archivo de audio
+                require("../../assets/audio/bienvenida.wav") // reemplaza con tu ruta
             );
             setSound(newSound);
-            await newSound.playAsync(); // Reproducimos el nuevo audio
-            setIsPlaying(true); // Marcamos el estado como "reproduciéndose"
+            await newSound.playAsync();
+            setIsPlaying(true);
+
+            // Limpieza automática al terminar
+            newSound.setOnPlaybackStatusUpdate((status) => {
+                if (status.isLoaded && status.didJustFinish) {
+                    setIsPlaying(false);
+                    setIsPaused(false);
+                }
+            });
         }
     };
 
@@ -34,12 +42,12 @@ const WelcomeScreen = () => {
         <LinearGradient colors={["#007AFF", "#0056B3"]} style={styles.container}>
             <Text style={styles.title}>MentorApp</Text>
 
-            {/* Botón 1: Reproduce o pausa el audio */}
-            <TouchableOpacity style={styles.button} onPress={playAudio}>
+            {/* Botón de reproducir/pausar */}
+            <TouchableOpacity style={styles.button} onPress={handlePlayPause}>
                 <Feather name={isPlaying ? "pause" : "play"} size={24} color="#007AFF" />
             </TouchableOpacity>
 
-            {/* Botón 2: Navegar a Registro */}
+            {/* Botón para navegar a registro */}
             <TouchableOpacity
                 style={styles.buttonSecondary}
                 onPress={() => router.push("/(tabs)/registro")}

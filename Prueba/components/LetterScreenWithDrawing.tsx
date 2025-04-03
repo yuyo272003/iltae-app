@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import SignatureScreen from 'react-native-signature-canvas';  // Importamos el componente
+import SignatureScreen from 'react-native-signature-canvas';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type LetterScreenProps = {
-    imageSource: any;  // Usamos una imagen en lugar de la letra
+    imageSource: any;
     letterAudio: any;
     practiceAudio: any;
+    onNext?: () => void;
+    onTopBack?: () => void;
+    onBottomBack?: () => void;
 };
 
 const screenHeight = Dimensions.get('window').height;
@@ -16,10 +20,12 @@ export default function LetterScreenWithDrawing({
                                                     imageSource,
                                                     letterAudio,
                                                     practiceAudio,
+                                                    onNext,
+                                                    onTopBack,
+                                                    onBottomBack,
                                                 }: LetterScreenProps) {
     const [sound, setSound] = useState();
 
-    // Función para reproducir el audio
     const playSound = async (file: AVPlaybackSource) => {
         const { sound } = await Audio.Sound.createAsync(file);
         // @ts-ignore
@@ -27,25 +33,24 @@ export default function LetterScreenWithDrawing({
         await sound.playAsync();
     };
 
-    // Manejar lo que ocurre cuando se guarda el dibujo
-    const handleOK = (signature: string) => {
-        console.log('Signature saved:', signature); // Aquí obtienes la firma como base64
-    };
-
-    // Manejar lo que ocurre cuando se limpia el dibujo
     const handleClear = () => {
         console.log('Signature cleared');
     };
 
+
     return (
-        <View style={styles.container}>
-            {/* Imagen que muestra las instrucciones de la letra */}
+        <SafeAreaView style={styles.container}>
+            {/* 🔺 Botón superior de regreso */}
+            <TouchableOpacity style={styles.topBackButton} onPress={onTopBack}>
+                <Ionicons name="arrow-back" size={24} color="#2b2b2b" />
+            </TouchableOpacity>
+
+            {/* Imagen con trazo */}
             <Image source={imageSource} style={styles.letterImage} />
 
-            {/* Pizarrón para dibujar */}
+            {/* Pizarra para escribir */}
             <View style={styles.canvasContainer}>
                 <SignatureScreen
-                    onOK={handleOK}
                     onClear={handleClear}
                     backgroundColor="transparent"
                     // @ts-ignore
@@ -55,28 +60,30 @@ export default function LetterScreenWithDrawing({
                 />
             </View>
 
+            {/* Panel inferior */}
             <View style={styles.bottomPanel}>
-                {/* Botón de play con icono de audio */}
-                <TouchableOpacity
-                    style={styles.playButton}
-                    onPress={() => playSound(practiceAudio)}
-                >
+                <TouchableOpacity style={styles.playButton} onPress={() => playSound(practiceAudio)}>
                     <Ionicons name="volume-high" size={24} color="white" />
                 </TouchableOpacity>
 
-                {/* Barra de progreso */}
                 <View style={styles.progressBarContainer}>
                     <View style={styles.progressBarFill} />
                 </View>
 
-                {/* Botón de siguiente */}
-                <TouchableOpacity style={styles.nextButton}>
+                {/* 🔻 Botón de regresar en el panel */}
+                <TouchableOpacity style={styles.backButton} onPress={onBottomBack}>
+                    <Ionicons name="arrow-back" size={24} color="white" />
+                </TouchableOpacity>
+
+                {/* ➡ Botón siguiente */}
+                <TouchableOpacity style={styles.nextButton} onPress={onNext}>
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: {
@@ -88,8 +95,8 @@ const styles = StyleSheet.create({
     },
     letterImage: {
         width: '70%', // Reducción de la imagen a un 70% del ancho
-        height: screenHeight * 0.2, // Ajustamos el tamaño de la imagen a un 20% de la altura de la pantalla
-        marginTop: 40, // Espacio superior
+        height: screenHeight * 0.15, // Ajustamos el tamaño de la imagen a un 15% de la altura de la pantalla
+        marginTop: 30, // Espacio superior
         marginBottom: 20, // Espacio inferior
         resizeMode: 'contain',  // Ajusta la imagen sin deformarla
     },
@@ -112,7 +119,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 200,  // Reducción en la altura del panel inferior
+        height: 250,  // Reducción en la altura del panel inferior
         backgroundColor: '#2b2b2b',
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
@@ -135,16 +142,32 @@ const styles = StyleSheet.create({
     },
     nextButton: {
         position: 'absolute',
-        right: 24,
-        bottom: 24,
+        right: 30,
+        bottom: 70,
         backgroundColor: '#33cc66',
-        borderRadius: 50,
-        padding: 16,
+        borderRadius: 80,
+        padding: 20,
     },
     canvasContainer: {
         flex: 1,
         flexDirection: 'row',
         width: '90%',
+        height: screenHeight * 0.2, // Reducimos el tamaño del pizarrón al 20% de la pantalla
         marginBottom: 20,
     },
+    topBackButton: {
+        position: 'absolute',
+        top: 40,
+        left: 20,
+        zIndex: 1,
+    },
+    backButton: {
+        position: 'absolute',
+        left: 30,
+        bottom: 70,
+        backgroundColor: '#ff6666',
+        borderRadius: 80,
+        padding: 20,
+    },
+
 });

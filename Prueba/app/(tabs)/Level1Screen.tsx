@@ -95,8 +95,12 @@ export default function Level1Screen() {
                     <TouchableOpacity
                         style={styles.card}
                         onPress={() => {
-                            console.log(`Ir a la lección ${item.id}`);
+                            if (item.type === "leccion") {
+                                // @ts-ignore
+                                router.push(`/(tabs)/niveles/nivel1/${item.id}/leccion`);
+                            }
                         }}
+
                     >
                         <Image source={item.image} style={styles.image} resizeMode="contain" />
                         {item.type === 'intro' ? (

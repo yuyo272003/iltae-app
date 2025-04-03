@@ -1,5 +1,5 @@
 import React from 'react';
-import LetterScreenWithDrawing from '../../../components/LetterScreenWithDrawing';
+import LetterScreenWithDrawing from '../../../../../components/LetterScreenWithDrawing';
 
 export default function Leccion1() {
     return (

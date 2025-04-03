@@ -1,5 +1,5 @@
 import React from 'react';
-import LetterScreen from '../../../components/LetterScreen';
+import LetterScreen from '../../../../../components/LetterScreen';
 
 export default function Leccion2() {
     return (
