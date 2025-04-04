@@ -13,8 +13,8 @@ type LetterScreenProps = {
     letterAudio: any,
     practiceAudio: any,
     onNext?: () => void;
-    onTopBack?: () => void;     // ⬅️ Botón arriba
-    onBottomBack?: () => void;  // ⬅️ Botón panel inferior
+    onTopBack?: () => void;
+    onBottomBack?: () => void;
 };
 
 export default function LetterScreen({
@@ -58,11 +58,25 @@ export default function LetterScreen({
         }
     };
 
+    const stopAudioAndNavigate = async (navigationFn?: () => void) => {
+        if (practiceSound) {
+            await practiceSound.stopAsync();
+            await practiceSound.unloadAsync();
+            setPracticeSound(null);
+        }
+        setIsPlaying(false);
+        setIsPaused(false);
+        navigationFn?.(); // Ejecuta la función si existe
+    };
+
     return (
         <View style={styles.container}>
-            {/* 🔺 Botón arriba */}
-            <TouchableOpacity style={styles.topBackButton} onPress={onTopBack}>
-                <Ionicons name="arrow-back" size={24} color="#2b2b2b" />
+            {/* 🔺 Botón arriba más grande */}
+            <TouchableOpacity
+                style={styles.topBackButton}
+                onPress={() => stopAudioAndNavigate(onTopBack)}
+            >
+                <Ionicons name="arrow-back" size={32} color="#2b2b2b" />
             </TouchableOpacity>
 
             <Text style={styles.letterText}>{letter}</Text>
@@ -87,18 +101,25 @@ export default function LetterScreen({
                 </View>
 
                 {/* 🔻 Botón regreso panel inferior */}
-                <TouchableOpacity style={styles.backButton} onPress={onBottomBack}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => stopAudioAndNavigate(onBottomBack)}
+                >
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
 
-                {/* Botón de siguiente */}
-                <TouchableOpacity style={styles.nextButton} onPress={onNext}>
+                {/* ➡️ Botón siguiente */}
+                <TouchableOpacity
+                    style={styles.nextButton}
+                    onPress={() => stopAudioAndNavigate(onNext)}
+                >
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </TouchableOpacity>
             </View>
         </View>
     );
 }
+
 
 
 const styles = StyleSheet.create({
@@ -158,16 +179,16 @@ const styles = StyleSheet.create({
         },
         nextButton: {
             position: 'absolute',
-            right: 24,
-            bottom: 24,
+            right: 30,
+            bottom: 70,
             backgroundColor: '#33cc66',
             borderRadius: 50,
             padding: 20,
         },
     backButton: {
         position: 'absolute',
-        left: 24,
-        bottom: 24,
+        left: 30,
+        bottom: 70,
         backgroundColor: '#ff6666',
         borderRadius: 50,
         padding: 20,
@@ -177,6 +198,11 @@ const styles = StyleSheet.create({
         top: 40,
         left: 20,
         zIndex: 1,
+        backgroundColor: '#e0e0e0',
+        padding: 14,
+        borderRadius: 50,
+        elevation: 5,
     },
+
 
 });

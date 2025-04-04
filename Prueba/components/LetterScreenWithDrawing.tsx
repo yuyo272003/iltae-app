@@ -24,31 +24,61 @@ export default function LetterScreenWithDrawing({
                                                     onTopBack,
                                                     onBottomBack,
                                                 }: LetterScreenProps) {
-    const [sound, setSound] = useState();
+    const [sound, setSound] = useState<Audio.Sound | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
 
-    const playSound = async (file: AVPlaybackSource) => {
-        const { sound } = await Audio.Sound.createAsync(file);
-        // @ts-ignore
-        setSound(sound);
-        await sound.playAsync();
+    const togglePracticeAudio = async () => {
+        if (sound && isPlaying) {
+            await sound.pauseAsync();
+            setIsPlaying(false);
+            setIsPaused(true);
+        } else if (sound && isPaused) {
+            await sound.playAsync();
+            setIsPlaying(true);
+            setIsPaused(false);
+        } else {
+            const { sound: newSound } = await Audio.Sound.createAsync(practiceAudio);
+            setSound(newSound);
+            await newSound.playAsync();
+            setIsPlaying(true);
+
+            newSound.setOnPlaybackStatusUpdate((status) => {
+                if (status.isLoaded && status.didJustFinish) {
+                    setIsPlaying(false);
+                    setIsPaused(false);
+                }
+            });
+        }
+    };
+
+    const stopAudioAndNavigate = async (navFn?: () => void) => {
+        if (sound) {
+            await sound.stopAsync();
+            await sound.unloadAsync();
+            setSound(null);
+        }
+        setIsPlaying(false);
+        setIsPaused(false);
+        navFn?.();
     };
 
     const handleClear = () => {
         console.log('Signature cleared');
     };
 
-
+    // @ts-ignore
     return (
         <SafeAreaView style={styles.container}>
-            {/* 🔺 Botón superior de regreso */}
-            <TouchableOpacity style={styles.topBackButton} onPress={onTopBack}>
-                <Ionicons name="arrow-back" size={24} color="#2b2b2b" />
+            <TouchableOpacity
+                style={styles.topBackButton}
+                onPress={() => stopAudioAndNavigate(onTopBack)}
+            >
+                <Ionicons name="arrow-back" size={32} color="#2b2b2b" />
             </TouchableOpacity>
 
-            {/* Imagen con trazo */}
             <Image source={imageSource} style={styles.letterImage} />
 
-            {/* Pizarra para escribir */}
             <View style={styles.canvasContainer}>
                 <SignatureScreen
                     onClear={handleClear}
@@ -60,23 +90,26 @@ export default function LetterScreenWithDrawing({
                 />
             </View>
 
-            {/* Panel inferior */}
             <View style={styles.bottomPanel}>
-                <TouchableOpacity style={styles.playButton} onPress={() => playSound(practiceAudio)}>
-                    <Ionicons name="volume-high" size={24} color="white" />
+                <TouchableOpacity style={styles.playButton} onPress={togglePracticeAudio}>
+                    <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="white" />
                 </TouchableOpacity>
 
                 <View style={styles.progressBarContainer}>
                     <View style={styles.progressBarFill} />
                 </View>
 
-                {/* 🔻 Botón de regresar en el panel */}
-                <TouchableOpacity style={styles.backButton} onPress={onBottomBack}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => stopAudioAndNavigate(onBottomBack)}
+                >
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
 
-                {/* ➡ Botón siguiente */}
-                <TouchableOpacity style={styles.nextButton} onPress={onNext}>
+                <TouchableOpacity
+                    style={styles.nextButton}
+                    onPress={() => stopAudioAndNavigate(onNext)}
+                >
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </TouchableOpacity>
             </View>
@@ -160,7 +193,12 @@ const styles = StyleSheet.create({
         top: 40,
         left: 20,
         zIndex: 1,
+        backgroundColor: '#e0e0e0',
+        padding: 14,
+        borderRadius: 50,
+        elevation: 5,
     },
+
     backButton: {
         position: 'absolute',
         left: 30,

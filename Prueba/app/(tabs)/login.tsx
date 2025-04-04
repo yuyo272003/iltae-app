@@ -45,7 +45,7 @@ export default function LoginScreen() {
 
             console.log("Usuario autenticado:", user);
 
-            Alert.alert("¡Ingreso exitoso!");
+            //Alert.alert("¡Ingreso exitoso!");
             router.push("/(tabs)/perfiles");
 
         } catch (error) {
