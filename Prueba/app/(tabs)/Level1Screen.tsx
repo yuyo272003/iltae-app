@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { playAudioGlobal } from '@/utils/AudioManager';
 
 const lessons = [
     {
@@ -55,16 +55,10 @@ const lessons = [
         image: require('@assets/images/lecciones/nivel1/consonantes_especiales.png'),
         audioFile: require('@assets/audio/lecciones/nivel1/leccion6.wav'),
     },
-
 ];
 
 export default function Level1Screen() {
     const router = useRouter();
-
-    const playSound = async (audioFile: any) => {
-        const { sound } = await Audio.Sound.createAsync(audioFile);
-        await sound.playAsync();
-    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -74,17 +68,16 @@ export default function Level1Screen() {
                     <Ionicons name="arrow-back" size={28} color="#3E64FF" />
                 </TouchableOpacity>
 
-                <View style={styles.titleRow}>
-                    <Text style={styles.title}>Nivel 1</Text>
-                    <TouchableOpacity
-                        onPress={() => playSound(require('@assets/audio/lecciones/nivel1/intro.wav'))}
-                        style={styles.audioPill}
-                    >
-                        <Ionicons name="volume-high" size={14} color="#fff" />
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                    onPress={() => playAudioGlobal(require('@assets/audio/lecciones/nivel1/intro.wav'))}
+                    style={styles.titlePill}
+                >
+                    <Ionicons name="volume-high" size={14} color="#fff" />
+                    <Text style={styles.titleText}>Nivel 1</Text>
+                </TouchableOpacity>
 
-                <View style={{ width: 28 }} /> {/* Espacio para alinear */}
+
+                <View style={{ width: 28 }} />
             </View>
 
             <FlatList
@@ -100,7 +93,6 @@ export default function Level1Screen() {
                                 router.push(`/(tabs)/niveles/nivel1/${item.id}/leccion`);
                             }
                         }}
-
                     >
                         <Image source={item.image} style={styles.image} resizeMode="contain" />
                         {item.type === 'intro' ? (
@@ -109,7 +101,7 @@ export default function Level1Screen() {
                                 <TouchableOpacity
                                     onPress={(e) => {
                                         e.stopPropagation();
-                                        playSound(item.audioFile);
+                                        playAudioGlobal(item.audioFile);
                                     }}
                                     style={styles.playBar}
                                 >
@@ -122,11 +114,11 @@ export default function Level1Screen() {
                                 <TouchableOpacity
                                     onPress={(e) => {
                                         e.stopPropagation();
-                                        playSound(item.audioFile);
+                                        playAudioGlobal(item.audioFile);
                                     }}
                                     style={styles.audioPill}
                                 >
-                                    <Ionicons name="volume-high" size={14} color="#fff" />
+                                    <Ionicons name="volume-high" size={18} color="#fff" />
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -207,4 +199,19 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    titlePill: {
+        backgroundColor: '#3E64FF',
+        borderRadius: 30,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    titleText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+
 });

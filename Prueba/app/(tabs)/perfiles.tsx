@@ -1,25 +1,37 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-
+import { playAudioGlobal } from '@/utils/AudioManager';
 
 const ProfileScreen = () => {
+
     return (
         <View style={styles.container}>
+
+            <TouchableOpacity style={styles.backButton} onPress={() =>
+                // @ts-ignore
+                router.push('/(tabs)/')}>
+                <Ionicons name="arrow-back" size={28} color="blue" />
+            </TouchableOpacity>
+
             {/* Perfiles */}
             <View style={styles.profileContainer}>
                 {/* Perfil existente */}
                 <TouchableOpacity
                     style={styles.profileButton}
-                    onPress={() => router.push("/(tabs)/niveles")} // Ajusta la ruta según tu estructura
+                    onPress={async () => {
+                        await playAudioGlobal(require('@/assets/audio/niveles.wav'));
+                        setTimeout(() => {
+                            router.push("/(tabs)/niveles");
+                        }, 500);
+                    }}
                 >
                     <Ionicons name="person-outline" size={40} color="white" />
                     <View style={styles.editIcon}>
                         <Ionicons name="pencil" size={14} color="#006FFD" />
                     </View>
                 </TouchableOpacity>
-
 
                 {/* Agregar perfil */}
                 <TouchableOpacity style={styles.addButton}>
@@ -28,7 +40,12 @@ const ProfileScreen = () => {
             </View>
 
             {/* Botón de reproducción */}
-            <TouchableOpacity style={styles.playButton}>
+            <TouchableOpacity
+                style={styles.playButton}
+                onPress={async () => {
+                    await playAudioGlobal(require('@/assets/audio/Todos.wav'));
+                }}
+            >
                 <Ionicons name="play" size={20} color="white" />
             </TouchableOpacity>
 
@@ -51,7 +68,7 @@ const styles = StyleSheet.create({
         marginBottom: 100,
     },
     profileButton: {
-        backgroundColor: "#006FFD", // Color actualizado
+        backgroundColor: "#006FFD",
         width: 120,
         height: 120,
         borderRadius: 90,
@@ -92,6 +109,12 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         position: "absolute",
         bottom: 20,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 50,
+        left: 20,
+        zIndex: 2,
     },
 });
 

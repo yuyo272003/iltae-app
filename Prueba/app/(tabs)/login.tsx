@@ -61,6 +61,14 @@ export default function LoginScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
+
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+            >
+                <Ionicons name="arrow-back" size={28} color="blue" />
+            </TouchableOpacity>
+
             <View style={styles.content}>
                 <View style={styles.profileContainer}>
                     <Ionicons name="person-circle" size={100} color="#1E6ADB" />
@@ -180,5 +188,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         borderRadius: 8,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 50,
+        left: 20,
+        zIndex: 2,
     },
 });
