@@ -58,6 +58,16 @@ export default function LetterScreen({
         }
     };
 
+    const restartPracticeAudio = async () => {
+        if (practiceSound) {
+            await practiceSound.stopAsync();
+            await practiceSound.setPositionAsync(0);
+            await practiceSound.playAsync();
+            setIsPlaying(true);
+            setIsPaused(false);
+        }
+    };
+
     const stopAudioAndNavigate = async (navigationFn?: () => void) => {
         if (practiceSound) {
             await practiceSound.stopAsync();
@@ -66,12 +76,11 @@ export default function LetterScreen({
         }
         setIsPlaying(false);
         setIsPaused(false);
-        navigationFn?.(); // Ejecuta la función si existe
+        navigationFn?.();
     };
 
     return (
         <View style={styles.container}>
-            {/* 🔺 Botón arriba más grande */}
             <TouchableOpacity
                 style={styles.topBackButton}
                 onPress={() => stopAudioAndNavigate(onTopBack)}
@@ -100,7 +109,13 @@ export default function LetterScreen({
                     <View style={styles.progressBarFill} />
                 </View>
 
-                {/* 🔻 Botón regreso panel inferior */}
+                <TouchableOpacity
+                    style={styles.restartButton}
+                    onPress={restartPracticeAudio}
+                >
+                    <Ionicons name="refresh" size={24} color="white" />
+                </TouchableOpacity>
+
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => stopAudioAndNavigate(onBottomBack)}
@@ -108,7 +123,6 @@ export default function LetterScreen({
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
 
-                {/* ➡️ Botón siguiente */}
                 <TouchableOpacity
                     style={styles.nextButton}
                     onPress={() => stopAudioAndNavigate(onNext)}
@@ -120,71 +134,75 @@ export default function LetterScreen({
     );
 }
 
-
-
 const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: 'white',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingBottom: 200, // ⬅️ igual al alto del panel gris
-        },
-
-        letterText: {
-            fontSize: 96,
-            fontWeight: 'bold',
-            color: '#2b2b2b',
-        },
-        soundButton: {
-            marginTop: 16,
-            backgroundColor: '#2e6ef7',
-            padding: 12,
-            borderRadius: 8,
-        },
-        bottomPanel: {
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 300, // ⬅️ antes era 160, puedes ajustar más si quieres
-            backgroundColor: '#2b2b2b',
-            borderTopLeftRadius: 32,
-            borderTopRightRadius: 32,
-            padding: 24,
-            alignItems: 'center',
-            elevation: 10,
-        },
-
-        playButton: {
-            backgroundColor: '#2e6ef7',
-            padding: 16,
-            borderRadius: 12,
-            width: '100%',
-            alignItems: 'center',
-            marginBottom: 16,
-        },
-        progressBarContainer: {
-            height: 6,
-            backgroundColor: '#ccc',
-            width: '90%',
-            borderRadius: 3,
-            marginBottom: 16,
-        },
-        progressBarFill: {
-            width: '50%',
-            height: '100%',
-            backgroundColor: '#2e6ef7',
-            borderRadius: 3,
-        },
-        nextButton: {
-            position: 'absolute',
-            right: 30,
-            bottom: 70,
-            backgroundColor: '#33cc66',
-            borderRadius: 50,
-            padding: 20,
-        },
+    container: {
+        flex: 1,
+        backgroundColor: 'white',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: 200,
+    },
+    letterText: {
+        fontSize: 96,
+        fontWeight: 'bold',
+        color: '#2b2b2b',
+    },
+    soundButton: {
+        marginTop: 16,
+        backgroundColor: '#2e6ef7',
+        padding: 12,
+        borderRadius: 8,
+    },
+    bottomPanel: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 300,
+        backgroundColor: '#2b2b2b',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        padding: 24,
+        alignItems: 'center',
+        elevation: 10,
+    },
+    playButton: {
+        backgroundColor: '#2e6ef7',
+        padding: 16,
+        borderRadius: 12,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    progressBarContainer: {
+        height: 6,
+        backgroundColor: '#ccc',
+        width: '90%',
+        borderRadius: 3,
+        marginBottom: 16,
+    },
+    progressBarFill: {
+        width: '50%',
+        height: '100%',
+        backgroundColor: '#2e6ef7',
+        borderRadius: 3,
+    },
+    restartButton: {
+        position: 'absolute',
+        bottom: 70,
+        backgroundColor: '#2e6ef7',
+        borderRadius: 50,
+        padding: 16,
+        alignSelf: 'center',
+    },
+    nextButton: {
+        position: 'absolute',
+        right: 30,
+        bottom: 70,
+        backgroundColor: '#33cc66',
+        borderRadius: 50,
+        padding: 20,
+    },
     backButton: {
         position: 'absolute',
         left: 30,
@@ -203,6 +221,4 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         elevation: 5,
     },
-
-
 });

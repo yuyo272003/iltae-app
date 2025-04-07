@@ -6,8 +6,8 @@ export default function Leccion2() {
     return (
         <LetterScreen
             letter="Uu"
-            letterAudio={require('@assets/audio/lecciones/nivel1/lessons/E/e2.wav')}
-            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/E/e.wav')}
+            letterAudio={require('@assets/audio/lecciones/nivel1/lessons/U/u.wav')}
+            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/U/Ulearn.wav')}
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}
             // @ts-ignore

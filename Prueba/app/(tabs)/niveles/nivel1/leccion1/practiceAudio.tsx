@@ -1,113 +1,154 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { Audio } from 'expo-av';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import {router} from "expo-router";
+import { useFocusEffect, router } from 'expo-router';
+import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 
-const sounds = [
-    { id: 0, vowel: 'A', file: require('@assets/audio/lecciones/nivel1/lessons/E/e.wav') },
-    { id: 1, vowel: 'E', file: require('@assets/audio/lecciones/nivel1/lessons/E/e.wav') },
-    { id: 2, vowel: 'I', file: require('@assets/audio/lecciones/nivel1/lessons/E/e.wav') },
-    { id: 3, vowel: 'O', file: require('@assets/audio/lecciones/nivel1/lessons/E/e.wav') },
-    { id: 4, vowel: 'U', file: require('@assets/audio/lecciones/nivel1/lessons/E/e.wav') },
+function shuffleArray<T>(array: T[]): T[] {
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
+const originalPairs = [
+    { vowel: 'A', file: require('@assets/audio/lecciones/nivel1/lessons/A/A2.wav') },
+    { vowel: 'E', file: require('@assets/audio/lecciones/nivel1/lessons/E/e2.wav') },
+    { vowel: 'I', file: require('@assets/audio/lecciones/nivel1/lessons/I/i.wav') },
+    { vowel: 'O', file: require('@assets/audio/lecciones/nivel1/lessons/O/o.wav') },
+    { vowel: 'U', file: require('@assets/audio/lecciones/nivel1/lessons/U/u.wav') },
 ];
 
 export default function VowelMatchGame() {
-    const navigation = useNavigation();
-    const [selectedSoundId, setSelectedSoundId] = useState<number | null>(null);
-    const [matchedPairs, setMatchedPairs] = useState<{ [key: number]: boolean }>({});
-    const [instructionAudio] = useState(require('@assets/audio/lecciones/nivel1/lessons/E/e.wav'));
+    const [instructionAudio] = useState(require('@assets/audio/lecciones/nivel1/actividad.wav'));
 
-    const handlePlaySound = async (id: number) => {
-        const { sound } = await Audio.Sound.createAsync(sounds[id].file);
-        await sound.playAsync();
-        setSelectedSoundId(id);
+    const [soundButtons, setSoundButtons] = useState<any[]>([]);
+    const [letterButtons, setLetterButtons] = useState<any[]>([]);
+    const [matchedVowels, setMatchedVowels] = useState<string[]>([]);
+    const [selectedSound, setSelectedSound] = useState<{ vowel: string } | null>(null);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            // Reiniciar todos los estados al entrar
+            setSoundButtons(
+                shuffleArray(originalPairs).map((item, index) => ({
+                    ...item,
+                    id: index,
+                }))
+            );
+
+            setLetterButtons(
+                shuffleArray(originalPairs).map((item, index) => ({
+                    vowel: item.vowel,
+                    id: index,
+                }))
+            );
+
+            setMatchedVowels([]);
+            setSelectedSound(null);
+            stopAudioGlobal();
+
+            // También puedes reproducir la instrucción al entrar automáticamente:
+            // playAudioGlobal(instructionAudio);
+
+            return () => {
+                stopAudioGlobal();
+            };
+        }, [])
+    );
+
+    const handlePlaySound = async (button: { vowel: string; file: any }) => {
+        await playAudioGlobal(button.file);
+        setSelectedSound({ vowel: button.vowel });
     };
 
-    const handleSelectVowel = (vowel: string) => {
-        if (selectedSoundId === null) return;
+    const handleSelectLetter = async (button: { vowel: string }) => {
+        if (!selectedSound) return;
 
-        const selectedSound = sounds.find((s) => s.id === selectedSoundId);
-        if (selectedSound && selectedSound.vowel === vowel) {
-            setMatchedPairs((prev) => ({ ...prev, [selectedSoundId]: true }));
-            setSelectedSoundId(null);
-        } else {
-            Alert.alert('Intenta de nuevo', 'Esa vocal no corresponde al sonido.');
-            setSelectedSoundId(null);
+        if (selectedSound.vowel === button.vowel) {
+            setMatchedVowels((prev) => [...prev, button.vowel]);
         }
-    };
 
-    const allMatched = Object.keys(matchedPairs).length === sounds.length;
+        setSelectedSound(null);
+    };
 
     const handlePlayInstruction = async () => {
-        const { sound } = await Audio.Sound.createAsync(instructionAudio);
-        await sound.playAsync();
+        await playAudioGlobal(instructionAudio);
     };
 
+    const allMatched = matchedVowels.length === originalPairs.length;
 
-    // @ts-ignore
     return (
         <View style={styles.container}>
-            {/* Botón de regreso */}
-
-            <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(tabs)/Level1Screen')}>
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={async () => {
+                    await stopAudioGlobal();
+                    router.push('/(tabs)/Level1Screen');
+                }}
+            >
                 <Ionicons name="arrow-back" size={28} color="black" />
             </TouchableOpacity>
 
-            {/* Parte central: audio + vocal */}
-            <View style={styles.pairsContainer}>
-                {sounds.map((sound) => (
-                    <View key={sound.id} style={styles.row}>
+            <View style={styles.matchContainer}>
+                <View style={styles.column}>
+                    {soundButtons.map((button) => (
                         <TouchableOpacity
+                            key={`sound-${button.id}`}
                             style={[
-                                styles.audioButton,
-                                matchedPairs[sound.id] && styles.correctMatch,
+                                styles.soundButton,
+                                matchedVowels.includes(button.vowel) && styles.correctMatch,
                             ]}
-                            onPress={() => handlePlaySound(sound.id)}
-                            disabled={matchedPairs[sound.id]}
+                            onPress={() => handlePlaySound(button)}
+                            disabled={matchedVowels.includes(button.vowel)}
                         >
                             <Ionicons name="volume-high" size={24} color="blue" />
                         </TouchableOpacity>
+                    ))}
+                </View>
 
+                <View style={styles.column}>
+                    {letterButtons.map((button) => (
                         <TouchableOpacity
+                            key={`letter-${button.id}`}
                             style={[
-                                styles.vowelButton,
-                                matchedPairs[sound.id] && styles.correctMatch,
+                                styles.letterButton,
+                                matchedVowels.includes(button.vowel) && styles.correctMatch,
                             ]}
-                            onPress={() => handleSelectVowel(sound.vowel)}
-                            disabled={matchedPairs[sound.id]}
+                            onPress={() => handleSelectLetter(button)}
+                            disabled={matchedVowels.includes(button.vowel)}
                         >
                             <Text style={styles.vowelText}>
-                                {sound.vowel.toUpperCase() + sound.vowel.toLowerCase()}
+                                {button.vowel.toUpperCase() + button.vowel.toLowerCase()}
                             </Text>
                         </TouchableOpacity>
-                    </View>
-                ))}
+                    ))}
+                </View>
             </View>
 
-            {/* Parte inferior */}
             <View style={styles.bottomBox}>
-                {/* Botón de instrucciones */}
                 <TouchableOpacity style={styles.playInstruction} onPress={handlePlayInstruction}>
                     <Ionicons name="play" size={28} color="blue" />
                 </TouchableOpacity>
 
-                {/* Barra de progreso */}
                 <View style={styles.progressBar}>
                     <View
                         style={[
                             styles.progressFill,
-                            { width: `${(Object.keys(matchedPairs).length / sounds.length) * 100}%` },
+                            { width: `${(matchedVowels.length / originalPairs.length) * 100}%` },
                         ]}
                     />
                 </View>
 
-                {/* Botones de navegación */}
                 <View style={styles.navButtons}>
                     <TouchableOpacity
                         style={styles.backRoundButton}
-                        onPress={() => router.push('/(tabs)/niveles/nivel1/leccion1/Uboard')}
+                        onPress={async () => {
+                            await stopAudioGlobal();
+                            router.push('/(tabs)/niveles/nivel1/leccion1/Uboard');
+                        }}
                     >
                         <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
@@ -118,13 +159,16 @@ export default function VowelMatchGame() {
                             { backgroundColor: allMatched ? '#00c853' : '#aaa' },
                         ]}
                         disabled={!allMatched}
-                        onPress={() => Alert.alert('¡Bien hecho!', 'Completaste todos los pares.')}
+                        onPress={async () => {
+                            await stopAudioGlobal();
+                            // @ts-ignore
+                            router.push('/(tabs)//Level1Screen');
+                        }}
                     >
                         <Ionicons name="arrow-forward" size={24} color="#fff" />
                     </TouchableOpacity>
                 </View>
             </View>
-
         </View>
     );
 }
@@ -138,33 +182,38 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 40,
         left: 20,
-        zIndex: 10,
+        zIndex: 1,
+        backgroundColor: '#e0e0e0',
+        padding: 14,
+        borderRadius: 50,
+        elevation: 5,
     },
-    pairsContainer: {
-        marginTop: 40,
-        paddingHorizontal: 30,
+    matchContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        marginTop: 80,
         marginBottom: 140,
     },
-    row: {
-        flexDirection: 'row',
+    column: {
         justifyContent: 'space-between',
-        marginBottom: 20,
+        alignItems: 'center',
+        gap: 20,
     },
-    audioButton: {
+    soundButton: {
         width: 100,
         height: 40,
         borderRadius: 20,
-        borderColor: 'blue',
         borderWidth: 2,
+        borderColor: 'blue',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    vowelButton: {
+    letterButton: {
         width: 100,
         height: 40,
         borderRadius: 20,
-        borderColor: 'blue',
         borderWidth: 2,
+        borderColor: 'blue',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -188,10 +237,13 @@ const styles = StyleSheet.create({
     },
     playInstruction: {
         backgroundColor: '#fff',
-        padding: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 180, // más ancho
         borderRadius: 12,
         marginBottom: 12,
+        alignItems: 'center',
     },
+
     progressBar: {
         width: '80%',
         height: 5,
@@ -203,13 +255,6 @@ const styles = StyleSheet.create({
     progressFill: {
         height: 5,
         backgroundColor: '#000',
-    },
-    nextButton: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     navButtons: {
         flexDirection: 'row',
@@ -225,5 +270,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-
+    nextButton: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });

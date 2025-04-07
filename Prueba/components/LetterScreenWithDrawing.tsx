@@ -28,6 +28,7 @@ export default function LetterScreenWithDrawing({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
 
+
     const togglePracticeAudio = async () => {
         if (sound && isPlaying) {
             await sound.pauseAsync();
@@ -49,6 +50,16 @@ export default function LetterScreenWithDrawing({
                     setIsPaused(false);
                 }
             });
+        }
+    };
+
+    const restartPracticeAudio = async () => {
+        if (sound) {
+            await sound.stopAsync();
+            await sound.setPositionAsync(0);
+            await sound.playAsync();
+            setIsPlaying(true);
+            setIsPaused(false);
         }
     };
 
@@ -100,15 +111,27 @@ export default function LetterScreenWithDrawing({
                 </View>
 
                 <TouchableOpacity
+                    style={styles.restartButton}
+                    onPress={restartPracticeAudio}
+                >
+                    <Ionicons name="refresh" size={24} color="white" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
                     style={styles.backButton}
-                    onPress={() => stopAudioAndNavigate(onBottomBack)}
+                    onPress={() =>
+                        {  handleClear();
+                        stopAudioAndNavigate(onBottomBack);}}
                 >
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={styles.nextButton}
-                    onPress={() => stopAudioAndNavigate(onNext)}
+                    onPress={() => {
+                        handleClear(); // Limpiar la firma
+                        stopAudioAndNavigate(onNext); // Navegar
+                    }}
                 >
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </TouchableOpacity>
@@ -207,5 +230,13 @@ const styles = StyleSheet.create({
         borderRadius: 80,
         padding: 20,
     },
+    restartButton: {
+        position: 'absolute',
+        bottom: 70,
+        backgroundColor: '#2e6ef7',
+        borderRadius: 50,
+        padding: 16,
+        alignSelf: 'center',
+    }
 
 });
