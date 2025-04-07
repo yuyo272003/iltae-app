@@ -34,8 +34,12 @@ export default function NivelesScreen() {
     const router = useRouter();
 
     useEffect(() => {
-        playAudioGlobal(require('@/assets/audio/niveles.wav'));
-    }, []);
+        const reproducirIntro = async () => {
+            await stopAudioGlobal(); // 🔇 Detenemos el audio que venga de Profile
+            await playAudioGlobal(require('@/assets/audio/niveles.wav'));
+        };
+        reproducirIntro();
+    }, [])
 
     useEffect(() => {
         let audioUri: any;
