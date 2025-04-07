@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     playInstruction: {
         backgroundColor: '#fff',
         paddingVertical: 10,
-        paddingHorizontal: 180, // más ancho
+        paddingHorizontal: 140, // más ancho
         borderRadius: 12,
         marginBottom: 12,
         alignItems: 'center',
