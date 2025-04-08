@@ -7,15 +7,15 @@ export default function Leccion2() {
 
     return (
         <LetterScreen2
-            letter="Mm"
-            letterAudio={require('@assets/audio/lecciones/nivel1/lessons/M/M.wav')}
-            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/M/Mlearn.wav')}
+            letter="Nn"
+            letterAudio={require('@assets/audio/lecciones/nivel1/lessons/A/A2.wav')}
+            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/A/a.wav')}
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}
             // @ts-ignore
-            onBottomBack={() => router.push('/(tabs)/niveles//nivel1/leccion2/leccion')}
+            onBottomBack={() => router.push('/(tabs)/niveles//nivel1/leccion2/Mpalabra')}
             // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel1/leccion2/Mboard')}
+            onNext={() => router.push('/(tabs)/niveles/nivel1/leccion2/Nboard')}
 
         />
     );

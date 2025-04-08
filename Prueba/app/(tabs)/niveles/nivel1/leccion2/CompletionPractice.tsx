@@ -1,31 +1,42 @@
 import React from 'react';
-import WordCompletionGame from '../../../../../components/WordCompletionGame';
+import WordDragGame from '../../../../../components/WordDragGame';
 import {router} from "expo-router";
 
 export default function Leccion1() {
+    // @ts-ignore
+
     return (
-        <WordCompletionGame
+        <WordDragGame
             slides={[
                 {
-                    image: require('@assets/images/lecciones/nivel1/lessons/letterM.png'),
-                    word: ['□', 'o', '□', 'o'],
-                    correctLetter: 'm',
+                    image: require('@assets/images/lecciones/nivel1/lessons/mono.png'),
+                    word: [null, 'o', null, 'o'],
+                    correctLetters: ['m', 'n'],
                     options: ['m', 'n', 'ñ'],
+                    audio: require('@assets/audio/lecciones/nivel1/lessons/A/A2.wav')
                 },
                 {
-                    image: require('@assets/images/lecciones/nivel1/lessons/letterM.png'),
-                    word: ['□', 'i', '□', 'o'],
-                    correctLetter: 'n',
+                    image: require('@assets/images/lecciones/nivel1/lessons/niño.png'),
+                    word: [null, 'i', null, 'o'],
+                    correctLetters: ['n', 'ñ'],
                     options: ['m', 'n', 'ñ'],
+                    audio: require('@assets/audio/lecciones/nivel1/lessons/A/A2.wav')
                 },
                 {
-                    image: require('@assets/images/lecciones/nivel1/lessons/letterM.png'),
-                    word: ['□', 'a', '□', 'a'],
-                    correctLetter: 'm',
+                    image: require('@assets/images/lecciones/nivel1/lessons/mama.png'),
+                    word: [null, 'a', null, 'á'],
+                    correctLetters: ['m', 'm'],
                     options: ['m', 'n', 'ñ'],
+                    audio: require('@assets/audio/lecciones/nivel1/lessons/A/A2.wav')
                 },
             ]}
-            onFinish={() => console.log("Juego terminado")}
+            onFinish={() => console.log('Juego terminado')}
+            firstSlideBackRoute="/(tabs)/niveles/nivel1/leccion2/N2palabra" // Custom route for back button on first slide
+            lastSlideNextRoute="/(tabs)/Level1Screen"
+            // @ts-ignore
+            onTopBack={() => router.push('/(tabs)//Level1Screen')}
         />
+
+
     );
 }
