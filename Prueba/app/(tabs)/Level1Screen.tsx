@@ -1,9 +1,9 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { playAudioGlobal } from '@/utils/AudioManager';
+import { playAudioGlobal,stopAudioGlobal } from '@/utils/AudioManager';
 
 const lessons = [
     {
@@ -60,11 +60,22 @@ const lessons = [
 export default function Level1Screen() {
     const router = useRouter();
 
+    useEffect(() => {
+        return () => {
+            stopAudioGlobal();
+        };
+    }, []);
+
     return (
         <SafeAreaView style={styles.container}>
             {/* Encabezado */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.push("/(tabs)/niveles")}>
+                <TouchableOpacity
+                    onPress={async () => {
+                        await stopAudioGlobal(); // 🔇 detener antes de ir atrás
+                        router.push("/(tabs)/niveles");
+                    }}
+                >
                     <Ionicons name="arrow-back" size={28} color="#3E64FF" />
                 </TouchableOpacity>
 
@@ -76,7 +87,6 @@ export default function Level1Screen() {
                     <Text style={styles.titleText}>Nivel 1</Text>
                 </TouchableOpacity>
 
-
                 <View style={{ width: 28 }} />
             </View>
 
@@ -87,7 +97,8 @@ export default function Level1Screen() {
                 renderItem={({ item }) => (
                     <TouchableOpacity
                         style={styles.card}
-                        onPress={() => {
+                        onPress={async () => {
+                            await stopAudioGlobal(); // 🔇 detener antes de navegar
                             if (item.type === "leccion") {
                                 // @ts-ignore
                                 router.push(`/(tabs)/niveles/nivel1/${item.id}/leccion`);
@@ -99,9 +110,10 @@ export default function Level1Screen() {
                             <>
                                 <Text style={styles.subtitle}>{item.title}</Text>
                                 <TouchableOpacity
-                                    onPress={(e) => {
+                                    onPress={async (e) => {
                                         e.stopPropagation();
-                                        playAudioGlobal(item.audioFile);
+                                        await stopAudioGlobal(); // 🔇 detener el anterior
+                                        await playAudioGlobal(item.audioFile);
                                     }}
                                     style={styles.playBar}
                                 >
@@ -112,9 +124,10 @@ export default function Level1Screen() {
                             <View style={styles.row}>
                                 <Text style={styles.subtitle}>{item.title}</Text>
                                 <TouchableOpacity
-                                    onPress={(e) => {
+                                    onPress={async (e) => {
                                         e.stopPropagation();
-                                        playAudioGlobal(item.audioFile);
+                                        await stopAudioGlobal(); // 🔇 detener el anterior
+                                        await playAudioGlobal(item.audioFile);
                                     }}
                                     style={styles.audioPill}
                                 >
