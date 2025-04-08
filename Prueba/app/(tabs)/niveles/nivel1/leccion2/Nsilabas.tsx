@@ -10,8 +10,8 @@ export default function Leccion1() {
         <SyllableScreen
             letter="n"
             syllables={["na", "ne", "ni", "no", "nu"]}
-            practiceAudio={require('@assets/audio/lecciones/nivel1/intro.wav')}
-            syllablesAudio={require('@assets/audio/lecciones/nivel1/intro.wav')}
+            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/N/Nsilabaslearn.wav')}
+            syllablesAudio={require('@assets/audio/lecciones/nivel1/lessons/N/Nsilabas.wav')}
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}
             // @ts-ignore
