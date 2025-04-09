@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
         marginVertical: 20,
     },
     image: {
-        width: 100,
-        height: 100,
+        width: 150,
+        height: 120,
     },
     iconButton: {
         marginTop: 8,

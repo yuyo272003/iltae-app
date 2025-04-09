@@ -292,7 +292,15 @@ const styles = StyleSheet.create({
         padding: 12, borderRadius: 30,
     },
     image: { width: 200, height: 200, marginBottom: 20 },
-    wordContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 40 },
+    wordContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        rowGap: 12,
+        columnGap: 4,
+        marginBottom: 40,
+    },
     dropZone: {
         width: LETTER_BOX_SIZE, height: LETTER_BOX_SIZE, marginHorizontal: LETTER_BOX_MARGIN,
         borderRadius: 8, borderWidth: 2, borderColor: '#333', justifyContent: 'center', alignItems: 'center',
