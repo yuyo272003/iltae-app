@@ -33,27 +33,58 @@ export default function NivelesScreen() {
     const { logout } = useAuth();
     const router = useRouter();
 
+    // Reproducir introducción al cargar la pantalla
     useEffect(() => {
         const reproducirIntro = async () => {
-            await stopAudioGlobal(); // 🔇 Detenemos el audio que venga de Profile
-            await playAudioGlobal(require('@/assets/audio/niveles.wav'));
+            await stopAudioGlobal(); // Aseguramos que no haya audio previo
+            // Pequeño retraso para asegurar que el audio anterior se detuvo completamente
+            setTimeout(async () => {
+                await playAudioGlobal(require('@/assets/audio/niveles.wav'));
+            }, 50);
         };
         reproducirIntro();
-    }, [])
 
+        // Limpieza al desmontar
+        return () => {
+            stopAudioGlobal();
+        };
+    }, []);
+
+    // Reproducir audio al cambiar de pestaña
     useEffect(() => {
-        let audioUri: any;
+        const cambiarAudio = async () => {
+            await stopAudioGlobal(); // Primero detenemos cualquier audio
 
-        if (selectedTab === 'Todos') {
-            audioUri = require('@/assets/audio/Todos.wav');
-        } else if (selectedTab === 'En progreso') {
-            audioUri = require('@/assets/audio/progreso.wav');
-        } else if (selectedTab === 'Terminados') {
-            audioUri = require('@/assets/audio/terminados.wav');
-        }
+            // Pequeño retraso para asegurar que el audio anterior se detuvo completamente
+            setTimeout(async () => {
+                let audioUri: any;
 
-        playAudioGlobal(audioUri);
+                if (selectedTab === 'Todos') {
+                    audioUri = require('@/assets/audio/Todos.wav');
+                } else if (selectedTab === 'En progreso') {
+                    audioUri = require('@/assets/audio/progreso.wav');
+                } else if (selectedTab === 'Terminados') {
+                    audioUri = require('@/assets/audio/terminados.wav');
+                }
+
+                if (audioUri) {
+                    await playAudioGlobal(audioUri);
+                }
+            }, 50);
+        };
+
+        cambiarAudio();
     }, [selectedTab]);
+
+    // Función específica para reproducir audio
+    const handlePlayAudio = async (audioUri: any) => {
+        await stopAudioGlobal(); // Primero detenemos cualquier audio
+
+        // Pequeño retraso para asegurar que el audio anterior se detuvo completamente
+        setTimeout(async () => {
+            await playAudioGlobal(audioUri);
+        }, 50);
+    };
 
     const filteredNiveles = niveles.filter(nivel => {
         if (selectedTab === 'Todos') return true;
@@ -88,7 +119,7 @@ export default function NivelesScreen() {
                         size={20}
                         color={isActivo ? '#2E6BE6' : '#aaa'}
                         style={styles.audioIcon}
-                        onPress={() => playAudio(audioUri)}
+                        onPress={() => isActivo && playAudio(audioUri)}
                     />
                 </View>
                 <Text style={[styles.descripcion, { color: isActivo ? '#666' : '#aaa' }]}>{nivel.descripcion}</Text>
@@ -119,7 +150,7 @@ export default function NivelesScreen() {
             <View style={styles.headerCenterContainer}>
                 <TouchableOpacity
                     style={styles.headerAudioTitle}
-                    onPress={() => playAudioGlobal(require('@/assets/audio/niveles.wav'))}
+                    onPress={() => handlePlayAudio(require('@/assets/audio/niveles.wav'))}
                 >
                     <Ionicons name="volume-high" size={18} color="#2E6BE6" />
                     <Text style={styles.title}>Niveles</Text>
@@ -157,7 +188,7 @@ export default function NivelesScreen() {
                                 router.push('/(tabs)/Level1Screen');
                             }
                         }}
-                        playAudio={playAudioGlobal}
+                        playAudio={handlePlayAudio}
                         audioUri={require(`@/assets/audio/AudioNivel1.wav`)}
                     />
                 )}

@@ -20,6 +20,8 @@ import * as Speech from "expo-speech";
 import { useAuth } from "@/contexts/AuthContext";
 import api from '@/scripts/api';
 import { Audio, AVPlaybackSource} from "expo-av";
+import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
+
 
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState("");
