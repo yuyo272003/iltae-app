@@ -3,10 +3,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import api from "@/scripts/api";
 
-// Define el tipo del usuario (ajústalo a lo que te devuelve tu backend)
+// Ahora incluye niveles_completados
 export type User = {
     id: number;
     name: string;
+    niveles_completados: number;
 } | null;
 
 type AuthContextType = {
@@ -45,6 +46,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             router.replace("/(tabs)/perfiles");
         }
     };
+
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const token = await AsyncStorage.getItem("auth_token");
+            if (!token) return;
+
+            try {
+                const response = await api.get("/user", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json",
+                    },
+                });
+
+                setUser(response.data);
+            } catch (error) {
+                console.error("Error al obtener el perfil de usuario:", error);
+                setUser(null);
+                await AsyncStorage.removeItem("auth_token");
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
 
     return (
         <AuthContext.Provider value={{ user, setUser, logout }}>

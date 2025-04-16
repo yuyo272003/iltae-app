@@ -121,10 +121,10 @@ export default function LoginScreen() {
                 name: nombre,
             });
 
-            const { user, token } = response.data;
-
+            const { user, token, niveles_completados } = response.data;
             await AsyncStorage.setItem("auth_token", token);
-            setUser(user); // 🔥 Aquí usamos el contexto
+            setUser({ ...user, niveles_completados }); // ✅ ¡ahora sí se guarda!
+
 
             console.log("Usuario autenticado:", user);
 

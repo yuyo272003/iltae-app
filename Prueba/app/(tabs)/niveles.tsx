@@ -20,73 +20,88 @@ type Nivel = {
 
 const tabs = ['Todos', 'En progreso', 'Terminados'];
 
-const niveles: Nivel[] = [
-    { id: 1, titulo: 'Nivel 1', descripcion: 'Aprendizaje de letras y sílabas', estado: 'en progreso' },
+const nivelesBase: Nivel[] = [
+    { id: 1, titulo: 'Nivel 1', descripcion: 'Aprendizaje de letras y sílabas', estado: 'pendiente' },
     { id: 2, titulo: 'Nivel 2', descripcion: 'Conoce las letras del abecedario', estado: 'pendiente' },
-    { id: 3, titulo: 'Nivel 3', descripcion: 'Conoce las letras del abecedario', estado: 'pendiente' },
-    { id: 4, titulo: 'Nivel 4', descripcion: 'Conoce las letras del abecedario', estado: 'pendiente' },
-    { id: 5, titulo: 'Nivel 5', descripcion: 'Conoce las letras del abecedario', estado: 'pendiente' },
+    { id: 3, titulo: 'Nivel 3', descripcion: 'Palabras con sílabas simples', estado: 'pendiente' },
+    { id: 4, titulo: 'Nivel 4', descripcion: 'Combinaciones consonantes', estado: 'pendiente' },
+    { id: 5, titulo: 'Nivel 5', descripcion: 'Lectura de oraciones', estado: 'pendiente' },
 ];
+
+// ✅ Map de audios por nivel
+const audiosPorNivel: { [key: number]: any } = {
+    1: require('@/assets/audio/AudioNivel1.wav'),
+    2: require('@/assets/audio/AudioNivel1.wav'),
+    3: require('@/assets/audio/AudioNivel1.wav'),
+    4: require('@/assets/audio/AudioNivel1.wav'),
+    5: require('@/assets/audio/AudioNivel1.wav'),
+};
 
 export default function NivelesScreen() {
     const [selectedTab, setSelectedTab] = useState<string>('Todos');
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const router = useRouter();
 
-    // Reproducir introducción al cargar la pantalla
+    // 🔊 Intro audio
+    // @ts-ignore
     useEffect(() => {
         const reproducirIntro = async () => {
-            await stopAudioGlobal(); // Aseguramos que no haya audio previo
-            // Pequeño retraso para asegurar que el audio anterior se detuvo completamente
+            await stopAudioGlobal();
             setTimeout(async () => {
                 await playAudioGlobal(require('@/assets/audio/niveles.wav'));
             }, 50);
         };
         reproducirIntro();
-
-        // Limpieza al desmontar
-        return () => {
-            stopAudioGlobal();
-        };
+        return () => stopAudioGlobal();
     }, []);
 
-    // Reproducir audio al cambiar de pestaña
     useEffect(() => {
         const cambiarAudio = async () => {
-            await stopAudioGlobal(); // Primero detenemos cualquier audio
-
-            // Pequeño retraso para asegurar que el audio anterior se detuvo completamente
+            await stopAudioGlobal();
             setTimeout(async () => {
                 let audioUri: any;
-
-                if (selectedTab === 'Todos') {
-                    audioUri = require('@/assets/audio/Todos.wav');
-                } else if (selectedTab === 'En progreso') {
-                    audioUri = require('@/assets/audio/progreso.wav');
-                } else if (selectedTab === 'Terminados') {
-                    audioUri = require('@/assets/audio/terminados.wav');
-                }
-
-                if (audioUri) {
-                    await playAudioGlobal(audioUri);
-                }
+                if (selectedTab === 'Todos') audioUri = require('@/assets/audio/Todos.wav');
+                if (selectedTab === 'En progreso') audioUri = require('@/assets/audio/progreso.wav');
+                if (selectedTab === 'Terminados') audioUri = require('@/assets/audio/terminados.wav');
+                if (audioUri) await playAudioGlobal(audioUri);
             }, 50);
         };
-
         cambiarAudio();
     }, [selectedTab]);
 
-    // Función específica para reproducir audio
     const handlePlayAudio = async (audioUri: any) => {
-        await stopAudioGlobal(); // Primero detenemos cualquier audio
-
-        // Pequeño retraso para asegurar que el audio anterior se detuvo completamente
+        await stopAudioGlobal();
         setTimeout(async () => {
             await playAudioGlobal(audioUri);
         }, 50);
     };
 
-    const filteredNiveles = niveles.filter(nivel => {
+    const mappedNiveles: Nivel[] = nivelesBase.map(nivel => {
+        if (nivel.id === 1) {
+            // Nivel 1: siempre disponible, terminado si ya completó al menos 1
+            // @ts-ignore
+            if (user?.niveles_completados >= 1) {
+                return { ...nivel, estado: 'terminado' };
+            } else {
+                return { ...nivel, estado: 'en progreso' };
+            }
+        } else { // @ts-ignore
+            if (user?.niveles_completados + 1 === nivel.id) {
+                        return { ...nivel, estado: 'en progreso' };
+                    } else { // @ts-ignore
+                if (user?.niveles_completados >= nivel.id) {
+                                        return { ...nivel, estado: 'terminado' };
+                                    } else {
+                                        return { ...nivel, estado: 'pendiente' };
+                                    }
+            }
+        }
+    });
+
+
+
+
+    const filteredNiveles = mappedNiveles.filter(nivel => {
         if (selectedTab === 'Todos') return true;
         if (selectedTab === 'En progreso') return nivel.estado === 'en progreso';
         if (selectedTab === 'Terminados') return nivel.estado === 'terminado';
@@ -104,7 +119,7 @@ export default function NivelesScreen() {
         playAudio: (audioUri: any) => void;
         audioUri: any;
     }): JSX.Element => {
-        const isActivo = nivel.estado === 'en progreso';
+        const isActivo = nivel.estado === 'en progreso' || nivel.estado === 'terminado';
 
         return (
             <TouchableOpacity
@@ -184,12 +199,13 @@ export default function NivelesScreen() {
                         nivel={item}
                         onPress={async () => {
                             await stopAudioGlobal();
-                            if (item.id === 1) {
-                                router.push('/(tabs)/Level1Screen');
+                            if (item.estado !== 'pendiente') {
+                                // @ts-ignore
+                                router.push(`/(tabs)/Level${item.id}Screen`);
                             }
                         }}
                         playAudio={handlePlayAudio}
-                        audioUri={require(`@/assets/audio/AudioNivel1.wav`)}
+                        audioUri={audiosPorNivel[item.id]}
                     />
                 )}
                 contentContainerStyle={{ paddingBottom: 20 }}
