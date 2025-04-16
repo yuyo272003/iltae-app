@@ -11,6 +11,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { Audio } from 'expo-av';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '@/scripts/api';
+import { avanzarLeccion } from '@/utils/leassonProgress';
 
 const LETTER_BOX_SIZE = 50;
 const LETTER_BOX_MARGIN = 10;
@@ -44,6 +47,9 @@ export default function WordDragGame({
     const [slideCompleted, setSlideCompleted] = useState(false);
     const [panRefs, setPanRefs] = useState<Animated.ValueXY[]>([]);
 
+    const [nivelId, setNivelId] = useState<number | null>(null);
+    const [leccionId, setLeccionId] = useState<number | null>(null);
+
     const [sound, setSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
@@ -55,6 +61,27 @@ export default function WordDragGame({
     const nullPositions = slide.word
         .map((char, i) => (char === null ? i : null))
         .filter((i) => i !== null) as number[];
+
+    useEffect(() => {
+        const fetchProgreso = async () => {
+            try {
+                const token = await AsyncStorage.getItem("auth_token");
+                const response = await api.get("/progreso", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json",
+                    },
+                });
+
+                setNivelId(response.data.nivel_id);
+                setLeccionId(response.data.leccion_id);
+            } catch (error) {
+                console.error("Error al obtener el progreso del usuario:", error);
+            }
+        };
+
+        fetchProgreso();
+    }, []);
 
     useEffect(() => {
         setPlacedLetters(slide.word.map((char) => (char === null ? null : char)));
@@ -156,13 +183,21 @@ export default function WordDragGame({
         await stopAudio();
 
         if (isLastSlide) {
+            try {
+                await avanzarLeccion();
+                console.log("Avanzó de lección");
+            } catch (e) {
+                console.error("No se pudo avanzar de lección");
+            }
+
             resetGame();
             // @ts-ignore
             lastSlideNextRoute ? router.push(lastSlideNextRoute) : onFinish();
         } else {
-            setCurrentSlide(currentSlide + 1);
+            setCurrentSlide((prev) => Math.min(prev + 1, slides.length - 1));
         }
     };
+
 
     const goToBack = async () => {
         await stopAudio();
@@ -232,7 +267,6 @@ export default function WordDragGame({
         );
     };
 
-    // 🛑 Esperar a que panRefs esté listo antes de renderizar
     if (!panRefs.length || panRefs.length !== slide.options.length) {
         return null;
     }
@@ -271,10 +305,7 @@ export default function WordDragGame({
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[
-                        styles.nextButton,
-                        (!slideCompleted && !isLastSlide) && styles.nextButtonDisabled
-                    ]}
+                    style={[styles.nextButton, (!slideCompleted && !isLastSlide) && styles.nextButtonDisabled]}
                     onPress={goToNext}
                     disabled={!slideCompleted && !isLastSlide}
                 >

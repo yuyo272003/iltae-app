@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     View,
     Text,
@@ -7,6 +7,8 @@ import {
 } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
+import api from '@/scripts/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type LetterScreenProps = {
     letter: string,
@@ -28,6 +30,23 @@ export default function LetterScreen({
     const [practiceSound, setPracticeSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
+
+    const [userProgress, setUserProgress] = useState<number>(0);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const token = await AsyncStorage.getItem('auth_token');
+                if (!token) return;
+                const resp = await api.get('/progreso', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setUserProgress(resp.data.porcentaje || 0);
+            } catch (e) {
+                console.error('No pude cargar el progreso', e);
+            }
+        })();
+    }, []);
 
     const playLetterSound = async (file: AVPlaybackSource) => {
         const { sound } = await Audio.Sound.createAsync(file);
@@ -105,8 +124,12 @@ export default function LetterScreen({
                     <Ionicons name={isPlaying ? "pause" : "play"} size={24} color="white" />
                 </TouchableOpacity>
 
+                {/* ───────── progress bar ───────── */}
                 <View style={styles.progressBarContainer}>
-                    <View style={styles.progressBarFill} />
+                    {/* Fill */}
+                    <View style={[styles.progressFill, { flex: userProgress }]} />
+                    {/* Empty remainder */}
+                    <View style={{ flex: 100 - userProgress }} />
                 </View>
 
                 <TouchableOpacity
@@ -175,17 +198,16 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     progressBarContainer: {
+        flexDirection: 'row',
         height: 6,
-        backgroundColor: '#ccc',
         width: '90%',
         borderRadius: 3,
+        overflow: 'hidden',
         marginBottom: 16,
+        backgroundColor: '#555', // color del espacio vacío
     },
-    progressBarFill: {
-        width: '50%',
-        height: '100%',
-        backgroundColor: '#2e6ef7',
-        borderRadius: 3,
+    progressFill: {
+        backgroundColor: '#2e6ef7', // color de la barra llena
     },
     restartButton: {
         position: 'absolute',

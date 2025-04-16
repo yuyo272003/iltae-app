@@ -3,11 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import api from "@/scripts/api";
 
-// Ahora incluye niveles_completados
 export type User = {
     id: number;
     name: string;
     niveles_completados: number;
+    nivel_id: number;
+    leccion_id: number;
 } | null;
 
 type AuthContextType = {

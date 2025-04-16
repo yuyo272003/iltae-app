@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, router } from 'expo-router';
 import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
+import { avanzarLeccion } from '@/utils/leassonProgress';
 
 function shuffleArray<T>(array: T[]): T[] {
     const copy = [...array];
@@ -162,6 +163,9 @@ export default function VowelMatchGame() {
                         onPress={async () => {
                             await stopAudioGlobal();
                             // @ts-ignore
+                            await avanzarLeccion();
+                            // @ts-ignore
+
                             router.push('/(tabs)//Level1Screen');
                         }}
                     >

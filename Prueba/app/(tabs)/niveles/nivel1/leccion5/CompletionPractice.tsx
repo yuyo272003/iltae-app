@@ -32,7 +32,7 @@ export default function Leccion1() {
                     audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },                {
                     image: require('@assets/images/lecciones/nivel1/lessons/colores.png'),
-                    word: ['c','o',null,'l','o','r','e','s'],
+                    word: ['c','o',null,'o','r','e','s'],
                     correctLetters: ['l'],
                     options: ['l','rr','ll','r'],
                     audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
