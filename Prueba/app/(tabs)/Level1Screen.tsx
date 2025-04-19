@@ -7,56 +7,62 @@ import { playAudioGlobal,stopAudioGlobal } from '@/utils/AudioManager';
 
 const lessons = [
     {
-        id: 'intro',
-        title: 'Introducción',
-        type: 'intro',
-        image: require('@assets/images/lecciones/nivel1/vocales.png'),
-        audioFile: require('@assets/audio/lecciones/nivel1/introduccion.wav'),
+      id: 'intro',
+      title: 'Introducción',
+      type: 'intro',
+      image: require('@assets/images/lecciones/nivel1/vocales.png'),
+      audioFile: require('@assets/audio/lecciones/nivel1/introduccion.wav'),
     },
     {
-        id: 'leccion1',
-        title: 'Introducción a las vocales',
-        type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/introduccion.png'),
-        audioFile: require('@assets/audio/lecciones/nivel1/leccion1.wav'),
+      id: 'leccion1',
+      carpeta: 'Aa',
+      title: 'Introducción a las vocales',
+      type: 'leccion',
+      image: require('@assets/images/lecciones/nivel1/introduccion.png'),
+      audioFile: require('@assets/audio/lecciones/nivel1/leccion1.wav'),
     },
     {
-        id: 'leccion2',
-        title: 'Consonantes nasales',
-        type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_basicas.png'),
-        audioFile: require('@assets/audio/lecciones/nivel1/leccion2.wav'),
+      id: 'leccion2',
+      carpeta: 'Mm',
+      title: 'Consonantes nasales',
+      type: 'leccion',
+      image: require('@assets/images/lecciones/nivel1/consonantes_basicas.png'),
+      audioFile: require('@assets/audio/lecciones/nivel1/leccion2.wav'),
     },
     {
-        id: 'leccion3',
-        title: 'Consonantes explosivas',
-        type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'),
-        audioFile: require('@assets/audio/lecciones/nivel1/leccion3.wav'),
+      id: 'leccion3',
+      carpeta: 'Bb',
+      title: 'Consonantes explosivas',
+      type: 'leccion',
+      image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'),
+      audioFile: require('@assets/audio/lecciones/nivel1/leccion3.wav'),
     },
     {
-        id: 'leccion4',
-        title: 'Consonantes de aire',
-        type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_complejas.png'),
-        audioFile: require('@assets/audio/lecciones/nivel1/leccion4.wav'),
+      id: 'leccion4',
+      carpeta: 'Ff',
+      title: 'Consonantes de aire',
+      type: 'leccion',
+      image: require('@assets/images/lecciones/nivel1/consonantes_complejas.png'),
+      audioFile: require('@assets/audio/lecciones/nivel1/leccion4.wav'),
     },
     {
-        id: 'leccion5',
-        title: 'Consonantes linguales',
-        type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_linguales.png'),
-        audioFile: require('@assets/audio/lecciones/nivel1/leccion5.wav'),
+      id: 'leccion5',
+      carpeta: 'Ll',
+      title: 'Consonantes linguales',
+      type: 'leccion',
+      image: require('@assets/images/lecciones/nivel1/consonantes_linguales.png'),
+      audioFile: require('@assets/audio/lecciones/nivel1/leccion5.wav'),
     },
     {
-        id: 'leccion6',
-        title: 'Consonantes especiales',
-        type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_especiales.png'),
-        audioFile: require('@assets/audio/lecciones/nivel1/leccion6.wav'),
+      id: 'leccion6',
+      carpeta: 'Cc',
+      title: 'Consonantes especiales',
+      type: 'leccion',
+      image: require('@assets/images/lecciones/nivel1/consonantes_especiales.png'),
+      audioFile: require('@assets/audio/lecciones/nivel1/leccion6.wav'),
     },
-];
-
+  ];
+  
 export default function Level1Screen() {
     const router = useRouter();
 
@@ -99,9 +105,9 @@ export default function Level1Screen() {
                         style={styles.card}
                         onPress={async () => {
                             await stopAudioGlobal(); // 🔇 detener antes de navegar
-                            if (item.type === "leccion") {
+                            if (item.type === "leccion" && item.id && item.carpeta)  {
                                 // @ts-ignore
-                                router.push(`/(tabs)/niveles/nivel1/${item.id}/leccion`);
+                                router.push(`/(tabs)/niveles/nivel1/${item.id}/${item.carpeta}/leccion`);
                             }
                         }}
                     >

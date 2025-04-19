@@ -148,7 +148,7 @@ export default function VowelMatchGame() {
                         style={styles.backRoundButton}
                         onPress={async () => {
                             await stopAudioGlobal();
-                            router.push('/(tabs)/niveles/nivel1/leccion1/Uboard');
+                            router.push('/(tabs)/niveles/nivel1/leccion1/Uu/Uboard');
                         }}
                     >
                         <Ionicons name="arrow-back" size={24} color="#fff" />
