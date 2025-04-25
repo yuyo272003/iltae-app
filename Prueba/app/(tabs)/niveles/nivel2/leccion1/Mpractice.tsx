@@ -7,13 +7,11 @@ import PracticeImageAudioScreen from '../../../../../components/PracticeWordScre
 export default function Leccion1() {
    return (
         <PracticeImageAudioScreen
-        title="Pp"
+        title="Mm"
         images={[
-            { src: require('@/assets/images/paleta.png'), audio: require('@/assets/audio/paleta.wav') },
-            { src: require('@/assets/images/pato.png'), audio: require('@/assets/audio/pato.wav') },
-    
+            { src: require('@/assets/images/lecciones/nivel2/mariposa.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/mariposa.wav') },
         ]}
-        practiceAudio={require('@/assets/audio/practica_letra_p.wav')}
+        practiceAudio={require('@/assets/audio/practica_letra_p.wav')} // falta modificar estooo
         onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Npractice')}
         onTopBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Lpractice')}
         />
