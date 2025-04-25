@@ -7,12 +7,12 @@ export default function Leccion1() {
         <FourImagesAudio
 
             images={[
-                { src: require('@assets/images/lecciones/nivel1/lessons/queso.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/Q/queso.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/quimica.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/Q/quimica.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/quince.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/Q/quince.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/quemado.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/Q/quemado.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/queso.png'), audio: require('@assets/audio/levels/nivel1/lessons/Q/queso.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/quimica.png'), audio: require('@assets/audio/levels/nivel1/lessons/Q/quimica.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/quince.png'), audio: require('@assets/audio/levels/nivel1/lessons/Q/quince.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/quemado.png'), audio: require('@assets/audio/levels/nivel1/lessons/Q/quemado.wav') },
             ]}
-            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/Q/Qpalabrainstruccion.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel1/lessons/Q/Qpalabrainstruccion.wav')}
 
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}

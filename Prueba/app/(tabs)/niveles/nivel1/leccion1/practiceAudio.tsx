@@ -15,15 +15,15 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 const originalPairs = [
-    { vowel: 'A', file: require('@assets/audio/lecciones/nivel1/lessons/A/A2.wav') },
-    { vowel: 'E', file: require('@assets/audio/lecciones/nivel1/lessons/E/e2.wav') },
-    { vowel: 'I', file: require('@assets/audio/lecciones/nivel1/lessons/I/i.wav') },
-    { vowel: 'O', file: require('@assets/audio/lecciones/nivel1/lessons/O/o.wav') },
-    { vowel: 'U', file: require('@assets/audio/lecciones/nivel1/lessons/U/u.wav') },
+    { vowel: 'A', file: require('@assets/audio/levels/nivel1/lessons/A/A2.wav') },
+    { vowel: 'E', file: require('@assets/audio/levels/nivel1/lessons/E/e2.wav') },
+    { vowel: 'I', file: require('@assets/audio/levels/nivel1/lessons/I/i.wav') },
+    { vowel: 'O', file: require('@assets/audio/levels/nivel1/lessons/O/o.wav') },
+    { vowel: 'U', file: require('@assets/audio/levels/nivel1/lessons/U/u.wav') },
 ];
 
 export default function VowelMatchGame() {
-    const [instructionAudio] = useState(require('@assets/audio/lecciones/nivel1/actividad.wav'));
+    const [instructionAudio] = useState(require('@assets/audio/levels/nivel1/actividad.wav'));
 
     const [soundButtons, setSoundButtons] = useState<any[]>([]);
     const [letterButtons, setLetterButtons] = useState<any[]>([]);

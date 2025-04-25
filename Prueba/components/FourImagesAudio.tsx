@@ -8,7 +8,7 @@ import {
 import { Audio, AVPlaybackSource } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 
-// 🎯 Nuevo componente: muestra 4 imágenes + 4 sonidos individuales + audio general inferior
+// Nuevo componente: muestra 4 imágenes + 4 sonidos individuales + audio general inferior
 
 export type ImageAudioScreenProps = {
     images: { src: any; audio: AVPlaybackSource }[];

@@ -85,7 +85,7 @@ export default function WordDragGame({
 
     useEffect(() => {
         setPlacedLetters(slide.word.map((char) => (char === null ? null : char)));
-        setLetterStatus(slide.word.map((char) => (char === null ? null : 'correct')));
+        setLetterStatus(slide.word.map(() => null));
         setSlideCompleted(false);
 
         const newRefs = Array(slide.options.length).fill(null).map(() => new Animated.ValueXY());

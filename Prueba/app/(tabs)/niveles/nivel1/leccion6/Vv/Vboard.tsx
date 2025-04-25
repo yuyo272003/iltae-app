@@ -6,8 +6,8 @@ export default function Leccion1() {
     return (
         <LetterScreenWithDrawing
             imageSource={require('@assets/images/lecciones/nivel1/lessons/Vboard.png')}
-            letterAudio={require('@assets/audio/lecciones/nivel1/intro.wav')}
-            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/V/Vboard.wav')}
+            letterAudio={require('@assets/audio/levels/nivel1/intro.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel1/lessons/V/Vboard.wav')}
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}
             // @ts-ignore

@@ -7,12 +7,12 @@ export default function Leccion1() {
         <FourImagesAudio
 
             images={[
-                { src: require('@assets/images/lecciones/nivel1/lessons/saxofon.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/X/saxofon.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/xilofono.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/X/xilofono.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/taxi.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/X/taxi.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/mexico.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/X/mexico.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/saxofon.png'), audio: require('@assets/audio/levels/nivel1/lessons/X/saxofon.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/xilofono.png'), audio: require('@assets/audio/levels/nivel1/lessons/X/xilofono.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/taxi.png'), audio: require('@assets/audio/levels/nivel1/lessons/X/taxi.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/mexico.png'), audio: require('@assets/audio/levels/nivel1/lessons/X/mexico.wav') },
             ]}
-            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/X/Xpalabrainstruccion.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel1/lessons/X/Xpalabrainstruccion.wav')}
 
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}

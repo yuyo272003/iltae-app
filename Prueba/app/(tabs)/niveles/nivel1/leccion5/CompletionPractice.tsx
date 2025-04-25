@@ -15,27 +15,27 @@ export default function Leccion1() {
                     word: ['p','e',null,'o'],
                     correctLetters: ['rr'],
                     options: ['l','rr','ll','r'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/raqueta.png'),
                     word: [null, 'a','q','u','e','t','a'],
                     correctLetters: ['r'],
                     options: ['l','rr','ll','r'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/ballena.png'),
                     word: ['b','a',null,'e','n','a'],
                     correctLetters: ['ll'],
                     options: ['l','rr','ll','r'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },                {
                     image: require('@assets/images/lecciones/nivel1/lessons/colores.png'),
                     word: ['c','o',null,'o','r','e','s'],
                     correctLetters: ['l'],
                     options: ['l','rr','ll','r'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
 
 

@@ -13,21 +13,21 @@ export default function Leccion1() {
                     word: [null, 'u','e', 's', 'o'],
                     correctLetters: ['h'],
                     options: ['h', 'w', 'y', 'c', 'q', 'v'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/playa.png'),
                     word: ['p', 'l', 'a', null, 'a'],
                     correctLetters: ['y'],
                     options: ['h', 'w', 'y', 'c', 'q', 'v'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/vestido.png'),
                     word: [null, 'e', 's', 't', 'i', 'd', 'o'],
                     correctLetters: ['v'],
                     options: ['h', 'w', 'y', 'c', 'q', 'v'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
             ]}
             onFinish={() => console.log('Juego terminado')}

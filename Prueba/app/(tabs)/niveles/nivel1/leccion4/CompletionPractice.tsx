@@ -15,21 +15,21 @@ export default function Leccion1() {
                     word: [null, 'i', 'e','s','t', 'a'],
                     correctLetters: ['f'],
                     options: ['f','j','s','x','z'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/serpiente.png'),
                     word: [null, 'e','r','p','i','e','n','t','e'],
                     correctLetters: ['s'],
                     options: ['f','j','s','x','z'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/jitomate.png'),
                     word: [null, 'i','t','o','m','a','t','e'],
                     correctLetters: ['j'],
                     options: ['f','j','s','x','z'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
 
             ]}

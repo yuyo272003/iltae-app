@@ -11,7 +11,7 @@ const lessons = [
       title: 'Introducción',
       type: 'intro',
       image: require('@assets/images/lecciones/nivel1/vocales.png'),
-      audioFile: require('@assets/audio/lecciones/nivel1/introduccion.wav'),
+      audioFile: require('@assets/audio/levels/nivel1/introduccion.wav'),
     },
     {
       id: 'leccion1',
@@ -19,7 +19,7 @@ const lessons = [
       title: 'Introducción a las vocales',
       type: 'leccion',
       image: require('@assets/images/lecciones/nivel1/introduccion.png'),
-      audioFile: require('@assets/audio/lecciones/nivel1/leccion1.wav'),
+      audioFile: require('@assets/audio/levels/nivel1/leccion1.wav'),
     },
     {
       id: 'leccion2',
@@ -27,7 +27,7 @@ const lessons = [
       title: 'Consonantes nasales',
       type: 'leccion',
       image: require('@assets/images/lecciones/nivel1/consonantes_basicas.png'),
-      audioFile: require('@assets/audio/lecciones/nivel1/leccion2.wav'),
+      audioFile: require('@assets/audio/levels/nivel1/leccion2.wav'),
     },
     {
       id: 'leccion3',
@@ -35,7 +35,7 @@ const lessons = [
       title: 'Consonantes explosivas',
       type: 'leccion',
       image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'),
-      audioFile: require('@assets/audio/lecciones/nivel1/leccion3.wav'),
+      audioFile: require('@assets/audio/levels/nivel1/leccion3.wav'),
     },
     {
       id: 'leccion4',
@@ -43,7 +43,7 @@ const lessons = [
       title: 'Consonantes de aire',
       type: 'leccion',
       image: require('@assets/images/lecciones/nivel1/consonantes_complejas.png'),
-      audioFile: require('@assets/audio/lecciones/nivel1/leccion4.wav'),
+      audioFile: require('@assets/audio/levels/nivel1/leccion4.wav'),
     },
     {
       id: 'leccion5',
@@ -51,7 +51,7 @@ const lessons = [
       title: 'Consonantes linguales',
       type: 'leccion',
       image: require('@assets/images/lecciones/nivel1/consonantes_linguales.png'),
-      audioFile: require('@assets/audio/lecciones/nivel1/leccion5.wav'),
+      audioFile: require('@assets/audio/levels/nivel1/leccion5.wav'),
     },
     {
       id: 'leccion6',
@@ -59,7 +59,7 @@ const lessons = [
       title: 'Consonantes especiales',
       type: 'leccion',
       image: require('@assets/images/lecciones/nivel1/consonantes_especiales.png'),
-      audioFile: require('@assets/audio/lecciones/nivel1/leccion6.wav'),
+      audioFile: require('@assets/audio/levels/nivel1/leccion6.wav'),
     },
   ];
   
@@ -86,7 +86,7 @@ export default function Level1Screen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={() => playAudioGlobal(require('@assets/audio/lecciones/nivel1/intro.wav'))}
+                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel1/intro.wav'))}
                     style={styles.titlePill}
                 >
                     <Ionicons name="volume-high" size={14} color="#fff" />

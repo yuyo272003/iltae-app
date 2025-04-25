@@ -7,12 +7,12 @@ export default function Leccion1() {
         <FourImagesAudio
 
             images={[
-                { src: require('@assets/images/lecciones/nivel1/lessons/sierra.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/S/sierra.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/sopa.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/S/sopa.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/sol.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/S/sol.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/silla.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/S/silla.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/sierra.png'), audio: require('@assets/audio/levels/nivel1/lessons/S/sierra.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/sopa.png'), audio: require('@assets/audio/levels/nivel1/lessons/S/sopa.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/sol.png'), audio: require('@assets/audio/levels/nivel1/lessons/S/sol.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/silla.png'), audio: require('@assets/audio/levels/nivel1/lessons/S/silla.wav') },
             ]}
-            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/S/Spalabrainstruccion.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel1/lessons/S/Spalabrainstruccion.wav')}
 
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}

@@ -7,12 +7,12 @@ export default function Leccion1() {
         <FourImagesAudio
 
             images={[
-                { src: require('@assets/images/lecciones/nivel1/lessons/zapato.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/Z/zapato.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/zorro.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/Z/zorro.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/zombie.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/Z/zombie.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/zapato.png'), audio: require('@assets/audio/levels/nivel1/lessons/Z/zapato.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/zorro.png'), audio: require('@assets/audio/levels/nivel1/lessons/Z/zorro.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/zombie.png'), audio: require('@assets/audio/levels/nivel1/lessons/Z/zombie.wav') },
 
             ]}
-            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/Z/Zpalabrainstruccion.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel1/lessons/Z/Zpalabrainstruccion.wav')}
 
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}

@@ -7,12 +7,12 @@ export default function Leccion1() {
         <FourImagesAudio
 
             images={[
-                { src: require('@assets/images/lecciones/nivel1/lessons/gato.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/G/gato.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/agua.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/G/agua.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/gelatina.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/G/gelatina.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/girasol.png'), audio: require('@assets/audio/lecciones/nivel1/lessons/G/girasol.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/gato.png'), audio: require('@assets/audio/levels/nivel1/lessons/G/gato.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/agua.png'), audio: require('@assets/audio/levels/nivel1/lessons/G/agua.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/gelatina.png'), audio: require('@assets/audio/levels/nivel1/lessons/G/gelatina.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/girasol.png'), audio: require('@assets/audio/levels/nivel1/lessons/G/girasol.wav') },
             ]}
-            practiceAudio={require('@assets/audio/lecciones/nivel1/lessons/G/Gpalabrainstruccion.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel1/lessons/G/Gpalabrainstruccion.wav')}
 
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}

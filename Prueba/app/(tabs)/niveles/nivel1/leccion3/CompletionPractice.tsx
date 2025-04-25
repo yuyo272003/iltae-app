@@ -15,28 +15,28 @@ export default function Leccion1() {
                     word: [null, 'e', null, 'o'],
                     correctLetters: ['d', 'd'],
                     options: ['b', 't', 'p','d','g','k','v'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/boda.png'),
                     word: [null, 'o', null, 'a'],
                     correctLetters: ['b', 'd'],
                     options: ['b', 't', 'p','d','g','k','v'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/agua3.png'),
                     word: ['a', null, 'u', 'a'],
                     correctLetters: ['g'],
                     options: ['b', 't', 'p','d','g','k','v'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/puerta.png'),
                     word: [null, 'u', 'e', 'r',null,'a'],
                     correctLetters: ['p','t'],
                     options: ['b', 't', 'p','d','g','t','v'],
-                    audio: require('@assets/audio/lecciones/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
+                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
             ]}
             onFinish={() => console.log('Juego terminado')}
