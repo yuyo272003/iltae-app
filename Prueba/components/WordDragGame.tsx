@@ -301,7 +301,7 @@ export default function WordDragGame({
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.backButton} onPress={goToBack}>
-                    <Ionicons name="arrow-back" size={24} color="white" />
+                    <Ionicons name="arrow-back" size={24} color="red" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#a0ceb5', opacity: 0.7,
     },
     backButton: {
-        position: 'absolute', left: 30, bottom: 30, backgroundColor: '#ff6666',
+        position: 'absolute', left: 30, bottom: 30, backgroundColor: '#ffffff',
         borderRadius: 50, padding: 16,
     },
 });

@@ -113,7 +113,7 @@ export default function ImageAudioScreen({
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.backButton} onPress={() => stopAudioAndNavigate(onBottomBack)}>
-                    <Ionicons name="arrow-back" size={24} color="white" />
+                    <Ionicons name="arrow-back" size={24} color="red" />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.nextButton} onPress={() => stopAudioAndNavigate(onNext)}>
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 30,
         bottom: 70,
-        backgroundColor: '#ff6666',
+        backgroundColor: '#ffffff',
         borderRadius: 50,
         padding: 20,
     },

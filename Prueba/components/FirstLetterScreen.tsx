@@ -217,14 +217,6 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         padding: 20,
     },
-    backButton: {
-        position: 'absolute',
-        left: 30,
-        bottom: 70,
-        backgroundColor: '#ff6666',
-        borderRadius: 50,
-        padding: 20,
-    },
     topBackButton: {
         position: 'absolute',
         top: 40,

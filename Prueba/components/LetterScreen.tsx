@@ -143,7 +143,7 @@ export default function LetterScreen({
                     style={styles.backButton}
                     onPress={() => stopAudioAndNavigate(onBottomBack)}
                 >
-                    <Ionicons name="arrow-back" size={24} color="white" />
+                    <Ionicons name="arrow-back" size={24} color="red" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 30,
         bottom: 70,
-        backgroundColor: '#ff6666',
+        backgroundColor: '#ffffff',
         borderRadius: 50,
         padding: 20,
     },
