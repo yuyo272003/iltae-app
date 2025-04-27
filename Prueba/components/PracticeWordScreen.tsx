@@ -13,6 +13,7 @@ type ImageItem = {
 
 type OddOneOutGameProps = {
   title: string;
+  titleAudio: any,
   images: ImageItem[];
   practiceAudio: AVPlaybackSource;
   onNext?: () => void;
@@ -24,6 +25,7 @@ type OddOneOutGameProps = {
 
 const PracticeImageAudioScreen: React.FC<OddOneOutGameProps> = ({
   title,
+  titleAudio,
   images,
   practiceAudio,
   onNext,

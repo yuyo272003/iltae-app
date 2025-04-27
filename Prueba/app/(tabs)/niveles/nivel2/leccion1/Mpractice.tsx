@@ -15,7 +15,8 @@ export default function PantallaLetra() {
   return (
     <PracticeImageAudioScreen
         title="Mm"
-        practiceAudio={require('@/assets/audio/levels/nivel2/audios_lesson1/Mpractice.wav')}
+        titleAudio={require('@assets/audio/levels/nivel1/lessons/M/M.wav')}
+        practiceAudio={require('@/assets/audio/levels/nivel2/audios_lesson1/practice.wav')}
         images={images}
         //onCorrect={() => console.log('¡Correcto!')}
         //onIncorrect={() => console.log('Intenta de nuevo')}

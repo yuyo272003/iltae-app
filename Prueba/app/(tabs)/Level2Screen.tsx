@@ -87,7 +87,7 @@ export default function Level2Screen() {
                             await stopAudioGlobal(); // detener antes de navegar
                             if (item.type === "leccion" && item.id)  {
                                 // @ts-ignore
-                                router.push(`/(tabs)/niveles/nivel2/${item.id}/Mpractice`); // SE DEBE CAMBIAR LA RUTA
+                                router.push(`/(tabs)/niveles/nivel2/${item.id}/Bpractice`); // SE DEBE CAMBIAR LA RUTA
                                 //router.push(`/(tabs)/niveles/nivel2/${item.id}/${item.carpeta}/leccion`);
                             }
                         }}
