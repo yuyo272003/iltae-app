@@ -7,9 +7,9 @@ export default function PantallaLetra() {
     { id: '1', src: require('@/assets/images/lecciones/nivel2/foco.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/foco.wav'), isCorrect: false },
     { id: '2', src: require('@/assets/images/lecciones/nivel2/balon.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/balon.wav'), isCorrect: true },
     { id: '3', src: require('@/assets/images/lecciones/nivel2/fogata.png'),audio: require('@/assets/audio/levels/nivel2/audios_lesson1/fogata.wav'), isCorrect: false },
-    { id: '4', src: require('@/assets/images/lecciones/nivel1/lessons/fideos.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/fideos.wav'),isCorrect: true },
+    { id: '4', src: require('@/assets/images/lecciones/nivel2/fideos.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/fideos.wav'),isCorrect: true },
     { id: '5', src: require('@/assets/images/lecciones/nivel2/falda.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/falda.wav'),isCorrect: false },
-    { id: '6', src: require('@/assets/images/lecciones/nivel2/dedo.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/dedo.wav'),isCorrect: true },
+    { id: '6', src: require('@/assets/images/lecciones/nivel1/lessons/dedo.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/dedo.wav'),isCorrect: true },
   ];
 
   return (

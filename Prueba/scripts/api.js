@@ -3,7 +3,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Cambia solo esta línea cuando tu IP cambie
-const LOCAL_IP = '148.226.203.183';
+const LOCAL_IP = '148.226.203.53';
 const PORT = '8000';
 
 const api = axios.create({
