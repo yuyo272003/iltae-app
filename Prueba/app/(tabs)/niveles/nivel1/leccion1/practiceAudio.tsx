@@ -29,6 +29,9 @@ export default function VowelMatchGame() {
     const [letterButtons, setLetterButtons] = useState<any[]>([]);
     const [matchedVowels, setMatchedVowels] = useState<string[]>([]);
     const [selectedSound, setSelectedSound] = useState<{ vowel: string } | null>(null);
+    const NIVEL = 1;
+    const LECCION = 1;
+
 
     useFocusEffect(
         React.useCallback(() => {
@@ -162,15 +165,30 @@ export default function VowelMatchGame() {
                         disabled={!allMatched}
                         onPress={async () => {
                             await stopAudioGlobal();
-                            // @ts-ignore
-                            await avanzarLeccion();
-                            // @ts-ignore
 
-                            router.push('/(tabs)//Level1Screen');
+                            try {
+                                const data = await avanzarLeccion(NIVEL, LECCION);
+
+                                if (data.repeticion) {
+                                    console.log("🔄 Repetición detectada. No avanzamos progreso real.");
+                                } else if (data.finalizado) {
+                                    console.log("🎉 Terminaste todo el contenido.");
+                                    // Podrías redirigir a una pantalla de felicitaciones
+                                } else {
+                                    console.log(`📚 Avanzaste a Nivel ${data.nivel_id}, Lección ${data.leccion_id}`);
+                                }
+
+                                // Redirigir después de manejar todo
+                                // @ts-ignore
+                                router.push('/(tabs)//Level1Screen');
+                            } catch (error) {
+                                console.error("Error al avanzar:", error);
+                            }
                         }}
                     >
                         <Ionicons name="arrow-forward" size={24} color="#fff" />
                     </TouchableOpacity>
+
                 </View>
             </View>
         </View>
