@@ -1,14 +1,16 @@
+// 📁 src/utils/avanzarLeccion.ts
 import api from "@/scripts/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const avanzarLeccion = async (nivelPantalla: number, leccionPantalla: number) => {
+export const avanzarLeccion = async (endpoint: string) => {
     try {
         const token = await AsyncStorage.getItem("auth_token");
+        console.log("Token encontrado:", token); // debug opcional
 
         if (!token) throw new Error("Token no encontrado");
 
         const response = await api.post(
-            "/progreso/avanzar",
+            endpoint, // 🔥 Usamos el endpoint que nos pasen
             {},
             {
                 headers: {
@@ -18,20 +20,9 @@ export const avanzarLeccion = async (nivelPantalla: number, leccionPantalla: num
             }
         );
 
-        const data = response.data;
-
-        console.log("✅ Datos recibidos al intentar avanzar:", data);
-
-        // 👇 Verificamos si debe o no avanzar realmente
-        if (data.nivel_id === nivelPantalla && data.leccion_id === leccionPantalla) {
-            console.log("📚 Avance permitido.");
-            return data;
-        } else {
-            console.log("🔄 Repetición detectada, no se actualizará el progreso real.");
-            return { ...data, repeticion: true }; // Marcamos como repetición
-        }
+        return response.data;
     } catch (error) {
-        console.error("Error al avanzar lección:", error);
+        console.error("Error al avanzar de lección:", error);
         throw error;
     }
 };
