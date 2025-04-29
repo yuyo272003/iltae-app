@@ -27,19 +27,22 @@ interface Slide {
 }
 
 interface WordDragGameProps {
-    slides: Slide[],
-    onFinish: () => void,
-    firstSlideBackRoute?: string,
-    lastSlideNextRoute?: string,
+    slides: Slide[];
+    onFinish: () => void;
+    firstSlideBackRoute?: string;
+    lastSlideNextRoute?: string;
     onTopBack?: () => void;
+    advanceEndpoint?: string; // 👈 nuevo
 }
+
 
 export default function WordDragGame({
                                          slides,
                                          onFinish,
                                          firstSlideBackRoute = '/(tabs)/Level1Screen',
                                          lastSlideNextRoute,
-                                         onTopBack
+                                         onTopBack,
+                                         advanceEndpoint = "/progreso/avanzar",
                                      }: WordDragGameProps) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [placedLetters, setPlacedLetters] = useState<(string | null)[]>([]);
@@ -184,7 +187,7 @@ export default function WordDragGame({
 
         if (isLastSlide) {
             try {
-                await avanzarLeccion();
+                await avanzarLeccion(advanceEndpoint);
                 console.log("Avanzó de lección");
             } catch (e) {
                 console.error("No se pudo avanzar de lección");

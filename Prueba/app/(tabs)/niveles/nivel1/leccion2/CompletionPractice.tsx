@@ -33,6 +33,7 @@ export default function Leccion1() {
             onFinish={() => console.log('Juego terminado')}
             firstSlideBackRoute="/(tabs)/niveles/nivel1/leccion2/Nn2/N2palabra" // Custom route for back button on first slide
             lastSlideNextRoute="/(tabs)/Level1Screen"
+            advanceEndpoint="/progreso/avanzar-leccion-2"
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}
         />

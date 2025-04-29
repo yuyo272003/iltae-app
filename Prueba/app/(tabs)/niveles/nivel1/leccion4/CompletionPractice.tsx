@@ -36,6 +36,7 @@ export default function Leccion1() {
             onFinish={() => console.log('Juego terminado')}
             firstSlideBackRoute="/(tabs)/niveles/nivel1/leccion4/Zpalabra"
             lastSlideNextRoute="/(tabs)/Level1Screen"
+            advanceEndpoint="/progreso/avanzar-leccion-4"
             onTopBack={handleTopBack}
         />
     );
