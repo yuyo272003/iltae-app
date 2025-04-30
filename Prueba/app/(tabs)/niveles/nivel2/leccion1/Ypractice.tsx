@@ -20,9 +20,9 @@ export default function PantallaLetra() {
         images={images}
         onTopBack={() => router.push('/(tabs)/Level2Screen')}
         // @ts-ignore
-        onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Gpractice')}
+        onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Xpractice')}
         // @ts-ignore
-        onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Jpractice')}
+        onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Zpractice')}
       
     />
   );
