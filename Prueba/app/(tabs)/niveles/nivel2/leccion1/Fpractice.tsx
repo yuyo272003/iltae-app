@@ -9,7 +9,7 @@ export default function PantallaLetra() {
     { id: '3', src: require('@/assets/images/lecciones/nivel2/fogata.png'),audio: require('@/assets/audio/levels/nivel2/audios_lesson1/fogata.wav'), isCorrect: true },
     { id: '4', src: require('@/assets/images/lecciones/nivel2/fideos.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/fideos.wav'),isCorrect: true },
     { id: '5', src: require('@/assets/images/lecciones/nivel2/falda.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/falda.wav'),isCorrect: true },
-    { id: '6', src: require('@/assets/images/lecciones/nivel1/lessons/dedo.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/dedo.wav'),isCorrect: false },
+    { id: '6', src: require('@/assets/images/lecciones/nivel2/cereza.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/cereza.wav'),isCorrect: false },
   ];
 
   return (

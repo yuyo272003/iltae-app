@@ -22,9 +22,9 @@ export default function PantallaLetra() {
         //onIncorrect={() => console.log('Intenta de nuevo')}
         onTopBack={() => router.push('/(tabs)/Level2Screen')}
         // @ts-ignore
-        onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Npractice')}
+        onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Lpractice')}
         // @ts-ignore
-        onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Lpractice')}
+        onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Npractice')}
       
     />
   );

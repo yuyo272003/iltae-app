@@ -4,12 +4,12 @@ import PracticeImageAudioScreen from '../../../../../components/PracticeWordScre
 
 export default function PantallaLetra() {
   const images = [
-    { id: '1', src: require('@/assets/images/lecciones/nivel2/hada.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/hada.wav'), isCorrect: false },
-    { id: '2', src: require('@/assets/images/lecciones/nivel2/hueso.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/hueso.wav'), isCorrect: true },
-    { id: '3', src: require('@/assets/images/lecciones/nivel2/gato.png'),audio: require('@/assets/audio/levels/nivel2/audios_lesson1/gato.wav'), isCorrect: false },
-    { id: '4', src: require('@/assets/images/lecciones/nivel2/helado.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/helado.wav'),isCorrect: true },
-    { id: '5', src: require('@/assets/images/lecciones/nivel2/hongo.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/hongo.wav'),isCorrect: true },
-    { id: '6', src: require('@/assets/images/lecciones/nivel2/guante.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/guante.wav'),isCorrect: true},
+    { id: '1', src: require('@/assets/images/lecciones/nivel2/cafe.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/cafe.wav'), isCorrect: false },
+    { id: '2', src: require('@/assets/images/lecciones/nivel2/kiwi.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/kiwi.wav'), isCorrect: true },
+    { id: '3', src: require('@/assets/images/lecciones/nivel2/karaoke.png'),audio: require('@/assets/audio/levels/nivel2/audios_lesson1/karaoke.wav'), isCorrect: false },
+    { id: '4', src: require('@/assets/images/lecciones/nivel2/conejo.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/conejo.wav'),isCorrect: true },
+    { id: '5', src: require('@/assets/images/lecciones/nivel2/bicicleta.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/bicicleta.wav'),isCorrect: true },
+    { id: '6', src: require('@/assets/images/lecciones/nivel2/koala.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/koala.wav'),isCorrect: true},
   ];
 
   return (
@@ -20,9 +20,9 @@ export default function PantallaLetra() {
         images={images}
         onTopBack={() => router.push('/(tabs)/Level2Screen')}
         // @ts-ignore
-        onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Gpractice')}
+        onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Jpractice')}
         // @ts-ignore
-        onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Jpractice')}
+        onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Lpractice')}
       
     />
   );
