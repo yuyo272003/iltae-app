@@ -5,11 +5,11 @@ import PracticeImageAudioScreen from '../../../../../components/PracticeWordScre
 export default function PantallaLetra() {
   const images = [
     { id: '1', src: require('@/assets/images/lecciones/nivel2/xilofono.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/xilofono.wav'), isCorrect: true },
-    { id: '2', src: require('@/assets/images/lecciones/nivel2/sol.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/sol.wav'), isCorrect: true },
-    { id: '3', src: require('@/assets/images/lecciones/nivel2/saxofon.png'),audio: require('@/assets/audio/levels/nivel2/audios_lesson1/saxofon.wav'), isCorrect: false },
+    { id: '2', src: require('@/assets/images/lecciones/nivel2/sol.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/sol.wav'), isCorrect: false },
+    { id: '3', src: require('@/assets/images/lecciones/nivel2/saxofon.png'),audio: require('@/assets/audio/levels/nivel2/audios_lesson1/saxofon.wav'), isCorrect: true },
     { id: '4', src: require('@/assets/images/lecciones/nivel2/taxi.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/taxi.wav'),isCorrect: true },
-    { id: '5', src: require('@/assets/images/lecciones/nivel2/piña.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/piña.wav'),isCorrect: true },
-    { id: '6', src: require('@/assets/images/lecciones/nivel2/serpiente.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/serpiente.wav'),isCorrect: true},
+    { id: '5', src: require('@/assets/images/lecciones/nivel2/piña.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/piña.wav'),isCorrect: false },
+    { id: '6', src: require('@/assets/images/lecciones/nivel2/serpiente.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/serpiente.wav'),isCorrect: false},
   ];
 
   return (
