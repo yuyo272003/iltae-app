@@ -4,12 +4,12 @@ import PracticeImageAudioScreen from '../../../../../components/PracticeWordScre
 
 export default function PantallaLetra() {
   const images = [
-    { id: '1', src: require('@/assets/images/lecciones/nivel2/guante.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/guante.wav'), isCorrect: false },
-    { id: '2', src: require('@/assets/images/lecciones/nivel2/hueso.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/hueso.wav'), isCorrect: true },
-    { id: '3', src: require('@/assets/images/lecciones/nivel2/waffle.png'),audio: require('@/assets/audio/levels/nivel2/audios_lesson1/waffle.wav'), isCorrect: false },
-    { id: '4', src: require('@/assets/images/lecciones/nivel2/queso.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/queso.wav'),isCorrect: true },
-    { id: '5', src: require('@/assets/images/lecciones/nivel2/sandwich.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/sandwich.wav'),isCorrect: true },
-    { id: '6', src: require('@/assets/images/lecciones/nivel2/wifi.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/wifi.wav'),isCorrect: true},
+    { id: '1', src: require('@/assets/images/lecciones/nivel2/cereza.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/cereza.wav'), isCorrect: false },
+    { id: '2', src: require('@/assets/images/lecciones/nivel2/zapato.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/zapato.wav'), isCorrect: true },
+    { id: '3', src: require('@/assets/images/lecciones/nivel2/serpiente.png'),audio: require('@/assets/audio/levels/nivel2/audios_lesson1/serpiente.wav'), isCorrect: false },
+    { id: '4', src: require('@/assets/images/lecciones/nivel2/sol.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/sol.wav'),isCorrect: false },
+    { id: '5', src: require('@/assets/images/lecciones/nivel2/zanahoria.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/zanahoria.wav'),isCorrect: true },
+    { id: '6', src: require('@/assets/images/lecciones/nivel2/zorro.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/zorro.wav'),isCorrect: true},
   ];
 
   return (
