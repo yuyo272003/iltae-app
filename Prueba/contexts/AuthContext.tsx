@@ -43,10 +43,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error("Error cerrando sesión:", error);
         } finally {
             await AsyncStorage.removeItem("auth_token");
+            delete api.defaults.headers.common['Authorization']; // 🔑 Limpia el header global
             setUser(null);
             router.replace("/(tabs)/perfiles");
         }
     };
+
 
     useEffect(() => {
         const fetchUserProfile = async () => {
