@@ -24,21 +24,21 @@ type OddOneOutGameProps = {
 };
 
 const PracticeImageAudioScreen: React.FC<OddOneOutGameProps> = ({
-  title,
-  titleAudio,
-  images,
-  practiceAudio,
-  onNext,
-  onTopBack,
-  onBottomBack,
-}) => {
+                                                                  title,
+                                                                  titleAudio,
+                                                                  images,
+                                                                  practiceAudio,
+                                                                  onNext,
+                                                                  onTopBack,
+                                                                  onBottomBack,
+                                                                }) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [result, setResult] = useState<'correct' | 'incorrect' | null>(null);
   const [practiceSound, setPracticeSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
-  const pathname = usePathname(); //obtengo la ruta actual 
+  const pathname = usePathname(); //obtengo la ruta actual
 
   const handleSelect = (item: ImageItem) => {
     setSelectedId(item.id);
@@ -51,7 +51,7 @@ const PracticeImageAudioScreen: React.FC<OddOneOutGameProps> = ({
 
   const getBorderColor = (itemId: string) => {
     if (itemId === selectedId) {
-      return result === 'correct' ? '#4CAF50' : '#F44336'; 
+      return result === 'correct' ? '#4CAF50' : '#F44336';
     }
     return '#FFFFFF';
   };
@@ -110,64 +110,66 @@ const PracticeImageAudioScreen: React.FC<OddOneOutGameProps> = ({
   const showBottomBackButton = pathname !== '/niveles/nivel2/leccion1/Bpractice';
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.topBackButton}
-        onPress={() => stopAudioAndNavigate(onTopBack)}
-      >
-        <Ionicons name="arrow-back" size={32} color="#2b2b2b" />
-      </TouchableOpacity>
+      <View style={styles.container}>
+        <TouchableOpacity
+            style={styles.topBackButton}
+            onPress={() => stopAudioAndNavigate(onTopBack)}
+        >
+          <Ionicons name="arrow-back" size={32} color="#2b2b2b" />
+        </TouchableOpacity>
 
-      <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>{title}</Text>
 
-      <FlatList
-        data={images}
-        numColumns={2}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.grid}
-        renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
-            <TouchableOpacity
-              onPress={() => handleSelect(item)}
-              style={[
-                styles.imageWrapper,
-                { backgroundColor: getBorderColor(item.id) },
-              ]}
-            >
-              <Image source={item.src} style={styles.image} resizeMode="contain" />
+        <FlatList
+            data={images}
+            numColumns={2}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.grid}
+            renderItem={({ item }) => (
+                <View style={styles.itemContainer}>
+                  <TouchableOpacity
+                      onPress={() => handleSelect(item)}
+                      style={[
+                        styles.imageWrapper,
+                        { backgroundColor: getBorderColor(item.id) },
+                      ]}
+                  >
+                    <Image source={item.src} style={styles.image} resizeMode="contain" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.audioButton} onPress={() => playImageSound(item.audio)}>
+                    <Ionicons name="volume-high" size={24} color="white" />
+                  </TouchableOpacity>
+                </View>
+            )}
+            columnWrapperStyle={{ justifyContent: 'space-evenly', width: '100%' }}
+        />
+
+        <View style={styles.bottomPanel}>
+          <TouchableOpacity style={styles.playButton} onPress={togglePracticeAudio}>
+            <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="white" />
+          </TouchableOpacity>
+
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarFill} />
+          </View>
+
+          <View style={styles.buttonsContainer}>
+            {showBottomBackButton && (
+                <TouchableOpacity style={styles.backButton} onPress={() => stopAudioAndNavigate(onBottomBack)}>
+                  <Ionicons name="arrow-back" size={24} color="red" />
+                </TouchableOpacity>
+            )}
+
+            <TouchableOpacity style={styles.restartButton} onPress={restartPracticeAudio}>
+              <Ionicons name="refresh" size={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.audioButton} onPress={() => playImageSound(item.audio)}>
-              <Ionicons name="volume-high" size={24} color="white" />
+
+            <TouchableOpacity style={styles.nextButton} onPress={() => stopAudioAndNavigate(onNext)}>
+              <Ionicons name="arrow-forward" size={24} color="white" />
             </TouchableOpacity>
           </View>
-        )}
-      />
-
-      <View style={styles.bottomPanel}>
-        <TouchableOpacity style={styles.playButton} onPress={togglePracticeAudio}>
-          <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="white" />
-        </TouchableOpacity>
-
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressBarFill} />
         </View>
-
-        <TouchableOpacity style={styles.restartButton} onPress={restartPracticeAudio}>
-          <Ionicons name="refresh" size={24} color="white" />
-        </TouchableOpacity>
-
-        {/* Aquí es donde se controla el mostrar el bottomback o no */}
-        {showBottomBackButton && (
-          <TouchableOpacity style={styles.backButton} onPress={() => stopAudioAndNavigate(onBottomBack)}>
-            <Ionicons name="arrow-back" size={24} color="red" />
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity style={styles.nextButton} onPress={() => stopAudioAndNavigate(onNext)}>
-          <Ionicons name="arrow-forward" size={24} color="white" />
-        </TouchableOpacity>
       </View>
-    </View>
   );
 };
 
@@ -194,27 +196,27 @@ const styles = StyleSheet.create({
     fontSize: 48,
     color: 'white',
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   grid: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
+    paddingBottom: 200, // Add more padding at the bottom to prevent content from being hidden behind the panel
   },
   itemContainer: {
     alignItems: 'center',
-    margin: 10,
+    margin: 8,
   },
   imageWrapper: {
-    width: 100,
-    height: 100,
+    width: 120, // Increased from 100 to 120
+    height: 90, // Reduced height to make it more horizontally elongated
     borderRadius: 20,
     backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
   },
   image: {
-    width: 70,
+    width: 80, // Increased from 70 to 80
     height: 70,
   },
   audioButton: {
@@ -236,57 +238,66 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 250,
+    height: 275, // Increased from 130 to 160
     backgroundColor: '#2b2b2b',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: 24,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
     alignItems: 'center',
-    elevation: 10,
+    justifyContent: 'space-between',
+    paddingBottom: 20 , // Extra padding at the bottom
   },
   playButton: {
-    backgroundColor: '#2e6ef7',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: '#3B82F6',
     width: '90%',
+    height: 55,
+    borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
+    marginBottom: 15,
   },
   progressBarContainer: {
     height: 6,
     backgroundColor: '#ccc',
     width: '90%',
     borderRadius: 3,
-    marginBottom: 16,
+    marginBottom: 150,
   },
   progressBarFill: {
     width: '50%',
     height: '100%',
-    backgroundColor: '#2e6ef7',
-    borderRadius: 3,
+    backgroundColor: '#3B82F6',
+    borderRadius: 2,
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    width: '80%',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   restartButton: {
     position: 'absolute',
-    bottom: 70,
+    right: 110,
+    bottom: 15,
     backgroundColor: '#2e6ef7',
     borderRadius: 50,
-    padding: 16,
+    padding: 23,
     alignSelf: 'center',
   },
   nextButton: {
     position: 'absolute',
-    right: 30,
-    bottom: 70,
+    right: -4,
+    bottom: 20,
     backgroundColor: '#33cc66',
     borderRadius: 50,
-    padding: 20,
+    padding: 23,
   },
   backButton: {
     position: 'absolute',
-    left: 30,
-    bottom: 70,
+    left: -4,
+    bottom: 20,
     backgroundColor: '#ffffff',
     borderRadius: 50,
-    padding: 20,
+    padding: 23 ,
   },
 });
