@@ -3,11 +3,11 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Cambia solo esta línea cuando tu IP cambie
-const LOCAL_IP = '148.226.203.51';
-const PORT = '8000';
+const LOCAL_IP = 'backapp-production-1bef.up.railway.app';
+const PORT = '';
 
 const api = axios.create({
-    baseURL: `http://${LOCAL_IP}:${PORT}/api`,
+    baseURL: `https://${LOCAL_IP}/api`,
     timeout: 10000,
 });
 

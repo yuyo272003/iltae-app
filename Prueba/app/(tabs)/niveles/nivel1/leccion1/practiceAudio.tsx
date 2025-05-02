@@ -164,7 +164,7 @@ export default function VowelMatchGame() {
                         onPress={async () => {
                             await stopAudioGlobal();
                             // @ts-ignore
-                            await avanzarLeccion("/progreso/avanzar-vowel-match");
+                            await avanzarLeccion("/progreso/avanzar-leccion-1");
                             // @ts-ignore
 
                             router.push('/(tabs)//Level1Screen');
