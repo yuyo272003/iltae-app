@@ -50,7 +50,7 @@ const WelcomeScreen = () => {
 
     return (
         <LinearGradient colors={["#007AFF", "#0056B3"]} style={styles.container}>
-            <Text style={styles.title}>MentorApp</Text>
+            <Text style={styles.title}>ILTAE</Text>
 
             {/* Botón de reproducir/pausar */}
             <TouchableOpacity style={styles.button} onPress={handlePlayPause}>
