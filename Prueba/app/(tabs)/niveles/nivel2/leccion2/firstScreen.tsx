@@ -15,20 +15,20 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 const originalPairs = [
-    { vowel: 'A', file: require('@assets/audio/levels/nivel1/lessons/A/A2.wav') },
-    { vowel: 'E', file: require('@assets/audio/levels/nivel1/lessons/E/e2.wav') },
-    { vowel: 'I', file: require('@assets/audio/levels/nivel1/lessons/I/i.wav') },
-    { vowel: 'O', file: require('@assets/audio/levels/nivel1/lessons/O/o.wav') },
-    { vowel: 'U', file: require('@assets/audio/levels/nivel1/lessons/U/u.wav') },
+    { syllable: 'ma', file: require('@assets/audio/levels/nivel2/audios_lesson2/ma.wav') },
+    { syllable: 'me', file: require('@assets/audio/levels/nivel2/audios_lesson2/me.wav') },
+    { syllable: 'mi', file: require('@assets/audio/levels/nivel2/audios_lesson2/mi.wav') },
+    { syllable: 'mo', file: require('@assets/audio/levels/nivel2/audios_lesson2/mo.wav') },
+    { syllable: 'mu', file: require('@assets/audio/levels/nivel2/audios_lesson2/mu.wav') },
 ];
 
-export default function VowelMatchGame() {
+export default function SyllableMatchGame() {
     const [instructionAudio] = useState(require('@assets/audio/levels/nivel1/actividad.wav'));
 
     const [soundButtons, setSoundButtons] = useState<any[]>([]);
     const [letterButtons, setLetterButtons] = useState<any[]>([]);
-    const [matchedVowels, setMatchedVowels] = useState<string[]>([]);
-    const [selectedSound, setSelectedSound] = useState<{ vowel: string } | null>(null);
+    const [matchedSyllables, setMatchedSyllables] = useState<string[]>([]);
+    const [selectedSound, setSelectedSound] = useState<{ syllable: string } | null>(null);
 
 
     useFocusEffect(
@@ -43,12 +43,12 @@ export default function VowelMatchGame() {
 
             setLetterButtons(
                 shuffleArray(originalPairs).map((item, index) => ({
-                    vowel: item.vowel,
+                    syllable: item.syllable,
                     id: index,
                 }))
             );
 
-            setMatchedVowels([]);
+            setMatchedSyllables([]);
             setSelectedSound(null);
             stopAudioGlobal();
 
@@ -61,16 +61,16 @@ export default function VowelMatchGame() {
         }, [])
     );
 
-    const handlePlaySound = async (button: { vowel: string; file: any }) => {
+    const handlePlaySound = async (button: { syllable: string; file: any }) => {
         await playAudioGlobal(button.file);
-        setSelectedSound({ vowel: button.vowel });
+        setSelectedSound({ syllable: button.syllable });
     };
 
-    const handleSelectLetter = async (button: { vowel: string }) => {
+    const handleSelectLetter = async (button: { syllable: string }) => {
         if (!selectedSound) return;
 
-        if (selectedSound.vowel === button.vowel) {
-            setMatchedVowels((prev) => [...prev, button.vowel]);
+        if (selectedSound.syllable === button.syllable) {
+            setMatchedSyllables((prev) => [...prev, button.syllable]);
         }
 
         setSelectedSound(null);
@@ -80,7 +80,7 @@ export default function VowelMatchGame() {
         await playAudioGlobal(instructionAudio);
     };
 
-    const allMatched = matchedVowels.length === originalPairs.length;
+    const allMatched = matchedSyllables.length === originalPairs.length;
 
     return (
         <View style={styles.container}>
@@ -91,7 +91,7 @@ export default function VowelMatchGame() {
                     router.push('/(tabs)/Level1Screen');
                 }}
             >
-                <Ionicons name="arrow-back" size={28} color="black" />
+                <Ionicons name="arrow-back" size={28} color="#2e6ef7" />
             </TouchableOpacity>
 
             <View style={styles.matchContainer}>
@@ -101,10 +101,10 @@ export default function VowelMatchGame() {
                             key={`sound-${button.id}`}
                             style={[
                                 styles.soundButton,
-                                matchedVowels.includes(button.vowel) && styles.correctMatch,
+                                matchedSyllables.includes(button.syllable) && styles.correctMatch,
                             ]}
                             onPress={() => handlePlaySound(button)}
-                            disabled={matchedVowels.includes(button.vowel)}
+                            disabled={matchedSyllables.includes(button.syllable)}
                         >
                             <Ionicons name="volume-high" size={24} color="blue" />
                         </TouchableOpacity>
@@ -117,13 +117,13 @@ export default function VowelMatchGame() {
                             key={`letter-${button.id}`}
                             style={[
                                 styles.letterButton,
-                                matchedVowels.includes(button.vowel) && styles.correctMatch,
+                                matchedSyllables.includes(button.syllable) && styles.correctMatch,
                             ]}
                             onPress={() => handleSelectLetter(button)}
-                            disabled={matchedVowels.includes(button.vowel)}
+                            disabled={matchedSyllables.includes(button.syllable)}
                         >
-                            <Text style={styles.vowelText}>
-                                {button.vowel.toUpperCase() + button.vowel.toLowerCase()}
+                            <Text style={styles.syllableText}>
+                                {button.syllable}
                             </Text>
                         </TouchableOpacity>
                     ))}
@@ -132,14 +132,14 @@ export default function VowelMatchGame() {
 
             <View style={styles.bottomBox}>
                 <TouchableOpacity style={styles.playInstruction} onPress={handlePlayInstruction}>
-                    <Ionicons name="play" size={28} color="blue" />
+                    <Ionicons name="play" size={28} color="white" />
                 </TouchableOpacity>
 
                 <View style={styles.progressBar}>
                     <View
                         style={[
                             styles.progressFill,
-                            { width: `${(matchedVowels.length / originalPairs.length) * 100}%` },
+                            { width: `${(matchedSyllables.length / originalPairs.length) * 100}%` },
                         ]}
                     />
                 </View>
@@ -149,10 +149,10 @@ export default function VowelMatchGame() {
                         style={styles.backRoundButton}
                         onPress={async () => {
                             await stopAudioGlobal();
-                            router.push('/(tabs)/niveles/nivel1/leccion1/Uu/Uboard');
+                            router.push('/(tabs)/niveles/nivel1/leccion1/Uu/Uboard'); // cambiar ruta
                         }}
                     >
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
+                        <Ionicons name="arrow-back" size={24} color="red" />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
         top: 40,
         left: 20,
         zIndex: 1,
-        backgroundColor: '#e0e0e0',
+        // backgroundColor: '#2e6ef7',
         padding: 14,
         borderRadius: 50,
         elevation: 5,
@@ -219,35 +219,38 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 20,
         borderWidth: 2,
-        borderColor: 'blue',
+        borderColor: 'white',
         justifyContent: 'center',
         alignItems: 'center',
     },
     correctMatch: {
-        backgroundColor: '#b9fbc0',
-        borderColor: '#00c853',
+        backgroundColor: '#4CAF50',
+        borderColor: '#4CAF50',
     },
-    vowelText: {
-        fontSize: 20,
+    syllableText: {
+        fontSize: 30,
         fontWeight: 'bold',
     },
     bottomBox: {
         position: 'absolute',
         bottom: 0,
-        width: '100%',
-        backgroundColor: '#007bff',
-        paddingVertical: 25,
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
+        left: 0,
+        right: 0,
+        height: 200,
+        backgroundColor: '#1D2233',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        padding: 24,
         alignItems: 'center',
+        elevation: 10,
     },
     playInstruction: {
-        backgroundColor: '#fff',
-        paddingVertical: 10,
-        paddingHorizontal: 140, // más ancho
+        backgroundColor: '#2e6ef7',
+        padding: 14,
         borderRadius: 12,
-        marginBottom: 12,
+        width: '90%',
         alignItems: 'center',
+        marginBottom: 12,
     },
 
     progressBar: {
@@ -271,7 +274,7 @@ const styles = StyleSheet.create({
     backRoundButton: {
         width: 50,
         height: 50,
-        backgroundColor: '#ff5252',
+        backgroundColor: '#ffffff',
         borderRadius: 25,
         justifyContent: 'center',
         alignItems: 'center',
