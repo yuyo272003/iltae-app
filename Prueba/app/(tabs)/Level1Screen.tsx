@@ -66,9 +66,12 @@ const lessons = [
     },
 ];
 
+
 export default function Level1Screen() {
     const router = useRouter();
     const [leccionDesbloqueada, setLeccionDesbloqueada] = useState(1);
+    const haTerminadoNivel1 = leccionDesbloqueada > 6;
+
 
     // @ts-ignore
     useFocusEffect(
@@ -110,6 +113,7 @@ export default function Level1Screen() {
                     <Ionicons name="volume-high" size={14} color="#fff" />
                     <Text style={styles.titleText}>Nivel 1</Text>
                 </TouchableOpacity>
+                
 
                 <View style={{ width: 28 }} />
             </View>
@@ -174,6 +178,21 @@ export default function Level1Screen() {
                     );
                 }}
                 contentContainerStyle={styles.grid}
+                ListFooterComponent={
+                    haTerminadoNivel1 ? (
+                        <TouchableOpacity
+                            onPress={() => {
+                                stopAudioGlobal();
+                               router.push('/(tabs)/Level2Screen');
+                            }}
+                            style={styles.nextButton}
+                        >
+                            <Ionicons name="arrow-forward" size={24} color="white" />
+                        </TouchableOpacity>
+                    ) : null
+                }
+                
+                
             />
         </SafeAreaView>
     );
@@ -253,4 +272,22 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    nextButton: {
+        position: 'relative',
+        alignSelf: 'flex-end',
+        marginRight: 16,
+        marginTop: 24,
+        marginBottom: 32,
+        backgroundColor: '#33cc66',
+        paddingVertical: 16,
+        paddingHorizontal: 32,
+        borderRadius: 30,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    
+
 });
+
+

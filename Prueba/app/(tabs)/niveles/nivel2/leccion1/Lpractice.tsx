@@ -1,8 +1,9 @@
-import React from 'react';
-import {router} from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {useEffect} from 'react';
+import {router, usePathname} from "expo-router";
 import PracticeImageAudioScreen from '../../../../../components/PracticeWordScreen';
 
-export default function PantallaLetra() {
+export default function ScreenWord() {
   const images = [
     { id: '1', src: require('@/assets/images/lecciones/nivel2/pantalon.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/pantalon.wav'), isCorrect: true },
     { id: '2', src: require('@/assets/images/lecciones/nivel2/lapiz.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/lapiz.wav'), isCorrect: true },

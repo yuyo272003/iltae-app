@@ -1,8 +1,15 @@
-import React from 'react';
-import {router} from "expo-router";
+import React, { useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { usePathname, router } from 'expo-router';
 import PracticeImageAudioScreen from '../../../../../components/PracticeWordScreen';
+import { useScreenProgress } from '../../../../../hooks/useScreenProgress';
 
-export default function PantallaLetra() {
+export default function ScreenWord() {
+  const leccionId: string = 'leccion1';
+  const isReady = useScreenProgress(leccionId);
+  
+  if (!isReady) return null;
+    
   const images = [
     { id: '1', src: require('@/assets/images/lecciones/nivel2/pantalon.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/pantalon.wav'), isCorrect: false },
     { id: '2', src: require('@/assets/images/lecciones/nivel2/cereza.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/cereza.wav'), isCorrect: true },
@@ -20,7 +27,11 @@ export default function PantallaLetra() {
         images={images}
         //onCorrect={() => console.log('¡Correcto!')}
         //onIncorrect={() => console.log('Intenta de nuevo')}
-        onTopBack={() => router.push('/(tabs)/Level2Screen')}
+        onTopBack={async () => {
+          await AsyncStorage.removeItem('progresoLeccion');
+          router.push('/(tabs)/Level2Screen');
+        }}
+        
         // @ts-ignore
         onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Bpractice')}
         // @ts-ignore

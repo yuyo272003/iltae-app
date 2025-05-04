@@ -1,6 +1,7 @@
-import React from 'react';
-import {router} from "expo-router";
+import React,{useEffect} from 'react';
 import PracticeImageAudioScreen from '../../../../../components/PracticeWordScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { usePathname, router } from 'expo-router';
 
 export default function PantallaLetra() {
   const images = [
@@ -13,6 +14,7 @@ export default function PantallaLetra() {
   ];
 
   return (
+    
     <PracticeImageAudioScreen
         title="Zz"
         titleAudio={require('@assets/audio/levels/nivel1/lessons/G/G.wav')}
@@ -23,7 +25,14 @@ export default function PantallaLetra() {
         onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Ypractice')}
         // @ts-ignore
         onNext={() => router.push('/(tabs)/niveles/nivel2/leccion3/firstScreen')} // CAMBIAR RUTA A LECCIÓN 2
-      
+
     />
   );
+  useEffect(() => {
+    const limpiarProgreso = async () => {
+      await AsyncStorage.removeItem('progresoLeccion');
+    };
+    limpiarProgreso();
+  }, []);
+
 }

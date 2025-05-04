@@ -1,6 +1,7 @@
-import React from 'react';
-import {router} from "expo-router";
+import React,{useEffect} from 'react';
+import {router, usePathname} from "expo-router";
 import PracticeImageAudioScreen from '../../../../../components/PracticeWordScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PantallaLetra() {
   const images = [
@@ -12,6 +13,15 @@ export default function PantallaLetra() {
     { id: '6', src: require('@/assets/images/lecciones/nivel2/cereza.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/cereza.wav'),isCorrect: false },
   ];
 
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const guardarRuta = async () => {
+      await AsyncStorage.setItem('progresoLeccion', pathname);
+    };
+    guardarRuta();
+  }, [pathname]);
+  
   return (
     <PracticeImageAudioScreen
         title="Ff"

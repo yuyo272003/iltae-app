@@ -27,7 +27,6 @@ const WelcomeScreen = () => {
       unregisterStatusCallback(statusCallback);
     };
   }, []);
-
   const handlePlayPause = async () => {
     await playAudioGlobal(require("../../assets/audio/bienvenida.wav"));
   };
