@@ -87,7 +87,7 @@ export default function LeccionConMezcla() {
                     image: require('@assets/images/lecciones/nivel2/sandwich.png'),
                     word: ['s', 'a', null, 'd', null, null, 'c', 'h'],
                     correctLetters: ['n','w', 'i'],
-                    options: ['h', 'd', 'ñ', 'v', 'w', 's'],
+                    options: ['h', 'd', 'ñ', 'v', 'n', 'w', 's', 'i'],
                     audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {

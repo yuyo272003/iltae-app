@@ -1,9 +1,8 @@
 import React,{useEffect} from 'react';
 import PracticeImageAudioScreen from '../../../../../components/PracticeWordScreen';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePathname, router } from 'expo-router';
 
-export default function PantallaLetra() {
+export default function ScreenWord() {
   const images = [
     { id: '1', src: require('@/assets/images/lecciones/nivel2/cereza.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/cereza.wav'), isCorrect: false },
     { id: '2', src: require('@/assets/images/lecciones/nivel2/zapato.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/zapato.wav'), isCorrect: true },
@@ -28,11 +27,5 @@ export default function PantallaLetra() {
 
     />
   );
-  useEffect(() => {
-    const limpiarProgreso = async () => {
-      await AsyncStorage.removeItem('progresoLeccion');
-    };
-    limpiarProgreso();
-  }, []);
 
 }

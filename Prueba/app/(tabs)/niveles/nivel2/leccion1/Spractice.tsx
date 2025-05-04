@@ -12,15 +12,6 @@ export default function PantallaLetra() {
     { id: '5', src: require('@/assets/images/lecciones/nivel2/silla.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/silla.wav'),isCorrect: true },
     { id: '6', src: require('@/assets/images/lecciones/nivel2/serpiente.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/serpiente.wav'),isCorrect: true},
   ];
-
-  const pathname = usePathname();
-  useEffect(() => {
-    const guardarRuta = async () => {
-      await AsyncStorage.setItem('progresoLeccion', pathname);
-    };
-    guardarRuta();
-  }, [pathname]);
-
   return (
     <PracticeImageAudioScreen
         title="Ss"

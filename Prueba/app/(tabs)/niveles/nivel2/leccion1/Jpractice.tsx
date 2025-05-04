@@ -2,7 +2,7 @@ import React from 'react';
 import {router} from "expo-router";
 import PracticeImageAudioScreen from '../../../../../components/PracticeWordScreen';
 
-export default function PantallaLetra() {
+export default function ScreenWord() {
   const images = [
     { id: '1', src: require('@/assets/images/lecciones/nivel2/jirafa.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/jirafa.wav'), isCorrect: true },
     { id: '2', src: require('@/assets/images/lecciones/nivel2/fogata.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/fogata.wav'), isCorrect: false },

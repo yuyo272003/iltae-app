@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, router } from 'expo-router';
 import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import { avanzarLeccion } from '@/utils/leassonProgress';
+import { Audio, AVPlaybackSource } from 'expo-av';
 
 // Utilidad para mezclar el array
 function shuffleArray<T>(array: T[]): T[] {
@@ -16,15 +17,28 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 // Definir el tipo de las propiedades que va a recibir este componente
-interface SyllableMatchGameProps {
-    syllables: { syllable: string; file: any }[]; // Lista de sílabas y archivos de audio
-    instructionAudio: any; // Audio de instrucción
-    onTopBack: () => void; // Función para la acción de "back" superior
-    onBottomBack: () => void; // Función para la acción de "back" inferior
-    onNext: () => void; // Función para la acción de "next"
+interface SyllablePair {
+    syllable: string;
+    file: any;
 }
 
-export const SyllableMatchGame: React.FC<SyllableMatchGameProps> = ({ syllables, instructionAudio, onTopBack, onBottomBack, onNext }) => {
+interface SyllableMatchGameProps {
+    syllablePairs: SyllablePair[]; // Lista de sílabas y archivos de audio
+    practiceAudio: AVPlaybackSource;
+    onNext?:() => void; // Ruta de "next"
+    onTopBack?: () => void; // Ruta de "topBack"
+    onBottomBack?: () => void; // Ruta de "bottomBack"
+    advanceEndpoint?: string; // Ruta para avanzar lección (opcional)
+}
+
+export default function SyllableMatchGame({
+    syllablePairs,
+    practiceAudio,
+    onNext,
+    onTopBack,
+    onBottomBack,
+    advanceEndpoint = "/progreso/avanzar",
+}: SyllableMatchGameProps) {
     const [soundButtons, setSoundButtons] = useState<any[]>([]);
     const [letterButtons, setLetterButtons] = useState<any[]>([]);
     const [matchedSyllables, setMatchedSyllables] = useState<string[]>([]);
@@ -32,15 +46,19 @@ export const SyllableMatchGame: React.FC<SyllableMatchGameProps> = ({ syllables,
 
     useFocusEffect(
         React.useCallback(() => {
-            setSoundButtons(shuffleArray(syllables).map((item, index) => ({
-                ...item,
-                id: index,
-            })));
+            setSoundButtons(
+                shuffleArray(syllablePairs).map((item, index) => ({
+                    ...item,
+                    id: index,
+                }))
+            );
 
-            setLetterButtons(shuffleArray(syllables).map((item, index) => ({
-                syllable: item.syllable,
-                id: index,
-            })));
+            setLetterButtons(
+                shuffleArray(syllablePairs).map((item, index) => ({
+                    syllable: item.syllable,
+                    id: index,
+                }))
+            );
 
             setMatchedSyllables([]);
             setSelectedSound(null);
@@ -49,7 +67,7 @@ export const SyllableMatchGame: React.FC<SyllableMatchGameProps> = ({ syllables,
             return () => {
                 stopAudioGlobal();
             };
-        }, [syllables])
+        }, [syllablePairs])
     );
 
     const handlePlaySound = async (button: { syllable: string; file: any }) => {
@@ -68,10 +86,23 @@ export const SyllableMatchGame: React.FC<SyllableMatchGameProps> = ({ syllables,
     };
 
     const handlePlayInstruction = async () => {
-        await playAudioGlobal(instructionAudio);
+        await playAudioGlobal(practiceAudio);
     };
 
-    const allMatched = matchedSyllables.length === syllables.length;
+    const allMatched = matchedSyllables.length === syllablePairs.length;
+
+    const handleNext = async () => {
+        await stopAudioGlobal();
+
+        // Si hay un endpoint de progreso, avanzar la lección
+        if (advanceEndpoint) {
+            try {
+                await avanzarLeccion(advanceEndpoint);
+            } catch (error) {
+                console.error("Error al avanzar lección:", error);
+            }
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -79,7 +110,6 @@ export const SyllableMatchGame: React.FC<SyllableMatchGameProps> = ({ syllables,
                 style={styles.backButton}
                 onPress={async () => {
                     await stopAudioGlobal();
-                    onTopBack(); // Usar la función proporcionada para la navegación
                 }}
             >
                 <Ionicons name="arrow-back" size={28} color="#2e6ef7" />
@@ -113,9 +143,7 @@ export const SyllableMatchGame: React.FC<SyllableMatchGameProps> = ({ syllables,
                             onPress={() => handleSelectLetter(button)}
                             disabled={matchedSyllables.includes(button.syllable)}
                         >
-                            <Text style={styles.syllableText}>
-                                {button.syllable}
-                            </Text>
+                            <Text style={styles.syllableText}>{button.syllable}</Text>
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -130,7 +158,7 @@ export const SyllableMatchGame: React.FC<SyllableMatchGameProps> = ({ syllables,
                     <View
                         style={[
                             styles.progressFill,
-                            { width: `${(matchedSyllables.length / syllables.length) * 100}%` },
+                            { width: `${(matchedSyllables.length / syllablePairs.length) * 100}%` },
                         ]}
                     />
                 </View>
@@ -140,22 +168,16 @@ export const SyllableMatchGame: React.FC<SyllableMatchGameProps> = ({ syllables,
                         style={styles.backRoundButton}
                         onPress={async () => {
                             await stopAudioGlobal();
-                            onBottomBack(); // Usar la función proporcionada para la acción de "back" inferior
+
                         }}
                     >
                         <Ionicons name="arrow-back" size={24} color="red" />
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[
-                            styles.nextButton,
-                            { backgroundColor: allMatched ? '#00c853' : '#aaa' },
-                        ]}
+                        style={[styles.nextButton, { backgroundColor: allMatched ? '#00c853' : '#aaa' }]}
                         disabled={!allMatched}
-                        onPress={async () => {
-                            await stopAudioGlobal();
-                            onNext(); // Usar la función proporcionada para la acción de "next"
-                        }}
+                        onPress={handleNext}
                     >
                         <Ionicons name="arrow-forward" size={24} color="#fff" />
                     </TouchableOpacity>
@@ -163,7 +185,7 @@ export const SyllableMatchGame: React.FC<SyllableMatchGameProps> = ({ syllables,
             </View>
         </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -238,7 +260,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-
     progressBar: {
         width: '80%',
         height: 5,
@@ -249,7 +270,7 @@ const styles = StyleSheet.create({
     },
     progressFill: {
         height: 5,
-        backgroundColor: '#000',
+        backgroundColor: '#2e6ef7',
     },
     navButtons: {
         flexDirection: 'row',

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { usePathname, router } from 'expo-router';
+import { router } from 'expo-router';
 import PracticeImageAudioScreen from '../../../../../components/PracticeWordScreen';
 import { useScreenProgress } from '../../../../../hooks/useScreenProgress';
 
@@ -25,13 +25,7 @@ export default function ScreenWord() {
         titleAudio={require('@assets/audio/levels/nivel1/lessons/C/C.wav')}
         practiceAudio={require('@/assets/audio/levels/nivel2/audios_lesson1/practice.wav')}
         images={images}
-        //onCorrect={() => console.log('¡Correcto!')}
-        //onIncorrect={() => console.log('Intenta de nuevo')}
-        onTopBack={async () => {
-          await AsyncStorage.removeItem('progresoLeccion');
-          router.push('/(tabs)/Level2Screen');
-        }}
-        
+        onTopBack={() => router.push('/(tabs)/Level2Screen')}
         // @ts-ignore
         onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Bpractice')}
         // @ts-ignore

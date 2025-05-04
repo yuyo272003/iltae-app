@@ -1,9 +1,8 @@
 import React, {useEffect} from 'react';
-import {router, usePathname} from "expo-router";
+import {router} from "expo-router";
 import PracticeImageAudioScreen from '../../../../../components/PracticeWordScreen';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function PantallaLetra() {
+export default function ScreenWord() {
   const images = [
     { id: '1', src: require('@/assets/images/lecciones/nivel2/xilofono.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/xilofono.wav'), isCorrect: true },
     { id: '2', src: require('@/assets/images/lecciones/nivel2/sol.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/sol.wav'), isCorrect: false },
@@ -12,15 +11,6 @@ export default function PantallaLetra() {
     { id: '5', src: require('@/assets/images/lecciones/nivel2/piña.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/piña.wav'),isCorrect: false },
     { id: '6', src: require('@/assets/images/lecciones/nivel2/serpiente.png'), audio: require('@/assets/audio/levels/nivel2/audios_lesson1/serpiente.wav'),isCorrect: false},
   ];
-
-  const pathname = usePathname();
-
-  useEffect(() => {
-    const guardarRuta = async () => {
-      await AsyncStorage.setItem('progresoLeccion', pathname);
-    };
-    guardarRuta();
-  }, [pathname]);
 
   return (
     <PracticeImageAudioScreen
