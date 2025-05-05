@@ -16,7 +16,7 @@ export default function SyllablesGame() {
         <SyllableMatchGame
             syllablePairs={syllablePairs}
             practiceAudio={require('@assets/audio/levels/nivel1/actividad.wav')}
-            onTopBack={() => router.push('/(tabs)/Level2Screen')}
+            onTopBack={() => {console.log("Navigating to /tabs/Level2Screen");router.push('/(tabs)/Level2Screen')}}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel1/leccion2/Mm/Msilabas')}
                     // @ts-ignore
             onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Dpractice')}

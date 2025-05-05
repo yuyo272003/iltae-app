@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'; 
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, router } from 'expo-router';
@@ -43,6 +43,9 @@ export default function SyllableMatchGame({
     const [letterButtons, setLetterButtons] = useState<any[]>([]);
     const [matchedSyllables, setMatchedSyllables] = useState<string[]>([]);
     const [selectedSound, setSelectedSound] = useState<{ syllable: string } | null>(null);
+    const [practiceSound, setPracticeSound] = useState<Audio.Sound | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -104,10 +107,20 @@ export default function SyllableMatchGame({
         }
     };
 
+    const restartPracticeAudio = async () => {
+        if (practiceSound) {
+            await practiceSound.stopAsync();
+            await practiceSound.setPositionAsync(0);
+            await practiceSound.playAsync();
+            setIsPlaying(true);
+            setIsPaused(false);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <TouchableOpacity
-                style={styles.backButton}
+                style={styles.topBackButton}
                 onPress={async () => {
                     await stopAudioGlobal();
                 }}
@@ -127,7 +140,7 @@ export default function SyllableMatchGame({
                             onPress={() => handlePlaySound(button)}
                             disabled={matchedSyllables.includes(button.syllable)}
                         >
-                            <Ionicons name="volume-high" size={24} color="blue" />
+                            <Ionicons name="volume-high" size={24} color="#2e6ef7" />
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -165,13 +178,19 @@ export default function SyllableMatchGame({
 
                 <View style={styles.navButtons}>
                     <TouchableOpacity
-                        style={styles.backRoundButton}
+                        style={styles.bottomBackButton}
                         onPress={async () => {
                             await stopAudioGlobal();
-
                         }}
                     >
                         <Ionicons name="arrow-back" size={24} color="red" />
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                        style={styles.restartButton} 
+                        onPress={restartPracticeAudio}
+                    >
+                        <Ionicons name="refresh" size={24} color="white" />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -193,7 +212,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingTop: 50,
     },
-    backButton: {
+    topBackButton: {
         position: 'absolute',
         top: 40,
         left: 20,
@@ -218,7 +237,7 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 20,
         borderWidth: 2,
-        borderColor: 'blue',
+        borderColor: '#2e6ef7',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -275,10 +294,11 @@ const styles = StyleSheet.create({
     navButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        width: '60%',
+        alignItems: 'center',
+        width: '80%',
         marginTop: 10,
     },
-    backRoundButton: {
+    bottomBackButton: {
         width: 50,
         height: 50,
         backgroundColor: '#ffffff',
@@ -289,6 +309,14 @@ const styles = StyleSheet.create({
     nextButton: {
         width: 50,
         height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    restartButton: {
+        width: 50,
+        height: 50,
+        backgroundColor: '#2e6ef7',
         borderRadius: 25,
         justifyContent: 'center',
         alignItems: 'center',

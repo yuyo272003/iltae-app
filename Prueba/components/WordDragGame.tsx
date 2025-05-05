@@ -320,12 +320,26 @@ export default function WordDragGame({
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingTop: 60, backgroundColor: 'white', alignItems: 'center' },
-    topBackButton: {
-        position: 'absolute', top: 40, left: 20, zIndex: 10, backgroundColor: '#e0e0e0',
-        padding: 12, borderRadius: 30,
+    container: { 
+        flex: 1, 
+        paddingTop: 60, 
+        backgroundColor: 'white', 
+        alignItems: 'center' 
     },
-    image: { width: 200, height: 200, marginBottom: 20 },
+    topBackButton: {
+        position: 'absolute', 
+        top: 40, 
+        left: 20, 
+        zIndex: 10, 
+        backgroundColor: '#e0e0e0',
+        padding: 12, 
+        borderRadius: 30,
+    },
+    image: { 
+        width: 200, 
+        height: 200, 
+        marginBottom: 20 
+    },
     wordContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
@@ -336,8 +350,14 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     dropZone: {
-        width: LETTER_BOX_SIZE, height: LETTER_BOX_SIZE, marginHorizontal: LETTER_BOX_MARGIN,
-        borderRadius: 8, borderWidth: 2, borderColor: '#333', justifyContent: 'center', alignItems: 'center',
+        width: LETTER_BOX_SIZE, 
+        height: LETTER_BOX_SIZE, 
+        marginHorizontal: LETTER_BOX_MARGIN,
+        borderRadius: 8, 
+        borderWidth: 2, 
+        borderColor: '#333', 
+        justifyContent: 'center', 
+        alignItems: 'center',
     },
     dropText: { fontSize: 28, fontWeight: 'bold' },
     optionsContainer: {
