@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, usePathname, useNavigation } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
 import api from '@/scripts/api';
 
 const lessons = [
@@ -69,30 +67,33 @@ const lessons = [
 
 export default function Level1Screen() {
     const router = useRouter();
+    const pathname = usePathname();
     const [leccionDesbloqueada, setLeccionDesbloqueada] = useState(1);
     const haTerminadoNivel1 = leccionDesbloqueada > 6;
 
+    // La función que obtiene los datos de la API
+    const fetchLeccionDesbloqueada = useCallback(async () => {
+        try {
+            const response = await api.post('/progreso/get-leccion');
+            const id = parseInt(response.data.leccion_id);
+            console.log('📥 Progreso actualizado:', id);
+            if (!isNaN(id)) setLeccionDesbloqueada(id);
+        } catch (error) {
+            console.error('Error al obtener lección:', error);
+        }
+    }, []);
 
-    // @ts-ignore
-    useFocusEffect(
-        useCallback(() => {
-            const fetchLeccionDesbloqueada = async () => {
-                try {
-                    const response = await api.post('/progreso/get-leccion');
-                    const id = parseInt(response.data.leccion_id);
-                    console.log('📥 Progreso actualizado:', id);
-                    if (!isNaN(id)) setLeccionDesbloqueada(id);
-                } catch (error) {
-                    console.error('Error al obtener lección:', error);
-                }
-            };
+    // Este efecto se ejecutará cuando el componente se monte
+    // y cada vez que cambie el pathname (lo que indica que se ha navegado)
+    useEffect(() => {
+        console.log('Pantalla activa, actualizando progreso...');
+        fetchLeccionDesbloqueada();
 
-            fetchLeccionDesbloqueada();
-            return () => stopAudioGlobal();
-        }, [])
-    );
-
-
+        return () => {
+            console.log('Saliendo de la pantalla, deteniendo audio...');
+            stopAudioGlobal();
+        };
+    }, [pathname, fetchLeccionDesbloqueada]);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -113,7 +114,6 @@ export default function Level1Screen() {
                     <Ionicons name="volume-high" size={14} color="#fff" />
                     <Text style={styles.titleText}>Nivel 1</Text>
                 </TouchableOpacity>
-                
 
                 <View style={{ width: 28 }} />
             </View>
@@ -126,7 +126,6 @@ export default function Level1Screen() {
                     const isIntro = item.type === 'intro';
                     const leccionMatch = item.id.match(/^leccion(\d+)$/);
                     const leccionNum = leccionMatch ? parseInt(leccionMatch[1]) : null;
-
 
                     const isUnlocked = isIntro || (leccionNum !== null && leccionDesbloqueada >= leccionNum);
 
@@ -183,7 +182,7 @@ export default function Level1Screen() {
                         <TouchableOpacity
                             onPress={() => {
                                 stopAudioGlobal();
-                               router.push('/(tabs)/Level2Screen');
+                                router.push('/(tabs)/Level2Screen');
                             }}
                             style={styles.nextButton}
                         >
@@ -191,8 +190,6 @@ export default function Level1Screen() {
                         </TouchableOpacity>
                     ) : null
                 }
-                
-                
             />
         </SafeAreaView>
     );
@@ -286,8 +283,4 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 10,
     },
-    
-
 });
-
-

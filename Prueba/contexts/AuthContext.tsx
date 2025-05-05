@@ -52,20 +52,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const fetchUserProfile = async () => {
-            const token = await AsyncStorage.getItem("auth_token");
-            if (!token) return;
-
             try {
-                const response = await api.get("/user", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: "application/json",
-                    },
-                });
+                const token = await AsyncStorage.getItem("auth_token");
+                if (!token) return;
 
-                setUser(response.data);
+                api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+                const response = await api.get("/user");
+                if (response?.data?.id) {
+                    setUser(response.data);
+                } else {
+                    throw new Error("Perfil inválido");
+                }
             } catch (error) {
-                console.error("Error al obtener el perfil de usuario:", error);
+                console.error("Error cargando perfil:", error);
                 setUser(null);
                 await AsyncStorage.removeItem("auth_token");
             }
@@ -73,6 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         fetchUserProfile();
     }, []);
+
 
     return (
         <AuthContext.Provider value={{ user, setUser, logout }}>
