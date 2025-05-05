@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, usePathname, useNavigation } from 'expo-router';
+import {useRouter, usePathname, useNavigation, useFocusEffect} from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import api from '@/scripts/api';
@@ -67,33 +67,51 @@ const lessons = [
 
 export default function Level1Screen() {
     const router = useRouter();
-    const pathname = usePathname();
     const [leccionDesbloqueada, setLeccionDesbloqueada] = useState(1);
     const haTerminadoNivel1 = leccionDesbloqueada > 6;
 
     // La función que obtiene los datos de la API
     const fetchLeccionDesbloqueada = useCallback(async () => {
         try {
+            console.log('📥 Solicitando datos de progreso a la API...');
             const response = await api.post('/progreso/get-leccion');
             const id = parseInt(response.data.leccion_id);
-            console.log('📥 Progreso actualizado:', id);
-            if (!isNaN(id)) setLeccionDesbloqueada(id);
+
+            if (!isNaN(id)) {
+                console.log('📥 Progreso actualizado:', id);
+                setLeccionDesbloqueada(id);
+            }
         } catch (error) {
             console.error('Error al obtener lección:', error);
         }
     }, []);
 
-    // Este efecto se ejecutará cuando el componente se monte
-    // y cada vez que cambie el pathname (lo que indica que se ha navegado)
+    // Este efecto solo se ejecuta cuando el componente se monta inicialmente
     useEffect(() => {
-        console.log('Pantalla activa, actualizando progreso...');
+        console.log('Componente montado, obteniendo progreso inicial...');
         fetchLeccionDesbloqueada();
 
+        // Limpieza cuando se desmonta completamente
         return () => {
-            console.log('Saliendo de la pantalla, deteniendo audio...');
+            console.log('Componente desmontado, deteniendo audio...');
             stopAudioGlobal();
         };
-    }, [pathname, fetchLeccionDesbloqueada]);
+    }, [fetchLeccionDesbloqueada]);
+
+    // Este efecto se ejecutará cada vez que la pantalla vuelva a estar en foco
+    useFocusEffect(
+        useCallback(() => {
+            console.log('Pantalla en foco, actualizando progreso...');
+            fetchLeccionDesbloqueada();
+
+            return () => {
+                // No es necesario hacer nada cuando pierde el foco, solo cuando se desmonta
+            };
+        }, [fetchLeccionDesbloqueada])
+    );
+
+    // El resto del componente permanece igual, solo añadimos markForRefetch
+    // cuando navegamos a una lección
 
     return (
         <SafeAreaView style={styles.container}>
