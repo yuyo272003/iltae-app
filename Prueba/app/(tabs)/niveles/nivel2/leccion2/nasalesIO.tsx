@@ -5,10 +5,10 @@ import { router } from 'expo-router';
 export default function SyllablesGame() {
     // Definimos los pares de sílabas para esta lección específica
     const syllablePairs = [
-        { syllable: 'ma', file: require('@assets/audio/levels/nivel2/audios_lesson2/ma.wav') },
-        { syllable: 'na', file: require('@assets/audio/levels/nivel2/audios_lesson2/na.wav') },
-        { syllable: 'ña', file: require('@assets/audio/levels/nivel2/audios_lesson2/ña.wav') },
-        { syllable: 'me', file: require('@assets/audio/levels/nivel2/audios_lesson2/me.wav') },
+        { syllable: 'ñi', file: require('@assets/audio/levels/nivel2/audios_lesson2/ña.wav') },
+        { syllable: 'mo', file: require('@assets/audio/levels/nivel2/audios_lesson2/me.wav') },
+        { syllable: 'no', file: require('@assets/audio/levels/nivel2/audios_lesson2/ne.wav') },
+        { syllable: 'ño', file: require('@assets/audio/levels/nivel2/audios_lesson2/ñe.wav') },
     ];
 
     return (
