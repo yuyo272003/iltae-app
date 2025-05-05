@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePathname, router } from 'expo-router';
 import PracticeImageAudioScreen from '../../../../../components/PracticeWordScreen';
-import { useScreenProgress } from '../../../../../hooks/useScreenProgress';
-import { getLeccionIdFromPath } from '../../../../../utils/pathHelpers';
+// import { useScreenProgress } from '../../../../../hooks/useScreenProgress';
+// import { getLeccionIdFromPath } from '../../../../../utils/pathHelpers';
 
 
 export default function PantallaLetra() {

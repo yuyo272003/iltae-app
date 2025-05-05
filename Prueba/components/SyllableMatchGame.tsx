@@ -1,7 +1,7 @@
-import React, { useState } from 'react'; 
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, router } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import { avanzarLeccion } from '@/utils/leassonProgress';
 import { Audio, AVPlaybackSource } from 'expo-av';
@@ -16,29 +16,28 @@ function shuffleArray<T>(array: T[]): T[] {
     return copy;
 }
 
-// Definir el tipo de las propiedades que va a recibir este componente
 interface SyllablePair {
     syllable: string;
     file: any;
 }
 
 interface SyllableMatchGameProps {
-    syllablePairs: SyllablePair[]; // Lista de sílabas y archivos de audio
+    syllablePairs: SyllablePair[];
     practiceAudio: AVPlaybackSource;
-    onNext?:() => void; // Ruta de "next"
-    onTopBack?: () => void; // Ruta de "topBack"
-    onBottomBack?: () => void; // Ruta de "bottomBack"
-    advanceEndpoint?: string; // Ruta para avanzar lección (opcional)
+    onNext?: () => void;
+    onTopBack?: () => void;
+    onBottomBack?: () => void;
+    advanceEndpoint?: string;
 }
 
 export default function SyllableMatchGame({
-    syllablePairs,
-    practiceAudio,
-    onNext,
-    onTopBack,
-    onBottomBack,
-    advanceEndpoint = "/progreso/avanzar",
-}: SyllableMatchGameProps) {
+                                              syllablePairs,
+                                              practiceAudio,
+                                              onNext,
+                                              onTopBack,
+                                              onBottomBack,
+                                              advanceEndpoint = "/progreso/avanzar",
+                                          }: SyllableMatchGameProps) {
     const [soundButtons, setSoundButtons] = useState<any[]>([]);
     const [letterButtons, setLetterButtons] = useState<any[]>([]);
     const [matchedSyllables, setMatchedSyllables] = useState<string[]>([]);
@@ -74,9 +73,11 @@ export default function SyllableMatchGame({
     );
 
     const handlePlaySound = async (button: { syllable: string; file: any }) => {
+        await stopAudioGlobal(); // 🔇 Detiene cualquier audio en reproducción (incluso el principal)
         await playAudioGlobal(button.file);
         setSelectedSound({ syllable: button.syllable });
     };
+
 
     const handleSelectLetter = async (button: { syllable: string }) => {
         if (!selectedSound) return;
@@ -88,16 +89,36 @@ export default function SyllableMatchGame({
         setSelectedSound(null);
     };
 
-    const handlePlayInstruction = async () => {
-        await playAudioGlobal(practiceAudio);
+    const togglePracticeAudio = async () => {
+        if (practiceSound && isPlaying) {
+            await practiceSound.pauseAsync();
+            setIsPlaying(false);
+            setIsPaused(true);
+        } else if (practiceSound && isPaused) {
+            await practiceSound.playAsync();
+            setIsPlaying(true);
+            setIsPaused(false);
+        } else {
+            const { sound } = await Audio.Sound.createAsync(practiceAudio);
+            setPracticeSound(sound);
+            await sound.playAsync();
+            setIsPlaying(true);
+
+            sound.setOnPlaybackStatusUpdate((status) => {
+                if (status.isLoaded && status.didJustFinish) {
+                    setIsPlaying(false);
+                    setIsPaused(false);
+                }
+            });
+        }
     };
+
 
     const allMatched = matchedSyllables.length === syllablePairs.length;
 
     const handleNext = async () => {
         await stopAudioGlobal();
 
-        // Si hay un endpoint de progreso, avanzar la lección
         if (advanceEndpoint) {
             try {
                 await avanzarLeccion(advanceEndpoint);
@@ -105,6 +126,8 @@ export default function SyllableMatchGame({
                 console.error("Error al avanzar lección:", error);
             }
         }
+
+        if (onNext) onNext();
     };
 
     const restartPracticeAudio = async () => {
@@ -123,6 +146,7 @@ export default function SyllableMatchGame({
                 style={styles.topBackButton}
                 onPress={async () => {
                     await stopAudioGlobal();
+                    if (onTopBack) onTopBack();
                 }}
             >
                 <Ionicons name="arrow-back" size={28} color="#2e6ef7" />
@@ -163,9 +187,10 @@ export default function SyllableMatchGame({
             </View>
 
             <View style={styles.bottomBox}>
-                <TouchableOpacity style={styles.playInstruction} onPress={handlePlayInstruction}>
-                    <Ionicons name="play" size={28} color="white" />
+                <TouchableOpacity style={styles.playInstruction} onPress={togglePracticeAudio}>
+                    <Ionicons name={isPlaying ? 'pause' : 'play'} size={28} color="white" />
                 </TouchableOpacity>
+
 
                 <View style={styles.progressBar}>
                     <View
@@ -181,13 +206,14 @@ export default function SyllableMatchGame({
                         style={styles.bottomBackButton}
                         onPress={async () => {
                             await stopAudioGlobal();
+                            if (onBottomBack) onBottomBack();
                         }}
                     >
                         <Ionicons name="arrow-back" size={24} color="red" />
                     </TouchableOpacity>
-                    
-                    <TouchableOpacity 
-                        style={styles.restartButton} 
+
+                    <TouchableOpacity
+                        style={styles.restartButton}
                         onPress={restartPracticeAudio}
                     >
                         <Ionicons name="refresh" size={24} color="white" />
