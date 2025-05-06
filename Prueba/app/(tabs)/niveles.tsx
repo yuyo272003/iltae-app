@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -8,8 +8,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
+import api from '@/scripts/api';
 
 type Nivel = {
     id: number;
@@ -19,7 +20,6 @@ type Nivel = {
 };
 
 const tabs = ['Todos', 'En progreso', 'Terminados'];
-
 const nivelesBase: Nivel[] = [
     { id: 1, titulo: 'Nivel 1', descripcion: 'Aprendizaje de letras y sílabas', estado: 'pendiente' },
     { id: 2, titulo: 'Nivel 2', descripcion: 'Conoce las letras del abecedario', estado: 'pendiente' },
@@ -27,8 +27,6 @@ const nivelesBase: Nivel[] = [
     { id: 4, titulo: 'Nivel 4', descripcion: 'Combinaciones consonantes', estado: 'pendiente' },
     { id: 5, titulo: 'Nivel 5', descripcion: 'Lectura de oraciones', estado: 'pendiente' },
 ];
-
-// ✅ Map de audios por nivel
 const audiosPorNivel: { [key: number]: any } = {
     1: require('@/assets/audio/AudioNivel1.wav'),
     2: require('@/assets/audio/AudioNivel1.wav'),
@@ -38,18 +36,48 @@ const audiosPorNivel: { [key: number]: any } = {
 };
 
 export default function NivelesScreen() {
-    const [selectedTab, setSelectedTab] = useState<string>('Todos');
     const { user, logout } = useAuth();
     const router = useRouter();
 
-    // 🔊 Intro audio
+    // 1. Estado local para completados
+    const [nivelesCompletados, setNivelesCompletados] = useState<number>(user?.niveles_completados ?? 0);
+    const [selectedTab, setSelectedTab] = useState<string>('Todos');
+
+    // 2. Función para obtener del API los niveles completados
+    const fetchNivelesCompletados = useCallback(async () => {
+        try {
+            console.log('📥 Solicitando niveles completados a la API...');
+            const response = await api.post('/progreso/get-niveles-completados');
+            const completed = parseInt(response.data.niveles_completados, 10);
+            if (!isNaN(completed)) {
+                console.log('✅ Niveles completados:', completed);
+                setNivelesCompletados(completed);
+            }
+        } catch (error) {
+            console.error('Error al obtener niveles completados:', error);
+        }
+    }, []);
+
+    // 3. Refrescar al montar y cada vez que vuelvas a la pantalla
+    useEffect(() => {
+        fetchNivelesCompletados();
+        return () => {
+            stopAudioGlobal();
+        };
+    }, [fetchNivelesCompletados]);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchNivelesCompletados();
+        }, [fetchNivelesCompletados])
+    );
+
+    // Gestión de audio e ítem de nivel (igual que antes)
     // @ts-ignore
     useEffect(() => {
         const reproducirIntro = async () => {
             await stopAudioGlobal();
-            setTimeout(async () => {
-                await playAudioGlobal(require('@/assets/audio/niveles.wav'));
-            }, 50);
+            setTimeout(() => playAudioGlobal(require('@/assets/audio/niveles.wav')), 50);
         };
         reproducirIntro();
         return () => stopAudioGlobal();
@@ -58,55 +86,44 @@ export default function NivelesScreen() {
     useEffect(() => {
         const cambiarAudio = async () => {
             await stopAudioGlobal();
-            setTimeout(async () => {
-                let audioUri: any;
+            setTimeout(() => {
+                let audioUri;
                 if (selectedTab === 'Todos') audioUri = require('@/assets/audio/Todos.wav');
                 if (selectedTab === 'En progreso') audioUri = require('@/assets/audio/progreso.wav');
                 if (selectedTab === 'Terminados') audioUri = require('@/assets/audio/terminados.wav');
-                if (audioUri) await playAudioGlobal(audioUri);
+                audioUri && playAudioGlobal(audioUri);
             }, 50);
         };
         cambiarAudio();
     }, [selectedTab]);
 
+    // 4. Mapeo usando nivelesCompletados en lugar de user.niveles_completados
+    const mappedNiveles = nivelesBase.map(nivel => {
+        if (nivel.id === 1) {
+            if (nivelesCompletados >= 1) return { ...nivel, estado: 'terminado' };
+            return { ...nivel, estado: 'en progreso' };
+        }
+        if (nivelesCompletados + 1 === nivel.id) {
+            return { ...nivel, estado: 'en progreso' };
+        }
+        if (nivelesCompletados >= nivel.id) {
+            return { ...nivel, estado: 'terminado' };
+        }
+        return { ...nivel, estado: 'pendiente' };
+    });
+
+    const filteredNiveles = mappedNiveles.filter(nivel =>
+        selectedTab === 'Todos'
+            ? true
+            : selectedTab === 'En progreso'
+                ? nivel.estado === 'en progreso'
+                : nivel.estado === 'terminado'
+    );
+
     const handlePlayAudio = async (audioUri: any) => {
         await stopAudioGlobal();
-        setTimeout(async () => {
-            await playAudioGlobal(audioUri);
-        }, 50);
+        setTimeout(() => playAudioGlobal(audioUri), 50);
     };
-
-    const mappedNiveles: Nivel[] = nivelesBase.map(nivel => {
-        if (nivel.id === 1) {
-            // Nivel 1: siempre disponible, terminado si ya completó al menos 1
-            // @ts-ignore
-            if (user?.niveles_completados >= 1) {
-                return { ...nivel, estado: 'terminado' };
-            } else {
-                return { ...nivel, estado: 'en progreso' };
-            }
-        } else { // @ts-ignore
-            if (user?.niveles_completados + 1 === nivel.id) {
-                        return { ...nivel, estado: 'en progreso' };
-                    } else { // @ts-ignore
-                if (user?.niveles_completados >= nivel.id) {
-                                        return { ...nivel, estado: 'terminado' };
-                                    } else {
-                                        return { ...nivel, estado: 'pendiente' };
-                                    }
-            }
-        }
-    });
-
-
-
-
-    const filteredNiveles = mappedNiveles.filter(nivel => {
-        if (selectedTab === 'Todos') return true;
-        if (selectedTab === 'En progreso') return nivel.estado === 'en progreso';
-        if (selectedTab === 'Terminados') return nivel.estado === 'terminado';
-        return false;
-    });
 
     const NivelItem = ({
                            nivel,
@@ -119,8 +136,7 @@ export default function NivelesScreen() {
         playAudio: (audioUri: any) => void;
         audioUri: any;
     }): JSX.Element => {
-        const isActivo = nivel.estado === 'en progreso' || nivel.estado === 'terminado';
-
+        const isActivo = nivel.estado !== 'pendiente';
         return (
             <TouchableOpacity
                 style={styles.nivelItem}
@@ -128,7 +144,9 @@ export default function NivelesScreen() {
                 onPress={onPress}
             >
                 <View style={styles.nivelHeader}>
-                    <Text style={[styles.nivelTitulo, { color: isActivo ? '#000' : '#999' }]}>{nivel.titulo}</Text>
+                    <Text style={[styles.nivelTitulo, { color: isActivo ? '#000' : '#999' }]}>
+                        {nivel.titulo}
+                    </Text>
                     <Ionicons
                         name="volume-high"
                         size={20}
@@ -137,7 +155,9 @@ export default function NivelesScreen() {
                         onPress={() => isActivo && playAudio(audioUri)}
                     />
                 </View>
-                <Text style={[styles.descripcion, { color: isActivo ? '#666' : '#aaa' }]}>{nivel.descripcion}</Text>
+                <Text style={[styles.descripcion, { color: isActivo ? '#666' : '#aaa' }]}>
+                    {nivel.descripcion}
+                </Text>
                 {isActivo && (
                     <Ionicons
                         name="chevron-forward"
@@ -150,6 +170,7 @@ export default function NivelesScreen() {
         );
     };
 
+    // @ts-ignore
     return (
         <View style={styles.container}>
             <TouchableOpacity
@@ -196,6 +217,7 @@ export default function NivelesScreen() {
                 keyExtractor={item => item.id.toString()}
                 renderItem={({ item }) => (
                     <NivelItem
+                        // @ts-ignore
                         nivel={item}
                         onPress={async () => {
                             await stopAudioGlobal();
