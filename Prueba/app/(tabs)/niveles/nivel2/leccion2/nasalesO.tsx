@@ -5,10 +5,9 @@ import { router } from 'expo-router';
 export default function SyllablesGame() {
     // Definimos los pares de sílabas para esta lección específica
     const syllablePairs = [
-        { syllable: 'ñi', file: require('@assets/audio/levels/nivel2/audios_lesson2/ña.wav') },
-        { syllable: 'mo', file: require('@assets/audio/levels/nivel2/audios_lesson2/me.wav') },
-        { syllable: 'no', file: require('@assets/audio/levels/nivel2/audios_lesson2/ne.wav') },
-        { syllable: 'ño', file: require('@assets/audio/levels/nivel2/audios_lesson2/ñe.wav') },
+        { syllable: 'mo', file: require('@assets/audio/levels/nivel2/audios_lesson2/mo.wav') },
+        { syllable: 'no', file: require('@assets/audio/levels/nivel2/audios_lesson2/no.wav') },
+        { syllable: 'ño', file: require('@assets/audio/levels/nivel2/audios_lesson2/ño.wav') },
     ];
 
     return (
@@ -16,9 +15,9 @@ export default function SyllablesGame() {
             syllablePairs={syllablePairs}
             practiceAudio={require('@assets/audio/levels/nivel1/actividad.wav')}
             onTopBack={() => {console.log("Navigating to /tabs/Level2Screen");router.push('/(tabs)/Level2Screen')}}
-            onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion2/firstScreen')}
+            onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion2/nasalesI')}
                     // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Dpractice')}
+            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion2/nasalesU')}
 
         /> 
     );

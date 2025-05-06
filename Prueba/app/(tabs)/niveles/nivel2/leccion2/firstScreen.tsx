@@ -8,7 +8,6 @@ export default function SyllablesGame() {
         { syllable: 'ma', file: require('@assets/audio/levels/nivel2/audios_lesson2/ma.wav') },
         { syllable: 'na', file: require('@assets/audio/levels/nivel2/audios_lesson2/na.wav') },
         { syllable: 'ña', file: require('@assets/audio/levels/nivel2/audios_lesson2/ña.wav') },
-        { syllable: 'me', file: require('@assets/audio/levels/nivel2/audios_lesson2/me.wav') },
     ];
 
     return (
@@ -16,9 +15,9 @@ export default function SyllablesGame() {
             syllablePairs={syllablePairs}
             practiceAudio={require('@assets/audio/levels/nivel1/actividad.wav')}
             onTopBack={() => {console.log("Navigating to /tabs/Level2Screen");router.push('/(tabs)/Level2Screen')}}
-            onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion2/firstScreen')}
-                    // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Dpractice')}
+            onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Dpractice')}
+                    // @ts-ignore modificar la flecha
+            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion2/nasalesE')}
 
         /> 
     );
