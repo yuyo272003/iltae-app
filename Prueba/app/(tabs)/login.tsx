@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
     View,
     Text,
@@ -13,101 +13,110 @@ import {
     ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import axios, { AxiosError } from "axios";
+import { useFocusEffect, router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/contexts/AuthContext";
-import * as Speech from "expo-speech";
 import api from '@/scripts/api';
 import { Audio, AVPlaybackSource } from "expo-av";
+import {
+    playAudioGlobal,
+    stopAudioGlobal,
+    registerStatusCallback,
+    unregisterStatusCallback,
+    isAudioPlayingGlobal,
+} from '@/utils/AudioManager';
 
 export default function LoginScreen() {
     const [nombre, setNombre] = useState("");
     const { setUser } = useAuth();
-    const [audio, setAudio] = useState<Audio.Sound | null>(null);
     const [isDictating, setIsDictating] = useState(false);
+    const [isAudioPlaying, setIsAudioPlaying] = useState(isAudioPlayingGlobal());
     const [keyboardVisible, setKeyboardVisible] = useState(false);
+    const [dictationAudio, setDictationAudio] = useState<Audio.Sound | null>(null);
     const inputRef = useRef<TextInput>(null);
 
-    // 🧹 Detener y limpiar audio al desmontar
+    // Pause any audio when screen loses focus
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                stopAudioGlobal();
+                if (dictationAudio) {
+                    dictationAudio.stopAsync();
+                    dictationAudio.unloadAsync();
+                    setDictationAudio(null);
+                }
+            };
+        }, [dictationAudio])
+    );
+
+    // AudioManager callbacks for speaker button
     useEffect(() => {
+        const statusCb = (playing: boolean) => setIsAudioPlaying(playing);
+        registerStatusCallback(statusCb);
         return () => {
-            if (audio) {
-                audio.unloadAsync();
+            unregisterStatusCallback(statusCb);
+            stopAudioGlobal();
+            if (dictationAudio) {
+                dictationAudio.unloadAsync();
             }
         };
-    }, [audio]);
+    }, [dictationAudio]);
 
-    // Detectar cuando el teclado se muestra u oculta
+    // Keyboard show/hide listeners
     useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener(
-            'keyboardDidShow',
-            () => {
-                setKeyboardVisible(true);
-            }
-        );
-        const keyboardDidHideListener = Keyboard.addListener(
-            'keyboardDidHide',
-            () => {
-                setKeyboardVisible(false);
-            }
-        );
-
+        const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+        const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
         return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
+            showSub.remove();
+            hideSub.remove();
         };
     }, []);
 
-    const reproducirAudio = async (audioFile: AVPlaybackSource) => {
+    // Local playback for dictation instructions
+    const reproducirAudioLocal = async (audioFile: AVPlaybackSource) => {
         try {
-            // Detenemos cualquier audio anterior
-            if (audio) {
-                await audio.stopAsync();
-                await audio.unloadAsync();
+            if (dictationAudio) {
+                await dictationAudio.stopAsync();
+                await dictationAudio.unloadAsync();
             }
-
             const { sound } = await Audio.Sound.createAsync(audioFile);
-
-            setAudio(sound);
+            setDictationAudio(sound);
             await sound.playAsync();
+            sound.setOnPlaybackStatusUpdate(status => {
+                if (status.isLoaded && status.didJustFinish) {
+                    sound.unloadAsync();
+                    setDictationAudio(null);
+                }
+            });
         } catch (error) {
-            console.log("Error al reproducir audio:", error);
+            console.log('Error reproducirAudioLocal:', error);
         }
     };
 
-    const reproducirInstrucciones = async () => {
-
-        await reproducirAudio(require('@/assets/audio/registro_instrucciones.wav'));
+    // Play login instructions via AudioManager
+    const reproducirInstrucciones = () => {
+        playAudioGlobal(require('@/assets/audio/registro_instrucciones.wav'));
     };
 
-    const reproducirInstruccionesDictado = async () => {
-        try {;
-
-            // O si tienes el archivo:
-            await reproducirAudio(require('@/assets/audio/dictado_instrucciones.wav'));
-        } catch (error) {
-            console.log("Error al reproducir instrucciones de dictado:", error);
-        }
+    // Play dictation instructions via local audio
+    const reproducirInstruccionesDictado = () => {
+        reproducirAudioLocal(require('@/assets/audio/dictado_instrucciones.wav'));
     };
 
     const activateDictation = () => {
         setIsDictating(true);
-
-        // Enfoca el input y muestra el teclado
-        if (inputRef.current) {
-            inputRef.current.focus();
-
-            // Reproducir instrucciones de audio para dictado
-            setTimeout(() => {
-                reproducirInstruccionesDictado();
-            }, 500); // Pequeño delay para asegurar que el teclado esté visible
-        }
+        if (inputRef.current) inputRef.current.focus();
+        setTimeout(reproducirInstruccionesDictado, 500);
     };
 
-    const deactivateDictation = () => {
+    const deactivateDictation = async () => {
         setIsDictating(false);
         Keyboard.dismiss();
+        if (dictationAudio) {
+            await dictationAudio.stopAsync();
+            await dictationAudio.unloadAsync();
+            setDictationAudio(null);
+        }
     };
 
     const handleLogin = async () => {
@@ -115,39 +124,23 @@ export default function LoginScreen() {
             Alert.alert("Error", "Por favor ingresa tu nombre.");
             return;
         }
-
         try {
-            const response = await api.post('/login', {
-                name: nombre,
-            });
-
+            const response = await api.post('/login', { name: nombre });
             const { user, token, niveles_completados } = response.data;
             await AsyncStorage.setItem("auth_token", token);
-            setUser({ ...user, niveles_completados }); // ✅ ¡ahora sí se guarda!
-
-
-            console.log("Usuario autenticado:", user);
-
-            //Alert.alert("¡Ingreso exitoso!");
+            setUser({ ...user, niveles_completados });
             router.push("/(tabs)/perfiles");
-
-        } catch (error) {
-            const err = error as AxiosError;
-            console.log(err.response?.data || err.message);
-
+        } catch (error: any) {
             Alert.alert(
                 "Error",
-                (err.response?.data as any)?.message || "No se pudo iniciar sesión 😢"
+                error.response?.data?.message || "No se pudo iniciar sesión 😢"
             );
         }
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-            >
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={28} color="blue" />
             </TouchableOpacity>
 
@@ -160,19 +153,15 @@ export default function LoginScreen() {
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View style={[
-                        styles.content,
-                        keyboardVisible && styles.contentWithKeyboard
-                    ]}>
+                    <View style={[styles.content, keyboardVisible && styles.contentWithKeyboard]}>
                         <View style={styles.profileContainer}>
                             <Ionicons name="person-circle" size={100} color="#1E6ADB" />
                         </View>
 
                         <View style={styles.headerSection}>
                             <TouchableOpacity style={styles.speakerButton} onPress={reproducirInstrucciones}>
-                                <Ionicons name="volume-high" size={20} color="white" />
+                                <Ionicons name={isAudioPlaying ? "pause" : "volume-high"} size={20} color="white" />
                             </TouchableOpacity>
-
                             <Text style={styles.welcomeText}>¡Iniciar Sesión!</Text>
                         </View>
 
@@ -183,9 +172,8 @@ export default function LoginScreen() {
                             placeholderTextColor="#999"
                             value={nombre}
                             onChangeText={setNombre}
-                            autoFocus={false}
                             returnKeyType="done"
-                            blurOnSubmit={true}
+                            blurOnSubmit
                             onSubmitEditing={deactivateDictation}
                         />
 
@@ -194,19 +182,13 @@ export default function LoginScreen() {
                             onPress={isDictating ? deactivateDictation : activateDictation}
                         >
                             <Ionicons name="mic" size={24} color="white" />
-                            <Text style={styles.voiceButtonText}>
-                                {isDictating ? "" : ""}
-                            </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.nextButton} onPress={handleLogin}>
                             <Ionicons name="arrow-forward" size={24} color="white" />
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.registerLink}
-                            onPress={() => router.push("/(tabs)/registro")}
-                        >
+                        <TouchableOpacity style={styles.registerLink} onPress={() => router.push("/(tabs)/registro") }>
                             <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
                         </TouchableOpacity>
                     </View>
@@ -217,35 +199,13 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#EEF3FF",
-    },
-    keyboardAvoid: {
-        flex: 1,
-    },
-    scrollContainer: {
-        flexGrow: 1,
-        alignItems: "center",
-        paddingTop: 120, // Dejamos espacio para el botón de retroceso
-        paddingBottom: 30,
-    },
-    content: {
-        width: 327,
-        alignItems: "flex-start",
-        justifyContent: "center",
-    },
-    contentWithKeyboard: {
-        paddingTop: 10, // Reduce el espacio superior cuando el teclado está visible
-    },
-    profileContainer: {
-        alignSelf: "center",
-        marginBottom: 20, // Reducido del original
-    },
-    headerSection: {
-        width: "100%",
-        marginBottom: 15, // Reducido del original
-    },
+    container: { flex: 1, backgroundColor: "#EEF3FF" },
+    keyboardAvoid: { flex: 1 },
+    scrollContainer: { flexGrow: 1, alignItems: "center", paddingTop: 120, paddingBottom: 30 },
+    content: { width: 327, alignItems: "flex-start", justifyContent: "center" },
+    contentWithKeyboard: { paddingTop: 10 },
+    profileContainer: { alignSelf: "center", marginBottom: 20 },
+    headerSection: { width: "100%", marginBottom: 15 },
     speakerButton: {
         backgroundColor: "#1E6ADB",
         width: 52,
@@ -255,12 +215,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         marginBottom: 10,
     },
-    welcomeText: {
-        fontSize: 24,
-        fontWeight: "bold",
-        marginBottom: 15, // Reducido del original
-        color: "#000",
-    },
+    welcomeText: { fontSize: 24, fontWeight: "bold", marginBottom: 15, color: "#000" },
     input: {
         width: "100%",
         height: 48,
@@ -272,45 +227,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#ccc",
     },
-    voiceButton: {
-        width: "100%",
-        height: 48,
-        backgroundColor: "#1E6ADB",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 8,
-        marginBottom: 15, // Reducido del original
-    },
-    dictatingButton: {
-        backgroundColor: "#FF5252",
-    },
-    voiceButtonText: {
-        color: "white",
-        marginLeft: 10,
-        fontSize: 16,
-    },
-    nextButton: {
-        width: "100%",
-        height: 48,
-        backgroundColor: "#28C940",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 8,
-    },
-    registerLink: {
-        alignSelf: "center",
-        marginTop: 20,
-    },
-    link: {
-        color: "#007AFF",
-        textDecorationLine: "underline",
-        textAlign: "center",
-    },
-    backButton: {
-        position: 'absolute',
-        top: 50,
-        left: 20,
-        zIndex: 2,
-    },
+    voiceButton: { width: "100%", height: 48, backgroundColor: "#1E6ADB", flexDirection: "row", alignItems: "center", justifyContent: "center", borderRadius: 8, marginBottom: 15 },
+    dictatingButton: { backgroundColor: "#FF5252" },
+    nextButton: { width: "100%", height: 48, backgroundColor: "#28C940", alignItems: "center", justifyContent: "center", borderRadius: 8 },
+    registerLink: { alignSelf: "center", marginTop: 20 },
+    link: { color: "#007AFF", textDecorationLine: "underline", textAlign: "center" },
+    backButton: { position: 'absolute', top: 50, left: 20, zIndex: 2 },
 });
