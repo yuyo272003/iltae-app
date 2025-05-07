@@ -92,15 +92,15 @@ export default function LeccionConMezcla() {
                 },
                 {
                     image: require('@assets/images/lecciones/nivel2/zapato.png'),
-                    word: ['z', '', 'p', '', null, 'o'],
+                    word: ['z', null, 'p',null, null, 'o'],
                     correctLetters: ['a', 'a', 't'],
-                    options: ['h', 'z', 't', 'j', 's', 'f'],
+                    options: ['h', 'z', 't', 'j', 's', 'f', 'a', 't'],
                     audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 }
             ]}
             onFinish={() => console.log('Juego terminado')}
-            firstSlideBackRoute="/(tabs)/niveles/nivel2/leccion1/Zpractice" // recuerda cambiar esta línea por la lección 2 
-            lastSlideNextRoute="/(tabs)/niveles/nivel1/leccion2/Inicio"
+            firstSlideBackRoute="/(tabs)/niveles/nivel2/leccion2/especialesU" // recuerda cambiar esta línea por la lección 2 
+            lastSlideNextRoute="/(tabs)\Level2Screen"
             advanceEndpoint="/progreso/avanzar-leccion-1"
             onTopBack={() => router.push('/(tabs)/niveles')}
         />

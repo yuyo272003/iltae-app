@@ -11,36 +11,36 @@ const lessons = [
       id: 'intro',
       title: 'Introducción',
       type: 'intro',
-      image: require('@assets/images/lecciones/nivel1/vocales.png'),
-      audioFile: require('@assets/audio/levels/nivel2/intro.wav'),
+      image: require('@assets/images/lecciones/nivel1/vocales.png'), // revisar
+      audioFile: require('@assets/audio/levels/nivel2/intro.wav'), // revisar
     },
     {
       id: 'leccion1',
-      title: 'Revisión y práctica de consonantes',
+      title: 'Combinación de consonantes',
       type: 'leccion',
-      image: require('@assets/images/lecciones/nivel1/consonantes_basicas.png'),
-      audioFile: require('@assets/audio/levels/nivel2/leccion1.wav'),
+      image: require('@assets/images/lecciones/nivel1/consonantes_basicas.png'), // revisar
+      audioFile: require('@assets/audio/levels/nivel2/leccion1.wav'), // revisar
     },
     {
       id: 'leccion2',
-      title: 'Consonantes y vocales',
+      title: 'Consonantes combinadas y vocales',
       type: 'leccion',
-      image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // Añadido placeholder
-      audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'),
+      image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // revisar
+      audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'), // revisar
     },
     {
       id: 'leccion3',
-      title: 'Práctica de palabras',
+      title: 'Formación de palabras',
       type: 'leccion',
-      image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // Añadido placeholder
-      audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),
+      image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // revisar
+      audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
     },
 ];
   
-export default function Level2Screen() {
+export default function Level3Screen() {
     const router = useRouter();
     const [leccionDesbloqueada, setLeccionDesbloqueada] = useState(1);
-    const haTerminadoNivel2 = leccionDesbloqueada > 3; // Ajustado al número total de lecciones del nivel 2
+    const haTerminadoNivel3 = leccionDesbloqueada > 3; // Ajustado al número total de lecciones del nivel 
     
     // La función que obtiene los datos de la API
     const fetchLeccionDesbloqueada = useCallback(async () => {
@@ -98,11 +98,11 @@ export default function Level2Screen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel2/intro.wav'))}
+                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel2/intro.wav'))} // revisar
                     style={styles.titlePill}
                 >
                     <Ionicons name="volume-high" size={14} color="#fff" />
-                    <Text style={styles.titleText}>Nivel 2</Text>
+                    <Text style={styles.titleText}>Nivel 3</Text>
                 </TouchableOpacity>
 
                 <View style={{ width: 28 }} />
@@ -128,7 +128,7 @@ export default function Level2Screen() {
                                 await stopAudioGlobal(); // detener antes de navegar
                                 if (item.type === "leccion" && item.id)  {
                                     // @ts-ignore
-                                    router.push(`/(tabs)/niveles/nivel2/${item.id}/firstScreen`); // Ajusta según la estructura de tus rutas
+                                    router.push(`/(tabs)/niveles/nivel3/${item.id}/firstScreen`); // Ajusta según la estructura de tus rutas
                                 }
                             }}
                         >
@@ -169,7 +169,7 @@ export default function Level2Screen() {
                 }}
                 contentContainerStyle={styles.grid}
                 ListFooterComponent={
-                    haTerminadoNivel2 ? (
+                    haTerminadoNivel3 ? (
                         <TouchableOpacity
                             onPress={() => {
                                 stopAudioGlobal();

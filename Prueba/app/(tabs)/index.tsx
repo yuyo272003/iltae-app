@@ -44,11 +44,11 @@ const WelcomeScreen = () => {
     >
       {/* Logo */}
       <Image
-        source={require("../../assets/images/logo_blanco.png")} // Asegúrate que exista este archivo
+        source={require("../../assets/images/logo_iltae.png")} // Asegúrate que exista este archivo
         style={styles.logo}
         resizeMode="contain"
       />
-      <Text style={styles.title}>ILTAE</Text>
+      {/* <Text style={styles.title}>ILTAE</Text> */}
 
       {/* Botón reproducir/pausar */}
       <TouchableOpacity style={styles.buttonPlay} onPress={handlePlayPause}>
@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logo: {
-    width: 180,
-    height: 180,
+    width: 250,
+    height: 250,
     marginBottom: 20,
   },  
   title: {

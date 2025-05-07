@@ -5,10 +5,10 @@ import { router } from 'expo-router';
 export default function SyllablesGame() {
     // Definimos los pares de sílabas para esta lección específica
     const syllablePairs = [
-        { syllable: 'co', file: require('@assets/audio/levels/nivel2/audios_lesson2/fo.wav') },
-        { syllable: 'ho', file: require('@assets/audio/levels/nivel2/audios_lesson2/jo.wav') },
-        { syllable: 'yo', file: require('@assets/audio/levels/nivel2/audios_lesson2/zo.wav') },
-        { syllable: 'wo', file: require('@assets/audio/levels/nivel2/audios_lesson2/so.wav') },
+        { syllable: 'co', file: require('@assets/audio/levels/nivel2/audios_lesson2/co.wav') },
+        { syllable: 'ho', file: require('@assets/audio/levels/nivel2/audios_lesson2/ho.wav') },
+        { syllable: 'yo', file: require('@assets/audio/levels/nivel2/audios_lesson2/yo.wav') },
+        { syllable: 'wo', file: require('@assets/audio/levels/nivel2/audios_lesson2/wo.wav') },
     ];
 
     return (
@@ -18,7 +18,7 @@ export default function SyllablesGame() {
             onTopBack={() => router.push('/(tabs)/Level2Screen')}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion2/especialesI')}
                     // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/especialesU')}
+            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion2/especialesU')}
 
         /> 
     );

@@ -5,9 +5,9 @@ import { router } from 'expo-router';
 export default function SyllablesGame() {
     // Definimos los pares de sílabas para esta lección específica
     const syllablePairs = [
-        { syllable: 'mi', file: require('@assets/audio/levels/nivel2/audios_lesson2/ma.wav') },
-        { syllable: 'ni', file: require('@assets/audio/levels/nivel2/audios_lesson2/na.wav') },
-        { syllable: 'ñi', file: require('@assets/audio/levels/nivel2/audios_lesson2/ña.wav') },
+        { syllable: 'mi', file: require('@assets/audio/levels/nivel2/audios_lesson2/mi.wav') },
+        { syllable: 'ni', file: require('@assets/audio/levels/nivel2/audios_lesson2/ni.wav') },
+        { syllable: 'ñi', file: require('@assets/audio/levels/nivel2/audios_lesson2/ñi.wav') },
     ];
 
     return (

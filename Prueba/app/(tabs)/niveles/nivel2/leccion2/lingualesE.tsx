@@ -7,7 +7,7 @@ export default function SyllablesGame() {
     const syllablePairs = [
         { syllable: 'le', file: require('@assets/audio/levels/nivel2/audios_lesson2/le.wav') },
         { syllable: 'lle', file: require('@assets/audio/levels/nivel2/audios_lesson2/lle.wav') },
-        { syllable: 're', file: require('@assets/audio/levels/nivel2/audios_lesson2/ri.wav') },
+        { syllable: 're', file: require('@assets/audio/levels/nivel2/audios_lesson2/re.wav') },
     ];
 
     return (
@@ -17,7 +17,7 @@ export default function SyllablesGame() {
             onTopBack={() => router.push('/(tabs)/Level2Screen')}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion2/lingualesA')}
                     // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/lingualesI')}
+            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion2/lingualesI')}
 
         /> 
     );

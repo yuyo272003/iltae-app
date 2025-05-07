@@ -6,9 +6,9 @@ export default function SyllablesGame() {
     // Definimos los pares de sílabas para esta lección específica
     const syllablePairs = [
         { syllable: 'ce', file: require('@assets/audio/levels/nivel2/audios_lesson2/ce.wav') },
-        { syllable: 'hi', file: require('@assets/audio/levels/nivel2/audios_lesson2/hi.wav') },
-        { syllable: 'yi', file: require('@assets/audio/levels/nivel2/audios_lesson2/yi.wav') },
-        { syllable: 'wi', file: require('@assets/audio/levels/nivel2/audios_lesson2/wi.wav') },
+        { syllable: 'he', file: require('@assets/audio/levels/nivel2/audios_lesson2/he.wav') },
+        { syllable: 'ye', file: require('@assets/audio/levels/nivel2/audios_lesson2/ye.wav') },
+        { syllable: 'we', file: require('@assets/audio/levels/nivel2/audios_lesson2/we.wav') },
     ];
 
     return (
@@ -18,7 +18,7 @@ export default function SyllablesGame() {
             onTopBack={() => router.push('/(tabs)/Level2Screen')}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion2/especialesA')}
                     // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/especialesI')}
+            onNext={() => router.push('/(tabs)/niveles/nivel2/leccion2/especialesI')}
 
         /> 
     );

@@ -303,9 +303,12 @@ export default function WordDragGame({
                     <Ionicons name="refresh" size={24} color="white" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.backButton} onPress={goToBack}>
-                    <Ionicons name="arrow-back" size={24} color="red" />
-                </TouchableOpacity>
+                {/* Botón back oculto si es la primera slide */}
+                {!isFirstSlide && (
+                    <TouchableOpacity style={styles.backButton} onPress={goToBack}>
+                        <Ionicons name="arrow-back" size={24} color="red" />
+                    </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
                     style={[styles.nextButton, (!slideCompleted && !isLastSlide) && styles.nextButtonDisabled]}
