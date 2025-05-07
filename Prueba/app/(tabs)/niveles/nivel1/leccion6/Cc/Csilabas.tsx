@@ -12,7 +12,7 @@ export default function Leccion1() {
             letter="c"
             syllables={["ca", "ce", "ci", "co", "cu"]}
             practiceAudio={require('@assets/audio/levels/nivel1/lessons/C/Csilabaslearn.wav')}
-            syllablesAudio={require('@assets/audio/levels/nivel1/lessons/B/Bsilabas.wav')}
+            syllablesAudio={require('@assets/audio/levels/nivel1/lessons/C/Csilabas.wav')}
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level1Screen')}
             // @ts-ignore
