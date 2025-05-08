@@ -9,7 +9,6 @@ import {
     Alert,
     Keyboard,
     KeyboardAvoidingView,
-    Platform,
     ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +16,7 @@ import { useFocusEffect, router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/contexts/AuthContext";
 import api from '@/scripts/api';
+import { PermissionsAndroid, Platform } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
 import {
     playAudioGlobal,
@@ -26,41 +26,30 @@ import {
     isAudioPlayingGlobal,
 } from '@/utils/AudioManager';
 
+// **Importa Voice**
+import Voice from '@react-native-voice/voice';
+
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState("");
     const { setUser } = useAuth();
     const [isDictating, setIsDictating] = useState(false);
     const [isAudioPlaying, setIsAudioPlaying] = useState(isAudioPlayingGlobal());
     const [keyboardVisible, setKeyboardVisible] = useState(false);
-    const [dictationAudio, setDictationAudio] = useState<Audio.Sound | null>(null);
     const inputRef = useRef<TextInput>(null);
 
-    // Pause audios when screen loses focus
+    // Limpieza de AudioManager y listeners de pantalla
     useFocusEffect(
-        useCallback(() => {
-            return () => {
-                stopAudioGlobal();
-                if (dictationAudio) {
-                    dictationAudio.stopAsync();
-                    dictationAudio.unloadAsync();
-                    setDictationAudio(null);
-                }
-            };
-        }, [dictationAudio])
+        useCallback(() => () => stopAudioGlobal(), [])
     );
 
-    // AudioManager (speaker) callbacks
     useEffect(() => {
         const statusCb = (playing: boolean) => setIsAudioPlaying(playing);
         registerStatusCallback(statusCb);
         return () => {
             unregisterStatusCallback(statusCb);
             stopAudioGlobal();
-            if (dictationAudio) {
-                dictationAudio.unloadAsync();
-            }
         };
-    }, [dictationAudio]);
+    }, []);
 
     // Keyboard listeners
     useEffect(() => {
@@ -72,51 +61,68 @@ export default function RegistroScreen() {
         };
     }, []);
 
-    // Local playback for dictation instructions (decoupled)
-    const reproducirAudioLocal = async (audioFile: AVPlaybackSource) => {
-        try {
-            if (dictationAudio) {
-                await dictationAudio.stopAsync();
-                await dictationAudio.unloadAsync();
-            }
-            const { sound } = await Audio.Sound.createAsync(audioFile);
-            setDictationAudio(sound);
-            await sound.playAsync();
-            sound.setOnPlaybackStatusUpdate(status => {
-                if (status.isLoaded && status.didJustFinish) {
-                    sound.unloadAsync();
-                    setDictationAudio(null);
+    // --- Voice Listeners ---
+    useEffect(() => {
+        Voice.onSpeechStart = () => setIsDictating(true);
+        Voice.onSpeechResults = e => {
+            const text = e.value?.[0] ?? '';
+            setNombre(text);
+        };
+        Voice.onSpeechError = e => {
+            console.warn('Voice error:', e);
+            setIsDictating(false);
+        };
+        return () => {
+            Voice.destroy().then(() => Voice.removeAllListeners());
+        };
+    }, []);
+
+    async function requestAudioPermission() {
+        if (Platform.OS === 'android') {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+                {
+                    title: "Permiso de micrófono",
+                    message: "La app necesita acceder al micrófono para dictar tu nombre.",
+                    buttonNegative: "Cancelar",
+                    buttonPositive: "Aceptar",
                 }
-            });
-        } catch (error) {
-            console.log('Error reproducirAudioLocal:', error);
+            );
+            return granted === PermissionsAndroid.RESULTS.GRANTED;
+        }
+        return true;
+    }
+
+    const startRecognizing = async () => {
+        // 1️⃣ pide permiso
+        const ok = await requestAudioPermission();
+        if (!ok) {
+            Alert.alert("Permiso denegado", "No podemos usar el micrófono sin permiso.");
+            return;
+        }
+        // 2️⃣ arranca el dictado
+        try {
+            await Voice.start("es-MX");
+            inputRef.current?.focus();
+        } catch (e) {
+            console.error("Voice.start error:", e);
         }
     };
 
-    // Play screen instructions via AudioManager
+    const stopRecognizing = async () => {
+        try {
+            await Voice.stop();
+        } catch (e) {
+            console.error('stopRecognizing error:', e);
+        } finally {
+            setIsDictating(false);
+            Keyboard.dismiss();
+        }
+    };
+    // -----------------------
+
     const reproducirInstrucciones = () => {
         playAudioGlobal(require('@/assets/audio/registro_instrucciones.wav'));
-    };
-
-    // Play dictation instructions via local audio
-    const reproducirInstruccionesDictado = () => {
-        reproducirAudioLocal(require('@/assets/audio/dictado_instrucciones.wav'));
-    };
-
-    const activateDictation = () => {
-        setIsDictating(true);
-        if (inputRef.current) inputRef.current.focus();
-        setTimeout(reproducirInstruccionesDictado, 500);
-    };
-
-    const deactivateDictation = async () => {
-        setIsDictating(false);
-        Keyboard.dismiss();
-        if (dictationAudio) {
-            await dictationAudio.stopAsync();
-            await dictationAudio.unloadAsync();
-            setDictationAudio(null);
-        }
     };
 
     const handleRegister = async () => {
@@ -129,7 +135,6 @@ export default function RegistroScreen() {
             const { token, user } = response.data;
             await AsyncStorage.setItem("auth_token", token);
             setUser(user);
-            //Alert.alert("¡Registro exitoso!");
             router.push("/(tabs)/perfiles");
         } catch (error: any) {
             Alert.alert(
@@ -154,9 +159,7 @@ export default function RegistroScreen() {
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View
-                        style={[styles.content, keyboardVisible && styles.contentWithKeyboard]}
-                    >
+                    <View style={[styles.content, keyboardVisible && styles.contentWithKeyboard]}>
                         <View style={styles.profileContainer}>
                             <Ionicons name="person-circle" size={100} color="#1E6ADB" />
                         </View>
@@ -185,14 +188,17 @@ export default function RegistroScreen() {
                             onChangeText={setNombre}
                             returnKeyType="done"
                             blurOnSubmit
-                            onSubmitEditing={deactivateDictation}
+                            onSubmitEditing={stopRecognizing}
                         />
 
                         <TouchableOpacity
                             style={[styles.voiceButton, isDictating && styles.dictatingButton]}
-                            onPress={isDictating ? deactivateDictation : activateDictation}
+                            onPress={isDictating ? stopRecognizing : startRecognizing}
                         >
-                            <Ionicons name="mic" size={24} color="white" />
+                            <Ionicons name={isDictating ? "mic-off" : "mic"} size={24} color="white" />
+                            <Text style={{ color: 'white', marginLeft: 8 }}>
+                                {isDictating ? 'Detener' : 'Dictar'}
+                            </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.nextButton} onPress={handleRegister}>
