@@ -17,6 +17,7 @@ const lessons = [
     {
       id: 'leccion1',
       title: 'Combinación de consonantes',
+      carpeta: 'bl',
       type: 'leccion',
       image: require('@assets/images/lecciones/nivel1/consonantes_basicas.png'), // revisar
       audioFile: require('@assets/audio/levels/nivel2/leccion1.wav'), // revisar
@@ -128,7 +129,7 @@ export default function Level3Screen() {
                                 await stopAudioGlobal(); // detener antes de navegar
                                 if (item.type === "leccion" && item.id)  {
                                     // @ts-ignore
-                                    router.push(`/(tabs)/niveles/nivel3/${item.id}/firstScreen`); // Ajusta según la estructura de tus rutas
+                                    router.push(`/(tabs)/niveles/nivel1/${item.id}/${item.carpeta}/leccion`); // Ajusta según la estructura de tus rutas
                                 }
                             }}
                         >
@@ -174,7 +175,7 @@ export default function Level3Screen() {
                             onPress={() => {
                                 stopAudioGlobal();
                                 // @ts-ignore - Forzar navegación a la ruta correcta
-                                router.push('/(tabs)/Level3Screen');
+                                router.push('/(tabs)/Level4Screen');
                             }}
                             style={styles.nextButton}
                         >
