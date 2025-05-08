@@ -8,8 +8,8 @@ export default function Leccion1() {
     // @ts-ignore
     return (
         <SyllableScreen
-            letter="bl"
-            syllables={["bla", "ble", "bli", "blo", "blu"]}
+            letter="cl"
+            syllables={["cla", "cle", "cli", "clo", "clu"]}
             practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabaslearn.wav')} // revisar
             syllablesAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabas.wav')} // revisar
             // @ts-ignore

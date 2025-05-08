@@ -9,14 +9,14 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '@/scripts/api';
 import { avanzarLeccion } from '@/utils/leassonProgress';
 
-const LETTER_BOX_SIZE = 50;
-const LETTER_BOX_MARGIN = 10;
+const LETTER_BOX_SIZE = 30;
+const LETTER_BOX_MARGIN = 3;
 
 interface Slide {
     image: any;
@@ -60,6 +60,9 @@ export default function WordDragGame({
     const slide = slides[currentSlide];
     const isLastSlide = currentSlide === slides.length - 1;
     const isFirstSlide = currentSlide === 0;
+    const pathname = usePathname();
+    const hideBackButtonInFirstSlide = pathname === '/(tabs)/niveles/nivel2/leccion3/firstScreen' && isFirstSlide;
+
 
     const nullPositions = slide.word
         .map((char, i) => (char === null ? i : null))
@@ -304,11 +307,12 @@ export default function WordDragGame({
                 </TouchableOpacity>
 
                 {/* Botón back oculto si es la primera slide */}
-                {!isFirstSlide && (
+                {!hideBackButtonInFirstSlide && (
                     <TouchableOpacity style={styles.backButton} onPress={goToBack}>
                         <Ionicons name="arrow-back" size={24} color="red" />
                     </TouchableOpacity>
                 )}
+
 
                 <TouchableOpacity
                     style={[styles.nextButton, (!slideCompleted && !isLastSlide) && styles.nextButtonDisabled]}
@@ -356,13 +360,14 @@ const styles = StyleSheet.create({
         width: LETTER_BOX_SIZE, 
         height: LETTER_BOX_SIZE, 
         marginHorizontal: LETTER_BOX_MARGIN,
-        borderRadius: 8, 
+        borderRadius: 5, 
         borderWidth: 2, 
         borderColor: '#333', 
         justifyContent: 'center', 
         alignItems: 'center',
+        paddingHorizontal: 2,
     },
-    dropText: { fontSize: 28, fontWeight: 'bold' },
+    dropText: { fontSize: 15, fontWeight: 'bold', textAlign: 'center',},
     optionsContainer: {
         flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 16,
     },

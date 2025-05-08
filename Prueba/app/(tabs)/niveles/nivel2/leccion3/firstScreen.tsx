@@ -21,13 +21,6 @@ export default function LeccionConMezcla() {
                     audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
-                    image: require('@assets/images/lecciones/nivel2/serpiente.png'),
-                    word: ['s', 'e', 'r', null, 'i', 'e', 'n', 't', null],
-                    correctLetters: ['p', 'e'],
-                    options: ['b', 'p', 'g', 'e', 'z', 'c'],
-                    audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
-                },
-                {
                     image: require('@assets/images/lecciones/nivel2/gorra.png'),
                     word: [null, 'o', null, 'r', 'a'],
                     correctLetters: ['g', 'r'],

@@ -8,16 +8,16 @@ export default function Leccion1() {
     // @ts-ignore
     return (
         <SyllableScreen
-            letter="bl"
-            syllables={["bla", "ble", "bli", "blo", "blu"]}
+            letter="tr"
+            syllables={["tra", "tre", "tri", "tro", "tru"]}
             practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabaslearn.wav')} // revisar
             syllablesAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabas.wav')} // revisar
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level3Screen')}
             // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel1/leccion2/Mm/Mpalabra')} // revisar
+            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/tl/TLpalabra')} // revisar
             // @ts-ignore
-            onBack={() => router.push('/(tabs)/niveles/nivel1/leccion2/Mm/Mboard')} // revisar
+            onBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/tr/TRboard')} // revisar
         />
 
     );

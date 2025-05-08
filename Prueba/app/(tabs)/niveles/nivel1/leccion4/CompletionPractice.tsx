@@ -18,8 +18,8 @@ export default function Leccion1() {
                     audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
                 },
                 {
-                    image: require('@assets/images/lecciones/nivel1/lessons/serpiente.png'),
-                    word: [null, 'e','r','p','i','e','n','t','e'],
+                    image: require('@assets/images/lecciones/nivel2/silla.png'),
+                    word: [null, 'i','l','l','a'],
                     correctLetters: ['s'],
                     options: ['f','j','s','x','z'],
                     audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')
