@@ -15,11 +15,11 @@ export default function Leccion1() {
             practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Mpalabrainstruccion.wav')}
 
             // @ts-ignore
-            onTopBack={() => router.push('/(tabs)//Level1Screen')}
+            onTopBack={() => router.push('/(tabs)//Level3Screen')}
             // @ts-ignore
-            onBottomBack={() => router.push('/(tabs)/niveles/nivel1/leccion2/Mm/Msilabas')}
+            onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/gl/GLboard')}
             // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel1/leccion2/Nn/Nlearn')}
+            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/gr/firstScreen')}
 
         />
     );

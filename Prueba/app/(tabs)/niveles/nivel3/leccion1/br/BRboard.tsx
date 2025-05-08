@@ -9,11 +9,11 @@ export default function Leccion1() {
             letterAudio={require('@assets/audio/levels/nivel1/intro.wav')}
             practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Mboard.wav')}
             // @ts-ignore
-            onTopBack={() => router.push('/(tabs)//Level1Screen')}
+            onTopBack={() => router.push('/(tabs)//Level3Screen')}
             // @ts-ignore
-            onBottomBack={() => router.push('/(tabs)/niveles//nivel1/leccion2/Mm/leccion')}
+            onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/bl/firstScreen')}
             // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel1/leccion2/Mm/Msilabas')}
+            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/br/BRpalabra')}
 
         />
     );

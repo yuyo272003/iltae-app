@@ -13,11 +13,11 @@ export default function Leccion1() {
             practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabaslearn.wav')} // revisar
             syllablesAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabas.wav')} // revisar
             // @ts-ignore
-            onTopBack={() => router.push('/(tabs)//Level3Screen')}
+            onTopBack={() => router.push('/(tabs)/Level3Screen')}
             // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel1/leccion2/Mm/Mpalabra')} // revisar
+            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/dr/DRpalabra')} // revisar
             // @ts-ignore
-            onBack={() => router.push('/(tabs)/niveles/nivel1/leccion2/Mm/Mboard')} // revisar
+            onBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/fl/FLboard')} // revisar
         />
 
     );
