@@ -10,13 +10,14 @@ import {
     Keyboard,
     KeyboardAvoidingView,
     ScrollView,
+    PermissionsAndroid,
+    Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/contexts/AuthContext";
 import api from '@/scripts/api';
-import { PermissionsAndroid, Platform } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
 import {
     playAudioGlobal,
@@ -25,23 +26,23 @@ import {
     unregisterStatusCallback,
     isAudioPlayingGlobal,
 } from '@/utils/AudioManager';
-
-// **Importa Voice**
+// Speech-to-text
 import Voice from '@react-native-voice/voice';
 
 export default function RegistroScreen() {
-    const [nombre, setNombre] = useState("");
+    const [nombre, setNombre] = useState<string>("");
     const { setUser } = useAuth();
     const [isDictating, setIsDictating] = useState(false);
     const [isAudioPlaying, setIsAudioPlaying] = useState(isAudioPlayingGlobal());
     const [keyboardVisible, setKeyboardVisible] = useState(false);
     const inputRef = useRef<TextInput>(null);
 
-    // Limpieza de AudioManager y listeners de pantalla
+    // Limpieza al perder foco
     useFocusEffect(
         useCallback(() => () => stopAudioGlobal(), [])
     );
 
+    // AudioManager callbacks
     useEffect(() => {
         const statusCb = (playing: boolean) => setIsAudioPlaying(playing);
         registerStatusCallback(statusCb);
@@ -61,15 +62,23 @@ export default function RegistroScreen() {
         };
     }, []);
 
-    // --- Voice Listeners ---
+    // Voice listeners con logs y resultados parciales
     useEffect(() => {
-        Voice.onSpeechStart = () => setIsDictating(true);
-        Voice.onSpeechResults = e => {
-            const text = e.value?.[0] ?? '';
-            setNombre(text);
+        Voice.onSpeechStart = () => {
+            console.log('🎤 onSpeechStart');
+            setIsDictating(true);
         };
-        Voice.onSpeechError = e => {
-            console.warn('Voice error:', e);
+        Voice.onSpeechPartialResults = (e) => {
+            console.log('⏳ onSpeechPartialResults:', e.value);
+            if (e.value?.length) setNombre(e.value[0]);
+        };
+        Voice.onSpeechResults = (e) => {
+            console.log('✔️ onSpeechResults:', e.value);
+            if (e.value?.length) setNombre(e.value[0]);
+            setIsDictating(false);
+        };
+        Voice.onSpeechError = (e) => {
+            console.warn('❌ onSpeechError:', e.error);
             setIsDictating(false);
         };
         return () => {
@@ -77,40 +86,39 @@ export default function RegistroScreen() {
         };
     }, []);
 
-    async function requestAudioPermission() {
-        if (Platform.OS === 'android') {
-            const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-                {
-                    title: "Permiso de micrófono",
-                    message: "La app necesita acceder al micrófono para dictar tu nombre.",
-                    buttonNegative: "Cancelar",
-                    buttonPositive: "Aceptar",
-                }
-            );
-            return granted === PermissionsAndroid.RESULTS.GRANTED;
-        }
-        return true;
-    }
+    // Permiso en Android
+    const requestAudioPermission = async (): Promise<boolean> => {
+        if (Platform.OS !== 'android') return true;
+        const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            {
+                title: 'Permiso de micrófono',
+                message: 'La app necesita acceder al micrófono para dictar tu nombre.',
+                buttonNegative: 'Cancelar',
+                buttonPositive: 'Aceptar',
+            }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+    };
 
     const startRecognizing = async () => {
-        // 1️⃣ pide permiso
         const ok = await requestAudioPermission();
         if (!ok) {
-            Alert.alert("Permiso denegado", "No podemos usar el micrófono sin permiso.");
+            Alert.alert('Permiso denegado', 'No podemos usar el micrófono sin permiso.');
             return;
         }
-        // 2️⃣ arranca el dictado
         try {
-            await Voice.start("es-MX");
-            inputRef.current?.focus();
+            console.log('📲 Starting Voice Recognition');
+            await Voice.start('es-MX');
         } catch (e) {
-            console.error("Voice.start error:", e);
+            console.error('Voice.start error:', e);
+            setIsDictating(false);
         }
     };
 
     const stopRecognizing = async () => {
         try {
+            console.log('🛑 Stopping Voice Recognition');
             await Voice.stop();
         } catch (e) {
             console.error('stopRecognizing error:', e);
@@ -119,7 +127,6 @@ export default function RegistroScreen() {
             Keyboard.dismiss();
         }
     };
-    // -----------------------
 
     const reproducirInstrucciones = () => {
         playAudioGlobal(require('@/assets/audio/registro_instrucciones.wav'));
@@ -127,20 +134,17 @@ export default function RegistroScreen() {
 
     const handleRegister = async () => {
         if (!nombre.trim()) {
-            Alert.alert("Error", "Por favor ingresa tu nombre.");
+            Alert.alert('Error', 'Por favor ingresa tu nombre.');
             return;
         }
         try {
             const response = await api.post('/register', { name: nombre });
             const { token, user } = response.data;
-            await AsyncStorage.setItem("auth_token", token);
+            await AsyncStorage.setItem('auth_token', token);
             setUser(user);
-            router.push("/(tabs)/perfiles");
+            router.push('/(tabs)/perfiles');
         } catch (error: any) {
-            Alert.alert(
-                "Error",
-                error.response?.data?.message || "Algo salió mal 😢"
-            );
+            Alert.alert('Error', error.response?.data?.message || 'Algo salió mal 😢');
         }
     };
 
@@ -151,7 +155,7 @@ export default function RegistroScreen() {
             </TouchableOpacity>
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardAvoid}
             >
                 <ScrollView
@@ -165,17 +169,13 @@ export default function RegistroScreen() {
                         </View>
 
                         <View style={styles.headerSection}>
-                            <TouchableOpacity
-                                style={styles.speakerButton}
-                                onPress={reproducirInstrucciones}
-                            >
+                            <TouchableOpacity style={styles.speakerButton} onPress={reproducirInstrucciones}>
                                 <Ionicons
-                                    name={isAudioPlaying ? "pause" : "volume-high"}
+                                    name={isAudioPlaying ? 'pause' : 'volume-high'}
                                     size={20}
                                     color="white"
                                 />
                             </TouchableOpacity>
-
                             <Text style={styles.welcomeText}>¡Bienvenido!</Text>
                         </View>
 
@@ -186,16 +186,14 @@ export default function RegistroScreen() {
                             placeholderTextColor="#999"
                             value={nombre}
                             onChangeText={setNombre}
-                            returnKeyType="done"
-                            blurOnSubmit
-                            onSubmitEditing={stopRecognizing}
+                            editable={!isDictating}
                         />
 
                         <TouchableOpacity
                             style={[styles.voiceButton, isDictating && styles.dictatingButton]}
                             onPress={isDictating ? stopRecognizing : startRecognizing}
                         >
-                            <Ionicons name={isDictating ? "mic-off" : "mic"} size={24} color="white" />
+                            <Ionicons name={isDictating ? 'mic-off' : 'mic'} size={24} color="white" />
                             <Text style={{ color: 'white', marginLeft: 8 }}>
                                 {isDictating ? 'Detener' : 'Dictar'}
                             </Text>
@@ -212,51 +210,51 @@ export default function RegistroScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#EEF3FF" },
+    container: { flex: 1, backgroundColor: '#EEF3FF' },
     keyboardAvoid: { flex: 1 },
-    scrollContainer: { flexGrow: 1, alignItems: "center", paddingTop: 120, paddingBottom: 30 },
-    content: { width: 327, alignItems: "flex-start", justifyContent: "center" },
+    scrollContainer: { flexGrow: 1, alignItems: 'center', paddingTop: 120, paddingBottom: 30 },
+    content: { width: 327, alignItems: 'flex-start', justifyContent: 'center' },
     contentWithKeyboard: { paddingTop: 10 },
-    profileContainer: { alignSelf: "center", marginBottom: 20 },
-    headerSection: { width: "100%", marginBottom: 15 },
+    profileContainer: { alignSelf: 'center', marginBottom: 20 },
+    headerSection: { width: '100%', marginBottom: 15 },
     speakerButton: {
-        backgroundColor: "#1E6ADB",
+        backgroundColor: '#1E6ADB',
         width: 52,
         height: 30,
         borderRadius: 20,
-        alignItems: "center",
-        justifyContent: "center",
+        alignItems: 'center',
+        justifyContent: 'center',
         marginBottom: 10,
     },
-    welcomeText: { fontSize: 24, fontWeight: "bold", marginBottom: 15, color: "#000" },
+    welcomeText: { fontSize: 24, fontWeight: 'bold', marginBottom: 15, color: '#000' },
     input: {
-        width: "100%",
+        width: '100%',
         height: 48,
-        backgroundColor: "white",
+        backgroundColor: 'white',
         borderRadius: 8,
         paddingHorizontal: 15,
         fontSize: 16,
         marginBottom: 15,
         borderWidth: 1,
-        borderColor: "#ccc",
+        borderColor: '#ccc',
     },
     voiceButton: {
-        width: "100%",
+        width: '100%',
         height: 48,
-        backgroundColor: "#1E6ADB",
-        alignItems: "center",
-        justifyContent: "center",
+        backgroundColor: '#1E6ADB',
+        alignItems: 'center',
+        justifyContent: 'center',
         borderRadius: 8,
         marginBottom: 15,
-        flexDirection: "row",
+        flexDirection: 'row',
     },
-    dictatingButton: { backgroundColor: "#FF5252" },
+    dictatingButton: { backgroundColor: '#FF5252' },
     nextButton: {
-        width: "100%",
+        width: '100%',
         height: 48,
-        backgroundColor: "#28C940",
-        alignItems: "center",
-        justifyContent: "center",
+        backgroundColor: '#28C940',
+        alignItems: 'center',
+        justifyContent: 'center',
         borderRadius: 8,
     },
     backButton: { position: 'absolute', top: 50, left: 20, zIndex: 2 },

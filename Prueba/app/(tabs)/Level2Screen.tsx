@@ -8,47 +8,53 @@ import api from '@/scripts/api';
 
 const lessons = [
     {
-      id: 'intro',
-      title: 'Introducción',
-      type: 'intro',
-      image: require('@assets/images/lecciones/nivel1/vocales.png'),
-      audioFile: require('@assets/audio/levels/nivel2/intro.wav'),
+        id: 'intro',
+        title: 'Introducción',
+        type: 'intro',
+        image: require('@assets/images/lecciones/nivel1/vocales.png'),
+        audioFile: require('@assets/audio/levels/nivel2/intro.wav'),
     },
     {
-      id: 'leccion1',
-      title: 'Revisión y práctica de consonantes',
-      type: 'leccion',
-      image: require('@assets/images/lecciones/nivel1/consonantes_basicas.png'),
-      audioFile: require('@assets/audio/levels/nivel2/leccion1.wav'),
+        id: 'leccion1',
+        title: 'Revisión y práctica de consonantes',
+        type: 'leccion',
+        image: require('@assets/images/lecciones/nivel1/consonantes_basicas.png'),
+        audioFile: require('@assets/audio/levels/nivel2/leccion1.wav'),
     },
     {
-      id: 'leccion2',
-      title: 'Consonantes y vocales',
-      type: 'leccion',
-      image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // Añadido placeholder
-      audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'),
+        id: 'leccion2',
+        title: 'Consonantes y vocales',
+        type: 'leccion',
+        image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'),
+        audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'),
     },
     {
-      id: 'leccion3',
-      title: 'Práctica de palabras',
-      type: 'leccion',
-      image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // Añadido placeholder
-      audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),
+        id: 'leccion3',
+        title: 'Práctica de palabras',
+        type: 'leccion',
+        image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'),
+        audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),
     },
 ];
-  
+
 export default function Level2Screen() {
     const router = useRouter();
     const [leccionDesbloqueada, setLeccionDesbloqueada] = useState(1);
-    const haTerminadoNivel2 = leccionDesbloqueada > 3; // Ajustado al número total de lecciones del nivel 2
-    
-    // La función que obtiene los datos de la API
+
+    // 1) Offset y conteo:
+    const level1Count = 6;
+    const level2Count = lessons.filter(l => l.type === 'leccion').length; // 3
+    const lastLevel2GlobalId = level1Count + level2Count;                // 9
+
+    // 2) Saber si ya terminó todo el nivel 2
+    const haTerminadoNivel2 = leccionDesbloqueada > lastLevel2GlobalId;
+
+    // Función para traer el progreso
     const fetchLeccionDesbloqueada = useCallback(async () => {
         try {
             console.log('📥 Solicitando datos de progreso a la API...');
             const response = await api.post('/progreso/get-leccion');
-            const id = parseInt(response.data.leccion_id);
-
+            const id = parseInt(response.data.leccion_id, 10);
             if (!isNaN(id)) {
                 console.log('📥 Progreso actualizado:', id);
                 setLeccionDesbloqueada(id);
@@ -58,31 +64,15 @@ export default function Level2Screen() {
         }
     }, []);
 
-    // Este efecto solo se ejecuta cuando el componente se monta inicialmente
+    // Efectos de montaje y foco
     useEffect(() => {
-        console.log('Componente montado, obteniendo progreso inicial...');
         fetchLeccionDesbloqueada();
-
-        // Limpieza cuando se desmonta completamente
-        return () => {
-            console.log('Componente desmontado, deteniendo audio...');
-            stopAudioGlobal();
-        };
+        return () => { stopAudioGlobal(); };
     }, [fetchLeccionDesbloqueada]);
 
-    // Este efecto se ejecutará cada vez que la pantalla vuelva a estar en foco
-    useFocusEffect(
-        useCallback(() => {
-            console.log('Pantalla en foco, actualizando progreso...');
-            fetchLeccionDesbloqueada();
-
-            return () => {
-                // No es necesario hacer nada cuando pierde el foco, solo cuando se desmonta
-            };
-        }, [fetchLeccionDesbloqueada])
-    );
-
-    // Esta sección ya no es necesaria ya que usaremos la misma lógica del ListFooterComponent
+    useFocusEffect(useCallback(() => {
+        fetchLeccionDesbloqueada();
+    }, [fetchLeccionDesbloqueada]));
 
     return (
         <SafeAreaView style={styles.container}>
@@ -90,13 +80,12 @@ export default function Level2Screen() {
             <View style={styles.header}>
                 <TouchableOpacity
                     onPress={async () => {
-                        await stopAudioGlobal(); // detener antes de ir atrás
+                        await stopAudioGlobal();
                         router.push("/(tabs)/niveles");
                     }}
                 >
                     <Ionicons name="arrow-back" size={28} color="#3E64FF" />
                 </TouchableOpacity>
-
                 <TouchableOpacity
                     onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel2/intro.wav'))}
                     style={styles.titlePill}
@@ -104,31 +93,33 @@ export default function Level2Screen() {
                     <Ionicons name="volume-high" size={14} color="#fff" />
                     <Text style={styles.titleText}>Nivel 2</Text>
                 </TouchableOpacity>
-
                 <View style={{ width: 28 }} />
             </View>
 
             {/* Lista de lecciones */}
             <FlatList
                 data={lessons}
-                keyExtractor={(item) => item.id}
+                keyExtractor={item => item.id}
                 numColumns={2}
                 renderItem={({ item }) => {
                     const isIntro = item.type === 'intro';
-                    const leccionMatch = item.id.match(/^leccion(\d+)$/);
-                    const leccionNum = leccionMatch ? parseInt(leccionMatch[1]) : null;
-                
-                    const isUnlocked = isIntro || (leccionNum !== null && leccionDesbloqueada >= leccionNum);
-                
+                    const match = item.id.match(/^leccion(\d+)$/);
+                    const leccionNum = match ? parseInt(match[1], 10) : null;
+
+                    // 3) Lógica de desbloqueo con offset:
+                    const isUnlocked = isIntro
+                        || (leccionNum !== null && leccionDesbloqueada >= level1Count + leccionNum);
+
                     return (
                         <TouchableOpacity
                             style={[styles.card, !isUnlocked && { opacity: 0.5 }]}
                             disabled={!isUnlocked}
                             onPress={async () => {
-                                await stopAudioGlobal(); // detener antes de navegar
-                                if (item.type === "leccion" && item.id)  {
+                                await stopAudioGlobal();
+                                if (item.type === 'leccion') {
+                                    // Ajusta la ruta según tu estructura real:
                                     // @ts-ignore
-                                    router.push(`/(tabs)/niveles/nivel2/${item.id}/firstScreen`); // Ajusta según la estructura de tus rutas
+                                    router.push(`/(tabs)/niveles/nivel2/${item.id}/firstScreen`);
                                 }
                             }}
                         >
@@ -137,7 +128,7 @@ export default function Level2Screen() {
                                 <>
                                     <Text style={styles.subtitle}>{item.title}</Text>
                                     <TouchableOpacity
-                                        onPress={async (e) => {
+                                        onPress={async e => {
                                             e.stopPropagation();
                                             await stopAudioGlobal();
                                             await playAudioGlobal(item.audioFile);
@@ -152,7 +143,7 @@ export default function Level2Screen() {
                                     <Text style={styles.subtitle}>{item.title}</Text>
                                     {isUnlocked && (
                                         <TouchableOpacity
-                                            onPress={async (e) => {
+                                            onPress={async e => {
                                                 e.stopPropagation();
                                                 await stopAudioGlobal();
                                                 await playAudioGlobal(item.audioFile);
@@ -168,19 +159,19 @@ export default function Level2Screen() {
                     );
                 }}
                 contentContainerStyle={styles.grid}
+                // @ts-ignore
                 ListFooterComponent={
-                    haTerminadoNivel2 ? (
+                    haTerminadoNivel2 && (
                         <TouchableOpacity
                             onPress={() => {
                                 stopAudioGlobal();
-                                // @ts-ignore - Forzar navegación a la ruta correcta
                                 router.push('/(tabs)/Level3Screen');
                             }}
                             style={styles.nextButton}
                         >
                             <Ionicons name="arrow-forward" size={24} color="white" />
                         </TouchableOpacity>
-                    ) : null
+                    )
                 }
             />
         </SafeAreaView>
@@ -188,10 +179,7 @@ export default function Level2Screen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
+    container: { flex: 1, backgroundColor: '#fff' },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -199,19 +187,17 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         marginBottom: 16,
     },
-    titleRow: {
+    titlePill: {
+        backgroundColor: '#3E64FF',
+        borderRadius: 30,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: 6,
     },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    grid: {
-        gap: 16,
-        paddingHorizontal: 16,
-    },
+    titleText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+    grid: { gap: 16, paddingHorizontal: 16 },
     card: {
         flex: 1,
         margin: 8,
@@ -224,16 +210,8 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    image: {
-        width: '100%',
-        height: 90,
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        flexShrink: 1,
-    },
+    image: { width: '100%', height: 90, marginBottom: 8 },
+    subtitle: { fontSize: 14, fontWeight: '600', flexShrink: 1 },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -256,22 +234,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    titlePill: {
-        backgroundColor: '#3E64FF',
-        borderRadius: 30,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    titleText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
     nextButton: {
-        position: 'relative',
         alignSelf: 'flex-end',
         marginRight: 16,
         marginTop: 24,

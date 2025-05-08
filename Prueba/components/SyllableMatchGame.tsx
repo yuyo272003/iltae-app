@@ -36,7 +36,7 @@ export default function SyllableMatchGame({
                                               onNext,
                                               onTopBack,
                                               onBottomBack,
-                                              advanceEndpoint = "/progreso/avanzar",
+                                              advanceEndpoint,
                                           }: SyllableMatchGameProps) {
     const [soundButtons, setSoundButtons] = useState<any[]>([]);
     const [letterButtons, setLetterButtons] = useState<any[]>([]);
