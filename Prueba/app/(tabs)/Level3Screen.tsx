@@ -129,7 +129,7 @@ export default function Level3Screen() {
                                 await stopAudioGlobal(); // detener antes de navegar
                                 if (item.type === "leccion" && item.id)  {
                                     // @ts-ignore
-                                    router.push(`/(tabs)/niveles/nivel1/${item.id}/${item.carpeta}/leccion`); // Ajusta según la estructura de tus rutas
+                                    router.push(`/(tabs)/niveles/nivel3/${item.id}/${item.carpeta}/firstScreen`); // Ajusta según la estructura de tus rutas
                                 }
                             }}
                         >
