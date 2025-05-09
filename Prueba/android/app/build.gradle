@@ -86,7 +86,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.yuyo27.prueba'
+    namespace "com.yuyo27.prueba"
     defaultConfig {
         applicationId 'com.yuyo27.prueba'
         minSdkVersion rootProject.ext.minSdkVersion
@@ -120,6 +120,12 @@ android {
         jniLibs {
             useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
         }
+            resources {
+              excludes += [
+                "res/mipmap-*/ic_launcher.webp",
+                "res/mipmap-*/ic_launcher_round.webp"
+              ]
+            }
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
@@ -146,9 +152,22 @@ android {
     }
 }
 
+configurations.all {
+    // Excluye las librerías support-compat y versionedparcelable viejas
+    exclude group: 'com.android.support', module: 'support-compat'
+    exclude group: 'com.android.support', module: 'versionedparcelable'
+    // Fuerza la versión de AndroidX que quieras
+    resolutionStrategy {
+        force 'androidx.core:core:1.13.1'
+        force 'androidx.versionedparcelable:versionedparcelable:1.1.1'
+    }
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation 'androidx.core:core:1.13.1'
+    implementation 'androidx.versionedparcelable:versionedparcelable:1.1.1'
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
