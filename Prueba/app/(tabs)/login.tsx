@@ -18,7 +18,6 @@ import { useFocusEffect, router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/scripts/api";
-import { Audio, AVPlaybackSource } from "expo-av";
 import {
     playAudioGlobal,
     stopAudioGlobal,
@@ -26,9 +25,7 @@ import {
     unregisterStatusCallback,
     isAudioPlayingGlobal,
 } from "@/utils/AudioManager";
-
-// **Importa Community Voice**
-import Voice from '@react-native-community/voice';
+import Voice from "@react-native-community/voice";
 
 export default function LoginScreen() {
     const [nombre, setNombre] = useState<string>("");
@@ -39,9 +36,7 @@ export default function LoginScreen() {
     const inputRef = useRef<TextInput>(null);
 
     // Pausar audio cuando pierda foco
-    useFocusEffect(
-        useCallback(() => () => stopAudioGlobal(), [])
-    );
+    useFocusEffect(useCallback(() => () => stopAudioGlobal(), []));
 
     // AudioManager callbacks
     useEffect(() => {
@@ -63,23 +58,23 @@ export default function LoginScreen() {
         };
     }, []);
 
-    // Community Voice listeners con logs & resultados parciales
+    // Voice listeners
     useEffect(() => {
         Voice.onSpeechStart = () => {
-            console.log('🎤 onSpeechStart');
+            console.log("🎤 onSpeechStart");
             setIsDictating(true);
         };
         Voice.onSpeechPartialResults = (e) => {
-            console.log('⏳ onSpeechPartialResults:', e.value);
-            if (e.value?.length) setNombre(e.value[0]);
+            console.log("⏳ onSpeechPartialResults:", e.value);
+            e.value?.[0] && setNombre(e.value[0]);
         };
         Voice.onSpeechResults = (e) => {
-            console.log('✔️ onSpeechResults:', e.value);
-            if (e.value?.length) setNombre(e.value[0]);
+            console.log("✔️ onSpeechResults:", e.value);
+            e.value?.[0] && setNombre(e.value[0]);
             setIsDictating(false);
         };
         Voice.onSpeechError = (e) => {
-            console.warn('❌ onSpeechError:', e.error);
+            console.warn("❌ onSpeechError:", e.error);
             setIsDictating(false);
         };
         return () => {
@@ -89,14 +84,14 @@ export default function LoginScreen() {
 
     // Permiso en Android
     const requestAudioPermission = async (): Promise<boolean> => {
-        if (Platform.OS !== 'android') return true;
+        if (Platform.OS !== "android") return true;
         const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
             {
-                title: 'Permiso de micrófono',
-                message: 'La app necesita acceder al micrófono para dictar tu nombre.',
-                buttonNegative: 'Cancelar',
-                buttonPositive: 'Aceptar',
+                title: "Permiso de micrófono",
+                message: "La app necesita acceder al micrófono para dictar tu nombre.",
+                buttonNegative: "Cancelar",
+                buttonPositive: "Aceptar",
             }
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
@@ -105,24 +100,24 @@ export default function LoginScreen() {
     const startRecognizing = async () => {
         const ok = await requestAudioPermission();
         if (!ok) {
-            Alert.alert('Permiso denegado', 'No podemos usar el micrófono sin permiso.');
+            Alert.alert("Permiso denegado", "No podemos usar el micrófono sin permiso.");
             return;
         }
         try {
-            console.log('📲 Starting Community Voice Recognition');
-            await Voice.start('es-MX', { REQUEST_PERMISSIONS_AUTO: true });
+            console.log("📲 Starting Community Voice Recognition");
+            await Voice.start("es-MX", { REQUEST_PERMISSIONS_AUTO: true });
         } catch (e) {
-            console.error('Voice.start error:', e);
+            console.error("Voice.start error:", e);
             setIsDictating(false);
         }
     };
 
     const stopRecognizing = async () => {
         try {
-            console.log('🛑 Stopping Voice Recognition');
+            console.log("🛑 Stopping Voice Recognition");
             await Voice.stop();
         } catch (e) {
-            console.error('stopRecognizing error:', e);
+            console.error("stopRecognizing error:", e);
         } finally {
             setIsDictating(false);
             Keyboard.dismiss();
@@ -131,27 +126,37 @@ export default function LoginScreen() {
 
     // Reproduce instrucciones de login
     const reproducirInstrucciones = () => {
-        playAudioGlobal(require('@/assets/audio/registro_instrucciones.wav'));
+        playAudioGlobal(require("@/assets/audio/registro_instrucciones.wav"));
     };
 
     const handleLogin = async () => {
         if (!nombre.trim()) {
-            Alert.alert('Error', 'Por favor ingresa tu nombre.');
+            Alert.alert("Error", "Por favor ingresa tu nombre.");
             return;
         }
         try {
-            const response = await api.post('/login', { name: nombre });
+            const response = await api.post("/login", { name: nombre });
             const { user, token, niveles_completados } = response.data;
-            await AsyncStorage.setItem('auth_token', token);
+            await AsyncStorage.setItem("auth_token", token);
             setUser({ ...user, niveles_completados });
-            router.push('/(tabs)/perfiles');
+            router.push("/(tabs)/perfiles");
         } catch (error: any) {
-            Alert.alert(
-                'Error',
-                error.response?.data?.message || 'No se pudo iniciar sesión 😢'
-            );
+            Alert.alert("Error", error.response?.data?.message || "No se pudo iniciar sesión 😢");
         }
     };
+
+    // Función extraída para el TextInput
+    const renderInput = () => (
+        <TextInput
+            ref={inputRef}
+            style={styles.input}
+            placeholder="Ingresa tu nombre"
+            placeholderTextColor="#999"
+            value={nombre}
+            onChangeText={setNombre}       // ← esencial para poder editar
+            editable={!isDictating}        // desactiva edición mientras dicta
+        />
+    );
 
     return (
         <SafeAreaView style={styles.container}>
@@ -160,7 +165,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={styles.keyboardAvoid}
             >
                 <ScrollView
@@ -174,9 +179,12 @@ export default function LoginScreen() {
                         </View>
 
                         <View style={styles.headerSection}>
-                            <TouchableOpacity style={styles.speakerButton} onPress={reproducirInstrucciones}>
+                            <TouchableOpacity
+                                style={styles.speakerButton}
+                                onPress={reproducirInstrucciones}
+                            >
                                 <Ionicons
-                                    name={isAudioPlaying ? 'pause' : 'volume-high'}
+                                    name={isAudioPlaying ? "pause" : "volume-high"}
                                     size={20}
                                     color="white"
                                 />
@@ -184,22 +192,19 @@ export default function LoginScreen() {
                             <Text style={styles.welcomeText}>¡Iniciar Sesión!</Text>
                         </View>
 
-                        <TextInput
-                            ref={inputRef}
-                            style={styles.input}
-                            placeholder="Ingresa tu nombre"
-                            placeholderTextColor="#999"
-                            value={nombre}
-                            editable={!isDictating}
-                        />
+                        {renderInput()}
 
                         <TouchableOpacity
                             style={[styles.voiceButton, isDictating && styles.dictatingButton]}
                             onPress={isDictating ? stopRecognizing : startRecognizing}
                         >
-                            <Ionicons name={isDictating ? 'mic-off' : 'mic'} size={24} color="white" />
-                            <Text style={{ color: 'white', marginLeft: 8 }}>
-                                {isDictating ? 'Detener' : 'Dictar'}
+                            <Ionicons
+                                name={isDictating ? "mic-off" : "mic"}
+                                size={24}
+                                color="white"
+                            />
+                            <Text style={{ color: "white", marginLeft: 8 }}>
+                                {isDictating ? "Detener" : "Dictar"}
                             </Text>
                         </TouchableOpacity>
 
@@ -209,7 +214,7 @@ export default function LoginScreen() {
 
                         <TouchableOpacity
                             style={styles.registerLink}
-                            onPress={() => router.push('/(tabs)/registro')}
+                            onPress={() => router.push("/(tabs)/registro")}
                         >
                             <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
                         </TouchableOpacity>
@@ -221,54 +226,59 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#EEF3FF' },
+    container: { flex: 1, backgroundColor: "#EEF3FF" },
     keyboardAvoid: { flex: 1 },
-    scrollContainer: { flexGrow: 1, alignItems: 'center', paddingTop: 120, paddingBottom: 30 },
-    content: { width: 327, alignItems: 'flex-start', justifyContent: 'center' },
+    scrollContainer: {
+        flexGrow: 1,
+        alignItems: "center",
+        paddingTop: 120,
+        paddingBottom: 30,
+    },
+    content: { width: 327, alignItems: "flex-start", justifyContent: "center" },
     contentWithKeyboard: { paddingTop: 10 },
-    profileContainer: { alignSelf: 'center', marginBottom: 20 },
-    headerSection: { width: '100%', marginBottom: 15 },
+    profileContainer: { alignSelf: "center", marginBottom: 20 },
+    headerSection: { width: "100%", marginBottom: 15 },
     speakerButton: {
-        backgroundColor: '#1E6ADB',
+        backgroundColor: "#1E6ADB",
         width: 52,
         height: 30,
         borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: "center",
+        justifyContent: "center",
         marginBottom: 10,
     },
-    welcomeText: { fontSize: 24, fontWeight: 'bold', marginBottom: 15, color: '#000' },
+    welcomeText: { fontSize: 24, fontWeight: "bold", marginBottom: 15, color: "#000" },
     input: {
-        width: '100%',
+        width: "100%",
         height: 48,
-        backgroundColor: 'white',
+        backgroundColor: "white",
         borderRadius: 8,
         paddingHorizontal: 15,
         fontSize: 16,
         marginBottom: 15,
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: "#ccc",
     },
     voiceButton: {
-        width: '100%',
+        width: "100%",
         height: 48,
-        backgroundColor: '#1E6ADB',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
+        backgroundColor: "#1E6ADB",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
         borderRadius: 8,
         marginBottom: 15,
     },
-    dictatingButton: { backgroundColor: '#FF5252' },
+    dictatingButton: { backgroundColor: "#FF5252" },
     nextButton: {
-        width: '100%',
+        width: "100%",
         height: 48,
-        backgroundColor: '#28C940',
-        alignItems: 'center',
-        justifyContent: 'center',
+        backgroundColor: "#28C940",
+        alignItems: "center",
+        justifyContent: "center",
         borderRadius: 8,
     },
-    registerLink: { alignSelf: 'center', marginTop: 20 },
-    link: { color: '#007AFF', textDecorationLine: 'underline', textAlign: 'center' },
-    backButton: { position: 'absolute', top: 50, left: 20, zIndex: 2 },
+    registerLink: { alignSelf: "center", marginTop: 20 },
+    link: { color: "#007AFF", textDecorationLine: "underline", textAlign: "center" },
+    backButton: { position: "absolute", top: 50, left: 20, zIndex: 2 },
 });
