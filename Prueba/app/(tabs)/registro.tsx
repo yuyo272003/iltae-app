@@ -26,8 +26,9 @@ import {
     unregisterStatusCallback,
     isAudioPlayingGlobal,
 } from '@/utils/AudioManager';
-// Speech-to-text
-import Voice from '@react-native-voice/voice';
+
+// **Importa Community Voice**
+import Voice from '@react-native-community/voice';
 
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState<string>("");
@@ -62,22 +63,22 @@ export default function RegistroScreen() {
         };
     }, []);
 
-    // Voice listeners con logs y resultados parciales
+    // Community Voice listeners con logs y resultados parciales
     useEffect(() => {
         Voice.onSpeechStart = () => {
             console.log('🎤 onSpeechStart');
             setIsDictating(true);
         };
-        Voice.onSpeechPartialResults = (e) => {
+        Voice.onSpeechPartialResults = e => {
             console.log('⏳ onSpeechPartialResults:', e.value);
             if (e.value?.length) setNombre(e.value[0]);
         };
-        Voice.onSpeechResults = (e) => {
+        Voice.onSpeechResults = e => {
             console.log('✔️ onSpeechResults:', e.value);
             if (e.value?.length) setNombre(e.value[0]);
             setIsDictating(false);
         };
-        Voice.onSpeechError = (e) => {
+        Voice.onSpeechError = e => {
             console.warn('❌ onSpeechError:', e.error);
             setIsDictating(false);
         };
@@ -108,8 +109,8 @@ export default function RegistroScreen() {
             return;
         }
         try {
-            console.log('📲 Starting Voice Recognition');
-            await Voice.start('es-MX');
+            console.log('📲 Starting Community Voice Recognition');
+            await Voice.start('es-MX', { REQUEST_PERMISSIONS_AUTO: true });
         } catch (e) {
             console.error('Voice.start error:', e);
             setIsDictating(false);
@@ -185,7 +186,6 @@ export default function RegistroScreen() {
                             placeholder="Ingresa tu nombre"
                             placeholderTextColor="#999"
                             value={nombre}
-                            onChangeText={setNombre}
                             editable={!isDictating}
                         />
 
