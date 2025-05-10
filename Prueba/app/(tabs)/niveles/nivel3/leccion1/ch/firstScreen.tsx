@@ -10,14 +10,14 @@ export default function Leccion1() {
         <SyllableScreen
             letter="ch"
             syllables={["cha", "che", "chi", "cho", "chu"]}
-            practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabaslearn.wav')} // revisar
-            syllablesAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabas.wav')} // revisar
+            practiceAudio={require('@assets/audio/levels/nivel3/audios_lesson1/ch/CHlearn.wav')} // revisar
+            syllablesAudio={require('@assets/audio/levels/nivel3/audios_lesson1/ch/CHsyllables.wav')} // revisar
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level3Screen')}
             // @ts-ignore
             onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/ch/CHboard')} // revisar
             // @ts-ignore
-            onBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/br/firstScreen')} // revisar
+            onBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/br/BRpalabra')} // revisar
         />
 
     );
