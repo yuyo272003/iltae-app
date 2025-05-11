@@ -12,14 +12,14 @@ export default function Leccion1() {
     return (
         <LetterScreenWithDrawing
             imageSources={imageSourcesArray}  // Cambiado de imageSource a imageSources y pasando un array
-            letterAudio={require('@assets/audio/levels/nivel1/intro.wav')}
-            practiceAudio={require('@assets/audio/levels/nivel3/audios_lesson1/br/BRboard.wav')}
+            letterAudio={require('@assets/audio/levels/nivel1/intro.wav')} // IGNORA
+            practiceAudio={require('@assets/audio/levels/nivel3/audios_lesson1/cr/CRboard.wav')}
             // @ts-ignore
             onTopBack={() => router.push('/(tabs)//Level3Screen')}
             // @ts-ignore
-            onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/br/firstScreen')}
+            onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/cr/firstScreen')}
             // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/br/BRpalabra')}
+            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/cr/CRpalabra')}
         />
     );
 }

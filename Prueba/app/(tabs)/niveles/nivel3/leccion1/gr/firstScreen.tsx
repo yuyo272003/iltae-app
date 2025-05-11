@@ -10,10 +10,10 @@ export default function Leccion1() {
         <SyllableScreen
             letter="gr"
             syllables={["gra", "gre", "gri", "gro", "gru"]}
-            practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabaslearn.wav')} // revisar
-            syllablesAudio={require('@assets/audio/levels/nivel1/lessons/M/Msilabas.wav')} // revisar
+            practiceAudio={require('@assets/audio/levels/nivel3/audios_lesson1/gr/GRlearn.wav')} // revisar
+            syllablesAudio={require('@assets/audio/levels/nivel3/audios_lesson1/gr/GRsyllables.wav')} // revisar
             // @ts-ignore
-            onTopBack={() => router.push('/(tabs)/Level3Screen')}
+            onTopBack={() => router.push('/(tabs)//Level3Screen')}
             // @ts-ignore
             onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/gr/GRboard')} // revisar
             // @ts-ignore

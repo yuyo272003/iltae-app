@@ -17,7 +17,7 @@ export default function Leccion1() {
             // @ts-ignore
             onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/bl/BLboard')} 
             // @ts-ignore
-            onBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/bl/BLboard')} // revisar
+            onBack={() => router.push('/(tabs)//Level3Screen')} // revisar
         />
 
     );

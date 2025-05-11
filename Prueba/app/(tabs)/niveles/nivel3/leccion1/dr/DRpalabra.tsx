@@ -7,17 +7,17 @@ export default function Leccion1() {
         <FourImagesAudio
 
             images={[
-                { src: require('@assets/images/lecciones/nivel1/lessons/mano.png'), audio: require('@assets/audio/levels/nivel1/lessons/M/mano.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/mesa.png'), audio: require('@assets/audio/levels/nivel1/lessons/M/mesa.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/moto.png'), audio: require('@assets/audio/levels/nivel1/lessons/M/Moto.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/mujer.png'), audio: require('@assets/audio/levels/nivel1/lessons/M/mujer.wav') },
+                { src: require('@assets/images/lecciones/nivel3/leccion1/dr/taladro.png'), audio: require('@assets/audio/levels/nivel3/audios_lesson1/dr/taladro.wav') },
+                { src: require('@assets/images/lecciones/nivel3/leccion1/dr/dragon.png'), audio: require('@assets/audio/levels/nivel3/audios_lesson1/dr/dragon.wav') },
+                { src: require('@assets/images/lecciones/nivel3/leccion1/dr/padre.png'), audio: require('@assets/audio/levels/nivel3/audios_lesson1/dr/padre.wav') },
+                { src: require('@assets/images/lecciones/nivel3/leccion1/dr/ladrillo.png'), audio: require('@assets/audio/levels/nivel3/audios_lesson1/dr/ladrillo.wav') },
             ]}
-            practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Mpalabrainstruccion.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel3/audios_lesson1/dr/DRwords.wav')}
 
             // @ts-ignore
-            onTopBack={() => router.push('/(tabs)//Level1Screen')}
+            onTopBack={() => router.push('/(tabs)//Level3Screen')}
             // @ts-ignore
-            onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/dr/DRpalabra')}
+            onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/dr/DRboard')}
             // @ts-ignore
             onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/fl/firstScreen')}
 

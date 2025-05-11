@@ -7,15 +7,15 @@ export default function Leccion1() {
         <FourImagesAudio
 
             images={[
-                { src: require('@assets/images/lecciones/nivel1/lessons/mano.png'), audio: require('@assets/audio/levels/nivel1/lessons/M/mano.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/mesa.png'), audio: require('@assets/audio/levels/nivel1/lessons/M/mesa.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/moto.png'), audio: require('@assets/audio/levels/nivel1/lessons/M/Moto.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/mujer.png'), audio: require('@assets/audio/levels/nivel1/lessons/M/mujer.wav') },
+                { src: require('@assets/images/lecciones/nivel3/leccion1/pr/profesor.png'), audio: require('@assets/audio/levels/nivel3/audios_lesson1/pr/profesor.wav') },
+                { src: require('@assets/images/lecciones/nivel3/leccion1/pr/precio.png'), audio: require('@assets/audio/levels/nivel3/audios_lesson1/pr/precio.wav') },
+                { src: require('@assets/images/lecciones/nivel3/leccion1/pr/prueba.png'), audio: require('@assets/audio/levels/nivel3/audios_lesson1/pr/prueba.wav') },
+                { src: require('@assets/images/lecciones/nivel3/leccion1/pr/compras.png'), audio: require('@assets/audio/levels/nivel3/audios_lesson1/pr/compras.wav') },
             ]}
-            practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Mpalabrainstruccion.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel3/audios_lesson1/pr/PRwords.wav')}
 
             // @ts-ignore
-            onTopBack={() => router.push('/(tabs)//Level1Screen')}
+            onTopBack={() => router.push('/(tabs)//Level3Screen')}
             // @ts-ignore
             onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/pr/PRboard')}
             // @ts-ignore

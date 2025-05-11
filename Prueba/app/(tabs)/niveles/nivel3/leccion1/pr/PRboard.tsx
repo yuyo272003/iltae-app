@@ -1,20 +1,25 @@
 import React from 'react';
-import LetterScreenWithDrawing from '../../../../../../components/LetterScreenWithDrawing';
-import {router} from "expo-router";
+import LetterScreenWithDrawing from '../../../../../../components/ConsonantsScreenWithDrawing';
+import { router } from "expo-router";
 
 export default function Leccion1() {
+    // El componente espera un array de imágenes, no una sola imagen
+    const imageSourcesArray = [
+        require('@assets/images/lecciones/nivel3/leccion1/pr/PRmayusc.png'),
+        require('@assets/images/lecciones/nivel3/leccion1/pr/PRminusc.png'),
+    ];
+
     return (
         <LetterScreenWithDrawing
-            imageSource={require('@assets/images/lecciones/nivel1/lessons/letterM.png')}  // Aquí importas la imagen
+            imageSources={imageSourcesArray}  // Cambiado de imageSource a imageSources y pasando un array
             letterAudio={require('@assets/audio/levels/nivel1/intro.wav')}
-            practiceAudio={require('@assets/audio/levels/nivel1/lessons/M/Mboard.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel3/audios_lesson1/pr/PRboard.wav')}
             // @ts-ignore
-            onTopBack={() => router.push('/(tabs)//Level1Screen')}
+            onTopBack={() => router.push('/(tabs)//Level3Screen')}
             // @ts-ignore
             onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion1/pr/firstScreen')}
             // @ts-ignore
             onNext={() => router.push('/(tabs)/niveles/nivel3/leccion1/pr/PRpalabra')}
-
         />
     );
 }
