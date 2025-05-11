@@ -25,6 +25,7 @@ const lessons = [
     {
       id: 'leccion2',
       title: 'Consonantes combinadas y vocales',
+      carpeta: 'a',
       type: 'leccion',
       image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // revisar
       audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'), // revisar
@@ -32,6 +33,7 @@ const lessons = [
     {
       id: 'leccion3',
       title: 'Formación de palabras',
+      carpeta: 'global',
       type: 'leccion',
       image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // revisar
       audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
