@@ -1,11 +1,11 @@
 {
   "expo": {
     "sdkVersion": "52.0.0",
-    "name": "Prueba",
-    "slug": "Prueba",
+    "name": "ILTAE",
+    "slug": "iltae",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/iltae_logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -16,6 +16,7 @@
       "permissions": [
         "RECORD_AUDIO"
       ],
+      "icon": "./assets/images/iltae_logo.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -47,7 +48,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "185d41ef-2ed5-4b92-a818-db9f73f76497"
+        "projectId": "ed1d5d4f-c5b4-40d8-af0f-ab4a8af44fb7"
       }
     }
   }
