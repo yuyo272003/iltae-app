@@ -22,7 +22,7 @@ export default function SyllablesGame() {
             onTopBack={() => router.push('/(tabs)/Level3Screen')}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion2/a/silabasRA')} 
              // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion2/o/silabasLO')}
+            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion2/o/firstScreen')}
         /> 
     );
 }

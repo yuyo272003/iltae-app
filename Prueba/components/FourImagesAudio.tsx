@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Image,
     TouchableOpacity,
     StyleSheet,
 } from 'react-native';
-import { Audio, AVPlaybackSource } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-
-// Nuevo componente: muestra 4 imágenes + 4 sonidos individuales + audio general inferior
+import { Audio, AVPlaybackSource } from 'expo-av';
+import { router } from 'expo-router';
+import {
+    playAudioGlobal,
+    stopAudioGlobal,
+    registerStatusCallback,
+    unregisterStatusCallback,
+    isAudioPlayingGlobal,
+} from '@/utils/AudioManager';
 
 export type ImageAudioScreenProps = {
     images: { src: any; audio: AVPlaybackSource }[];
@@ -25,65 +31,80 @@ export default function ImageAudioScreen({
                                              onTopBack,
                                              onBottomBack,
                                          }: ImageAudioScreenProps) {
-    const [practiceSound, setPracticeSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
+    const [currentImageSound, setCurrentImageSound] = useState<Audio.Sound | null>(null);
+
+    useEffect(() => {
+        const statusCb = (playing: boolean) => setIsPlaying(playing);
+        registerStatusCallback(statusCb);
+        setIsPlaying(isAudioPlayingGlobal());
+        return () => {
+            stopAudioGlobal();
+            unregisterStatusCallback(statusCb);
+            if (currentImageSound) {
+                currentImageSound.unloadAsync();
+            }
+        };
+    }, [currentImageSound]);
 
     const playImageSound = async (file: AVPlaybackSource) => {
-        const { sound } = await Audio.Sound.createAsync(file);
-        await sound.playAsync();
-    };
-
-    const togglePracticeAudio = async () => {
-        if (practiceSound && isPlaying) {
-            await practiceSound.pauseAsync();
-            setIsPlaying(false);
-            setIsPaused(true);
-        } else if (practiceSound && isPaused) {
-            await practiceSound.playAsync();
-            setIsPlaying(true);
-            setIsPaused(false);
-        } else {
-            const { sound } = await Audio.Sound.createAsync(practiceAudio);
-            setPracticeSound(sound);
-            await sound.playAsync();
-            setIsPlaying(true);
-
-            sound.setOnPlaybackStatusUpdate((status) => {
-                if (status.isLoaded && status.didJustFinish) {
-                    setIsPlaying(false);
-                    setIsPaused(false);
-                }
-            });
-        }
-    };
-
-    const restartPracticeAudio = async () => {
-        if (practiceSound) {
-            await practiceSound.stopAsync();
-            await practiceSound.setPositionAsync(0);
-            await practiceSound.playAsync();
-            setIsPlaying(true);
-            setIsPaused(false);
-        }
-    };
-
-    const stopAudioAndNavigate = async (navigationFn?: () => void) => {
-        if (practiceSound) {
-            await practiceSound.stopAsync();
-            await practiceSound.unloadAsync();
-            setPracticeSound(null);
-        }
+        // stop any practice audio
+        stopAudioGlobal();
         setIsPlaying(false);
-        setIsPaused(false);
-        navigationFn?.();
+        // unload previous image sound
+        if (currentImageSound) {
+            await currentImageSound.stopAsync();
+            await currentImageSound.unloadAsync();
+            setCurrentImageSound(null);
+        }
+        const { sound } = await Audio.Sound.createAsync(file);
+        setCurrentImageSound(sound);
+        await sound.playAsync();
+        sound.setOnPlaybackStatusUpdate(status => {
+            if (status.isLoaded && status.didJustFinish) {
+                sound.unloadAsync();
+                setCurrentImageSound(null);
+            }
+        });
+    };
+
+    const togglePracticeAudio = () => {
+        // stop any image audio
+        if (currentImageSound) {
+            currentImageSound.stopAsync();
+            currentImageSound.unloadAsync();
+            setCurrentImageSound(null);
+        }
+        playAudioGlobal(practiceAudio);
+    };
+
+    const restartPracticeAudio = () => {
+        // stop image and practice
+        if (currentImageSound) {
+            currentImageSound.stopAsync();
+            currentImageSound.unloadAsync();
+            setCurrentImageSound(null);
+        }
+        stopAudioGlobal();
+        playAudioGlobal(practiceAudio);
+    };
+
+    const handleNavigation = (fn?: () => void) => {
+        // stop all audio
+        stopAudioGlobal();
+        if (currentImageSound) {
+            currentImageSound.stopAsync();
+            currentImageSound.unloadAsync();
+            setCurrentImageSound(null);
+        }
+        fn?.();
     };
 
     return (
         <View style={styles.container}>
             <TouchableOpacity
                 style={styles.topBackButton}
-                onPress={() => stopAudioAndNavigate(onTopBack)}
+                onPress={() => handleNavigation(onTopBack)}
             >
                 <Ionicons name="arrow-back" size={32} color="#2b2b2b" />
             </TouchableOpacity>
@@ -91,8 +112,15 @@ export default function ImageAudioScreen({
             <View style={styles.grid}>
                 {images.map((item, idx) => (
                     <View key={idx} style={styles.imageWrapper}>
-                        <Image source={item.src} style={styles.image} resizeMode="contain" />
-                        <TouchableOpacity onPress={() => playImageSound(item.audio)} style={styles.iconButton}>
+                        <Image
+                            source={item.src}
+                            style={styles.image}
+                            resizeMode="contain"
+                        />
+                        <TouchableOpacity
+                            onPress={() => playImageSound(item.audio)}
+                            style={styles.iconButton}
+                        >
                             <Ionicons name="volume-high" size={20} color="white" />
                         </TouchableOpacity>
                     </View>
@@ -100,23 +128,42 @@ export default function ImageAudioScreen({
             </View>
 
             <View style={styles.bottomPanel}>
-                <TouchableOpacity style={styles.playButton} onPress={togglePracticeAudio}>
-                    <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="white" />
+                <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={togglePracticeAudio}
+                >
+                    <Ionicons
+                        name={isPlaying ? 'pause' : 'play'}
+                        size={24}
+                        color="white"
+                    />
                 </TouchableOpacity>
 
                 <View style={styles.progressBarContainer}>
-                    <View style={styles.progressBarFill} />
+                    <View style={[
+                        styles.progressBarFill,
+                        isPlaying ? { width: '50%' } : { width: 0 }
+                    ]} />
                 </View>
 
-                <TouchableOpacity style={styles.restartButton} onPress={restartPracticeAudio}>
+                <TouchableOpacity
+                    style={styles.restartButton}
+                    onPress={restartPracticeAudio}
+                >
                     <Ionicons name="refresh" size={24} color="white" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.backButton} onPress={() => stopAudioAndNavigate(onBottomBack)}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => handleNavigation(onBottomBack)}
+                >
                     <Ionicons name="arrow-back" size={24} color="red" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.nextButton} onPress={() => stopAudioAndNavigate(onNext)}>
+                <TouchableOpacity
+                    style={styles.nextButton}
+                    onPress={() => handleNavigation(onNext)}
+                >
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </TouchableOpacity>
             </View>
@@ -193,7 +240,6 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     progressBarFill: {
-        width: '50%',
         height: '100%',
         backgroundColor: '#2e6ef7',
         borderRadius: 3,

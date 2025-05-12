@@ -5,13 +5,13 @@ import { router } from 'expo-router';
 export default function SyllablesGame() {
     // Definimos los pares de sílabas para esta lección específica
     const syllablePairs = [
-        { syllable: 'bro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/blo.wav') },
-        { syllable: 'cro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/clo.wav') },
-        { syllable: 'dro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/cho.wav') },
-        { syllable: 'fro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/flo.wav') },
-        { syllable: 'gro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/glo.wav') },
-        { syllable: 'pro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/plo.wav') },
-        { syllable: 'tro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/tlo.wav') },
+        { syllable: 'bro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/bro.wav') },
+        { syllable: 'cro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/cro.wav') },
+        { syllable: 'dro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/cro.wav') },
+        { syllable: 'fro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/fro.wav') },
+        { syllable: 'gro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/gro.wav') },
+        { syllable: 'pro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/pro.wav') },
+        { syllable: 'tro', file: require('@assets/audio/levels/nivel3/audios_lesson2/o/tro.wav') },
     ];
 
     return (

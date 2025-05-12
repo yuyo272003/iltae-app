@@ -101,7 +101,7 @@ export default function LeccionConMezcla() {
             onFinish={() => console.log('Juego terminado')}
             firstSlideBackRoute="/(tabs)/niveles/nivel2/leccion2/especialesU" // revisar
             lastSlideNextRoute="/(tabs)\Level3Screen"
-            advanceEndpoint="/progreso/avanzar-leccion-9"
+            advanceEndpoint="/progreso/avanzar-leccion-12"
             onTopBack={() => router.push('/(tabs)/Level3Screen')}
         />
     );

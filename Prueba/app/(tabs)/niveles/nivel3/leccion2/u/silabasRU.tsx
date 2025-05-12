@@ -21,7 +21,8 @@ export default function SyllablesGame() {
             onTopBack={() => router.push('/(tabs)/Level3Screen')}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel3/leccion2/u/firstScreen')}
              // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion2/o/silabasRO.tsx')}
+            onNext={() => router.push('/(tabs)/niveles/nivel3/leccion2/o/silabasRO')}
+
         /> 
     );
 }
