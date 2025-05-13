@@ -12,7 +12,7 @@ const lessons = [
         title: 'Introducción',
         type: 'intro',
         image: require('@assets/images/lecciones/nivel1/vocales.png'),
-        audioFile: require('@assets/audio/levels/nivel1/introduccion.wav'),
+        audioFile: require('@assets/audio/levels/nivel1/introduccionGuia.wav'),
     },
     {
         id: 'leccion1',
@@ -126,7 +126,7 @@ export default function Level1Screen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel1/intro.wav'))}
+                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel1/nivel1.wav'))}
                     style={styles.titlePill}
                 >
                     <Ionicons name="volume-high" size={14} color="#fff" />
