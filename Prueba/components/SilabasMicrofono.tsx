@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
 import api from '@/scripts/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {router, usePathname} from 'expo-router'
 
 type Syllable = {
     text: string;
@@ -52,6 +53,14 @@ export default function SyllableScreen({
     const [isPaused, setIsPaused] = useState(false);
     const [userProgress, setUserProgress] = useState<number>(0);
     const [isRecording, setIsRecording] = useState(false);
+    const pathname = usePathname();
+    const noBottomBackPaths = [
+        '/niveles/nivel4/leccion1/firstScreen',
+        '/niveles/nivel4/leccion2/firstScreen',
+        '/niveles/nivel4/leccion3/firstScreen',
+        '/niveles/nivel4/leccion4/firstScreen'
+      ];
+      
 
     // Carga el progreso
     useEffect(() => {
@@ -204,7 +213,9 @@ export default function SyllableScreen({
         setIsPaused(false);
         nav?.();
     };
-
+    
+    const showBottomBack = !noBottomBackPaths.includes(pathname);
+      
     return (
         <View style={styles.container}>
             {/* ← Atrás arriba */}
@@ -287,12 +298,11 @@ export default function SyllableScreen({
                 </TouchableOpacity>
 
                 {/* Back inferior */}
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => stopAllAndNavigate(onBottomBack)}
-                >
-                    <Ionicons name="arrow-back" size={24} color="red" />
-                </TouchableOpacity>
+                {showBottomBack && (
+              <TouchableOpacity style={styles.backButton} onPress={() => stopAllAndNavigate(onBottomBack)}>
+                <Ionicons name="arrow-back" size={24} color="red" />
+              </TouchableOpacity>
+          )}
 
                 {/* Next */}
                 <TouchableOpacity
@@ -307,22 +317,69 @@ export default function SyllableScreen({
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: 'white', alignItems: 'center', paddingTop: 100 },
+    container: { flex: 1, backgroundColor: 'white', alignItems: 'center', paddingTop: 150 },
     topBackButton: { position: 'absolute', top: 40, left: 20, zIndex: 10, backgroundColor: '#f0f0f0', padding: 12, borderRadius: 24 },
-    illustration: { width: 180, height: 180, marginBottom: 30, marginTop: 15 },
+    illustration: { width: 180, height: 180, marginBottom: 10, marginTop: 15 },
     syllablesRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 120, marginTop: 10 },
     syllableContainer: { flexDirection: 'column', alignItems: 'center', marginHorizontal: 8 },
     syllableText: { fontSize: 28, fontWeight: 'bold', color: '#2b2b2b' },
     hyphen: { fontSize: 28, color: '#2b2b2b', marginHorizontal: 4 },
     syllableAudioButton: { backgroundColor: '#2e6ef7', width: 32, height: 32, justifyContent: 'center', alignItems: 'center', borderRadius: 16, marginTop: 4 },
-    bottomPanel: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 380, backgroundColor: '#2b2b2b', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingTop: 40, alignItems: 'center', elevation: 10 },
-    micWrapper: { width: '100%', alignItems: 'center', marginBottom: 20 },
+    bottomPanel: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 320,
+        backgroundColor: '#242C3B',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        padding: 24,
+        alignItems: 'center',
+        elevation: 10,
+    },
+    micWrapper: {
+
+        borderRadius: 12,
+        alignItems: 'center',
+        marginBottom: 20,
+        marginTop: 10,
+        borderColor: '#2e6ef7',
+        borderWidth: 1,
+        backgroundColor: '#fff',
+        width: '100%', // o un valor fijo como 300 si quieres
+      },
     soundButton: { backgroundColor: 'white', width: '90%', padding: 16, borderRadius: 8, alignItems: 'center' },
     recordingButton: { backgroundColor: '#FF5252' },
     playButton: { backgroundColor: '#2e6ef7', padding: 16, borderRadius: 12, width: '100%', alignItems: 'center', marginBottom: 20, marginTop: 10 },
     progressBarContainer: { flexDirection: 'row', height: 6, width: '90%', borderRadius: 3, overflow: 'hidden', marginBottom: 50, backgroundColor: '#555' },
-    progressFill: { backgroundColor: '#2e6ef7' },
-    restartButton: { position: 'absolute', bottom: 40, backgroundColor: '#2e6ef7', borderRadius: 50, padding: 16, alignSelf: 'center' },
-    backButton: { position: 'absolute', left: 30, bottom: 40, backgroundColor: '#ffffff', borderRadius: 50, padding: 20 },
-    nextButton: { position: 'absolute', right: 30, bottom: 40, backgroundColor: '#33cc66', borderRadius: 50, padding: 20 },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#2e6ef7',
+        borderRadius: 3,
+    },
+    restartButton: {
+        position: 'absolute',
+        bottom: 20,
+        backgroundColor: '#2e6ef7',
+        borderRadius: 50,
+        padding: 15,
+        alignSelf: 'center',
+    },
+    nextButton: {
+        position: 'absolute',
+        right: 30,
+        bottom: 20,
+        backgroundColor: '#33cc66',
+        borderRadius: 50,
+        padding: 15,
+    },
+    backButton: {
+        position: 'absolute',
+        left: 30,
+        bottom: 20,
+        backgroundColor: '#ffffff',
+        borderRadius: 50,
+        padding: 15,
+    },
 });

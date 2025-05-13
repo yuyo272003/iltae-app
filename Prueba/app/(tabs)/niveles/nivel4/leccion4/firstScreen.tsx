@@ -1,6 +1,6 @@
 import React from 'react';
 import { router } from 'expo-router';
-import SyllableScreen from '../../../../../components/FirstSilabasMicrofono';
+import SyllableScreen from '../../../../../components/SilabasMicrofono';
 
 export default function LeccionManzana() {
     return (
