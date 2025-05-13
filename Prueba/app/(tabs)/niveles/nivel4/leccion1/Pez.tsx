@@ -6,10 +6,10 @@ export default function LeccionSal() {
     return (
         <SyllableScreen
             syllables={[
-                { text: 'Sal', audio: require('@assets/audio/Todos.wav') }
+                { text: 'Pez', audio: require('@assets/audio/Todos.wav') }
             ]}
             /** La palabra completa a verificar */
-            targetWord="Sal"
+            targetWord="Pez"
             /** Audio de práctica para la palabra */
             practiceAudio={require('@assets/audio/Todos.wav')}
             /** Audio que se reproduce al acertar */
@@ -17,13 +17,13 @@ export default function LeccionSal() {
             /** Audio que se reproduce al fallar */
             failureAudio={require('@assets/audio/Todos.wav')}
             /** Ilustración de la palabra */
-            imageSource={require('@assets/images/lecciones/nivel4/leccion1/monosilabas/sal.png')}
+            imageSource={require('@assets/images/lecciones/nivel4/leccion1/monosilabas/pez.png')}
             /** Atrás (arriba) */
             onTopBack={() => router.push('/(tabs)/Level4Screen')}
             /** Atrás (abajo) */
-            onBottomBack={() => router.push('/(tabs)/niveles/nivel4/leccion1/Pez')}
+            onBottomBack={() => router.push('/(tabs)/niveles/nivel4/leccion1/Flor')}
             /** Siguiente */
-            onNext={() => router.push('/(tabs)/Level4Screen')}
+            onNext={() => router.push('/(tabs)/niveles/nivel4/leccion1/Sal')}
         />
     );
 }

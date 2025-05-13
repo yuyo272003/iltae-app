@@ -19,7 +19,7 @@ const lessons = [
         title: 'Introducción',
         type: 'intro',
         image: require('@assets/images/lecciones/nivel1/vocales.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/intro.wav'), // revisar
+        audioFile: require('@assets/audio/levels/nivel3/introduccionGuia.wav'), // revisar
     },
     {
         id: 'leccion1',
@@ -81,6 +81,8 @@ export default function Level3Screen() {
         fetchLeccionDesbloqueada();
     }, [fetchLeccionDesbloqueada]));
 
+    
+
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -94,7 +96,7 @@ export default function Level3Screen() {
                     <Ionicons name="arrow-back" size={28} color="#3E64FF" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel2/intro.wav'))} // revisar
+                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel3/nivel3.wav'))} // revisar
                     style={styles.titlePill}
                 >
                     <Ionicons name="volume-high" size={14} color="#fff" />

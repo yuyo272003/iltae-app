@@ -12,7 +12,7 @@ const lessons = [
         title: 'Introducción',
         type: 'intro',
         image: require('@assets/images/lecciones/nivel1/vocales.png'),
-        audioFile: require('@assets/audio/levels/nivel2/intro.wav'),
+        audioFile: require('@assets/audio/levels/nivel2/introduccionGuia.wav'),
     },
     {
         id: 'leccion1',
@@ -87,7 +87,7 @@ export default function Level2Screen() {
                     <Ionicons name="arrow-back" size={28} color="#3E64FF" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel2/intro.wav'))}
+                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel2/nivel2.wav'))}
                     style={styles.titlePill}
                 >
                     <Ionicons name="volume-high" size={14} color="#fff" />
