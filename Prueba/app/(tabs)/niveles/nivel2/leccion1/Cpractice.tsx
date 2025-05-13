@@ -27,7 +27,7 @@ export default function ScreenWord() {
         images={images}
         onTopBack={() => router.push('/(tabs)/Level2Screen')}
         // @ts-ignore
-        onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/Bpractice')}
+        onBottomBack={() => router.push('/(tabs)/niveles/nivel2/leccion1/firstScreen')}
         // @ts-ignore
         onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/Dpractice')}
       

@@ -23,40 +23,40 @@ const lessons = [
     },
     {
         id: 'leccion1',
-        title: 'Combinación de consonantes',
-        carpeta: 'bl',
+        title: 'Acentuación',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel3/combinacion.png'), // revisar
+        image: require('@assets/images/lecciones/nivel5/acentuacion.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel2/leccion1.wav'), // revisar
     },
     {
         id: 'leccion2',
-        title: 'Consonantes combinadas y vocales',
+        title: 'Introducción a los signos de puntuación',
         carpeta: 'a',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel3/combinadas.png'), // revisar
+        image: require('@assets/images/lecciones/nivel5/signos.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'), // revisar
     },
     {
         id: 'leccion3',
-        title: 'Formación de palabras',
+        title: 'Párrafos cortos',
         carpeta: 'global',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel3/palabras.png'), // revisar
+        image: require('@assets/images/lecciones/nivel4/lectura.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
     },
-];
 
-export default function Level3Screen() {
+]
+
+export default function Level5Screen() {
     const router = useRouter();
     const [leccionDesbloqueada, setLeccionDesbloqueada] = useState(1);
 
-    // OFFSET: 6 lecciones de Nivel1 + 3 de Nivel2 = 9
-    const levelOffset = 9;
+    // OFFSET: 6 (Nivel1) + 3 (Nivel2) + 3 (Nivel3) + 5 (Nivel4) = 17
+    const levelOffset = 17;
     const lessonCount = lessons.filter(l => l.type === 'leccion').length; // = 3
-    const lastGlobalId = levelOffset + lessonCount;                      // = 12
+    const lastGlobalId = levelOffset + lessonCount;                      // = 20
 
-    const haTerminadoNivel3 = leccionDesbloqueada > lastGlobalId;
+    const haTerminadoNivel5 = leccionDesbloqueada > lastGlobalId;
 
     const fetchLeccionDesbloqueada = useCallback(async () => {
         try {
@@ -94,11 +94,11 @@ export default function Level3Screen() {
                     <Ionicons name="arrow-back" size={28} color="#3E64FF" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel2/intro.wav'))} // revisar
+                    onPress={() => playAudioGlobal(require('@assets/audio/Todos.wav'))}
                     style={styles.titlePill}
                 >
                     <Ionicons name="volume-high" size={14} color="#fff" />
-                    <Text style={styles.titleText}>Nivel 3</Text>
+                    <Text style={styles.titleText}>Nivel 5</Text>
                 </TouchableOpacity>
                 <View style={{ width: 28 }} />
             </View>
@@ -113,7 +113,7 @@ export default function Level3Screen() {
                     const match = item.id.match(/^leccion(\d+)$/);
                     const leccionNum = match ? parseInt(match[1], 10) : null;
 
-                    // desbloqueo: intro siempre; leccionN si globalID >= offset + N
+                    // Intro siempre; lección N si globalID ≥ offset + N
                     const isUnlocked = isIntro
                         || (leccionNum !== null && leccionDesbloqueada >= levelOffset + leccionNum);
 
@@ -125,7 +125,7 @@ export default function Level3Screen() {
                                 await stopAudioGlobal();
                                 if (item.type === 'leccion') {
                                     // @ts-ignore
-                                    router.push(`/(tabs)/niveles/nivel3/${item.id}/${item.carpeta}/firstScreen`);
+                                    router.push(`/(tabs)/niveles/nivel5/${item.id}/firstScreen`);
                                 }
                             }}
                         >
@@ -166,13 +166,13 @@ export default function Level3Screen() {
                 }}
                 contentContainerStyle={styles.grid}
                 ListFooterComponent={
-                    haTerminadoNivel3
+                    haTerminadoNivel5
                         ? (
                             <TouchableOpacity
                                 onPress={() => {
                                     stopAudioGlobal();
                                     // @ts-ignore
-                                    router.push('/(tabs)/Level4Screen');
+                                    router.push('/(tabs)/Level6Screen');
                                 }}
                                 style={styles.nextButton}
                             >

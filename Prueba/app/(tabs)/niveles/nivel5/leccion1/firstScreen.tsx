@@ -13,11 +13,11 @@ export default function Leccion2() {
                 { text: 'no', audio: require('@assets/audio/Todos.wav') },
             ]}
             practiceAudio={require('@assets/audio/Todos.wav')}
-            onTopBack={() => router.push('/(tabs)/Level1Screen')}
+            onTopBack={() => router.push('/(tabs)/Level5Screen')}
             // @ts-ignore
             onBottomBack={() => router.push('/(tabs)/niveles/nivel1/leccion1/firstScreen')}
             // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel1/leccion1/siguiente')}
+            onNext={() => router.push('/(tabs)/niveles/nivel5/leccion1/letras')}
         />
 
     );

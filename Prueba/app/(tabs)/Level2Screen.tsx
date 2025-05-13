@@ -25,14 +25,14 @@ const lessons = [
         id: 'leccion2',
         title: 'Consonantes y vocales',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'),
+        image: require('@assets/images/lecciones/nivel2/consonantes.png'),
         audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'),
     },
     {
         id: 'leccion3',
         title: 'Práctica de palabras',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'),
+        image: require('@assets/images/lecciones/nivel2/hola.png'),
         audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),
     },
 ];

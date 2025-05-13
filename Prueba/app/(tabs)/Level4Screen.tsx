@@ -25,7 +25,7 @@ const lessons = [
         id: 'leccion1',
         title: 'Monosilabas',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_basicas.png'), // revisar
+        image: require('@assets/images/lecciones/nivel4/monosilabas.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel2/leccion1.wav'), // revisar
     },
     {
@@ -33,7 +33,7 @@ const lessons = [
         title: 'Bisílabas',
         carpeta: 'a',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // revisar
+        image: require('@assets/images/lecciones/nivel4/bisilabas.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'), // revisar
     },
     {
@@ -41,7 +41,7 @@ const lessons = [
         title: 'Trisílabas',
         carpeta: 'global',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // revisar
+        image: require('@assets/images/lecciones/nivel4/trisilabas.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
     },
     {
@@ -49,7 +49,7 @@ const lessons = [
         title: 'Polisílabas',
         carpeta: 'global',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // revisar
+        image: require('@assets/images/lecciones/nivel4/polisilabas.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
     },
     {
@@ -57,7 +57,7 @@ const lessons = [
         title: 'Lectura de Oraciones',
         carpeta: 'global',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel1/consonantes_medias.png'), // revisar
+        image: require('@assets/images/lecciones/nivel4/lectura.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
     },
 ];
