@@ -1,29 +1,33 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { router } from 'expo-router';
 import SyllableScreen from '../../../../../components/SilabasMicrofono';
+import { avanzarLeccion } from '@/utils/leassonProgress';
 
 export default function LeccionSal() {
+    const handleNext = useCallback(async () => {
+        try {
+            // Llamamos al endpoint para avanzar a la lección 13
+            await avanzarLeccion('/progreso/avanzar-leccion-13');
+            // Luego navegamos a la pantalla de nivel 4
+            router.push('/(tabs)/Level4Screen');
+        } catch (error) {
+            console.error('Error al avanzar a lección 13:', error);
+            // Aquí podrías mostrar un toast o alerta
+        }
+    }, []);
+
     return (
         <SyllableScreen
-            syllables={[
-                { text: 'Sal', audio: require('@assets/audio/Todos.wav') }
-            ]}
-            /** La palabra completa a verificar */
+            syllables={[{ text: 'Sal', audio: require('@assets/audio/Todos.wav') }]}
             targetWord="Sal"
-            /** Audio de práctica para la palabra */
             practiceAudio={require('@assets/audio/Todos.wav')}
-            /** Audio que se reproduce al acertar */
             successAudio={require('@assets/audio/Todos.wav')}
-            /** Audio que se reproduce al fallar */
             failureAudio={require('@assets/audio/Todos.wav')}
-            /** Ilustración de la palabra */
             imageSource={require('@assets/images/lecciones/nivel4/leccion1/monosilabas/sal.png')}
-            /** Atrás (arriba) */
             onTopBack={() => router.push('/(tabs)/Level4Screen')}
-            /** Atrás (abajo) */
             onBottomBack={() => router.push('/(tabs)/niveles/nivel4/leccion1/Pez')}
-            /** Siguiente */
-            onNext={() => router.push('/(tabs)/Level4Screen')}
+            onNext={handleNext}
         />
     );
 }
+
