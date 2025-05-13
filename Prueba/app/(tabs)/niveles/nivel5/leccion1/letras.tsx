@@ -14,7 +14,7 @@ export default function Leccion2() {
         onTopBack={() => router.push('/(tabs)/Level5Screen')}
         onBottomBack={() => router.push('/(tabs)/niveles/nivel5/leccion1/firstScreen')}
         // @ts-ignore
-        onNext={() => router.push('/(tabs)/niveles/nivel2/leccion1/siguiente')}
+        onNext={() => router.push('/(tabs)/niveles/nivel5/leccion1/pizarron')}
     />
 
     );
