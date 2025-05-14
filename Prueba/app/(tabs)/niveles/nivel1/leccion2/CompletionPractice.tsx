@@ -17,7 +17,7 @@ export default function Leccion1() {
                 },
                 {
                     image: require('@assets/images/lecciones/nivel1/lessons/niño.png'),
-                    word: [null, 'i', null, 'o'],
+                    word: [null, 'i', null, 'a'],
                     correctLetters: ['n', 'ñ'],
                     options: ['m', 'n', 'ñ'],
                     audio: require('@assets/audio/levels/nivel1/lessons/Ñ/actividadpalabrasleccion2.wav')

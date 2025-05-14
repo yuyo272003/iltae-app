@@ -20,7 +20,7 @@ export default function Leccion2() {
         <SentenceSpeakingScreen
             words={['yo', 'luna', 'veo', 'la']}
             targetPhrase="Yo veo la luna"
-            practiceAudio={require('@assets/audio/levels/nivel4/instruccion5.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel4/audioLeccion5.wav')}
             successAudio={require('@assets/audio/levels/nivel4/correcto.wav')}
             failureAudio={require('@assets/audio/levels/nivel4/fallo.wav')}
             onTopBack={() => router.push('/(tabs)/Level4Screen')}
