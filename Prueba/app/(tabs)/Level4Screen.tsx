@@ -14,19 +14,19 @@ import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import api from '@/scripts/api';
 
 const lessons = [
-    {
-        id: 'intro',
-        title: 'Introducción',
-        type: 'intro',
-        image: require('@assets/images/lecciones/nivel1/vocales.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel4/introduccionGuia.wav'), // revisar
-    },
+    // {
+    //     id: 'intro',
+    //     title: 'Introducción',
+    //     type: 'intro',
+    //     image: require('@assets/images/lecciones/nivel1/vocales.png'), // revisar
+    //     audioFile: require('@assets/audio/levels/nivel4/introduccionGuia.wav'), 
+    // },
     {
         id: 'leccion1',
         title: 'Monosilabas',
         type: 'leccion',
         image: require('@assets/images/lecciones/nivel4/monosilabas.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/leccion1.wav'), // revisar
+        audioFile: require('@assets/audio/levels/nivel4/introduccionMonosilabas.wav'), 
     },
     {
         id: 'leccion2',
@@ -34,7 +34,7 @@ const lessons = [
         carpeta: 'a',
         type: 'leccion',
         image: require('@assets/images/lecciones/nivel4/bisilabas.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'), // revisar
+        audioFile: require('@assets/audio/levels/nivel4/introduccionBisilabas.wav'), 
     },
     {
         id: 'leccion3',
@@ -42,7 +42,7 @@ const lessons = [
         carpeta: 'global',
         type: 'leccion',
         image: require('@assets/images/lecciones/nivel4/trisilabas.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
+        audioFile: require('@assets/audio/levels/nivel4/introduccionTrisilabas.wav'),
     },
     {
         id: 'leccion4',
@@ -50,7 +50,7 @@ const lessons = [
         carpeta: 'global',
         type: 'leccion',
         image: require('@assets/images/lecciones/nivel4/polisilabas.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
+        audioFile: require('@assets/audio/levels/nivel4/introduccionPolisilabas.wav'),// revisar
     },
     {
         id: 'leccion5',
@@ -58,7 +58,7 @@ const lessons = [
         carpeta: 'global',
         type: 'leccion',
         image: require('@assets/images/lecciones/nivel4/lectura.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
+        audioFile: require('@assets/audio/levels/nivel4/introduccionLecturaOraciones.wav'),// revisar
     },
 ];
 
@@ -181,8 +181,20 @@ export default function Level4Screen() {
                 }}
                 contentContainerStyle={styles.grid}
                 ListFooterComponent={
-                    haTerminadoNivel4
-                        ? (
+                    <View style={styles.footerContainer}>
+                        {/* El play button aparece siempre */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                await stopAudioGlobal();
+                                await playAudioGlobal(require('@assets/audio/levels/nivel4/introduccionGuia.wav'));
+                            }}
+                            style={styles.playButton}
+                        >
+                            <Ionicons name="play" size={22} color="white" />
+                        </TouchableOpacity>
+                        
+                        {/* El next button solo aparece cuando ha terminado el nivel */}
+                        {haTerminadoNivel4 && (
                             <TouchableOpacity
                                 onPress={() => {
                                     stopAudioGlobal();
@@ -193,8 +205,8 @@ export default function Level4Screen() {
                             >
                                 <Ionicons name="arrow-forward" size={24} color="white" />
                             </TouchableOpacity>
-                        )
-                        : null
+                        )}
+                    </View>
                 }
             />
         </SafeAreaView>
@@ -202,13 +214,17 @@ export default function Level4Screen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff' },
+    container: { 
+        flex: 1, 
+        backgroundColor: '#fff' 
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        marginBottom: 16,
+        marginBottom: 16, // 50
+        marginTop: 20,
     },
     titlePill: {
         backgroundColor: '#3E64FF',
@@ -232,6 +248,14 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
+    },
+    playButton: {
+        backgroundColor: '#2e6ef7',
+        padding: 16,
+        borderRadius: 12,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 15,
     },
     image: { width: '100%', height: 90, marginBottom: 8 },
     subtitle: { fontSize: 14, fontWeight: '600', flexShrink: 1 },
@@ -257,17 +281,21 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    nextButton: {
-        alignSelf: 'flex-end',
-        marginRight: 16,
-        marginTop: 24,
+    footerContainer: {
+        alignItems: 'flex-end',
+        marginRight: 9,
+        marginLeft: 9,
+        marginTop: 15,
         marginBottom: 32,
+    },
+    nextButton: {
         backgroundColor: '#33cc66',
-        paddingVertical: 16,
-        paddingHorizontal: 32,
+        paddingVertical: 15,
+        paddingHorizontal: 15,
         borderRadius: 30,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
-    },
+        marginTop: 3,
+    },    
 });

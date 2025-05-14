@@ -1,5 +1,5 @@
 import React from 'react';
-import LetterScreen from '../../../../../../components/FirstLetterScreen';
+import LetterScreen from '../../../../../../components/LetterScreen';
 import {router} from "expo-router";
 
 export default function Leccion2() {

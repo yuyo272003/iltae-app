@@ -269,16 +269,14 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
     },
-    topBackButton: {
+    topBackButton: { 
         position: 'absolute',
-        top: 40,
-        left: 20,
-        zIndex: 1,
-        backgroundColor: '#e0e0e0',
-        padding: 14,
-        borderRadius: 50,
-        elevation: 5,
-    },
+        top: 35, 
+        left: 15, 
+        zIndex: 10, 
+        backgroundColor: '#f0f0f0', 
+        padding: 15, 
+        borderRadius: 50 },
 
     backButton: {
         position: 'absolute',

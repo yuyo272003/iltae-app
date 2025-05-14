@@ -167,15 +167,14 @@ const styles = StyleSheet.create({
         paddingTop: 100,
         paddingBottom: 180,
     },
-    topBackButton: {
+    topBackButton: { 
         position: 'absolute',
-        top: 40,
-        left: 20,
-        zIndex: 1,
-        backgroundColor: '#2e2e2e',
-        padding: 12,
-        borderRadius: 30,
-        elevation: 5,
+        top: 35, 
+        left: 15, 
+        zIndex: 10, 
+        backgroundColor: '#242C3B', 
+        padding: 15, 
+        borderRadius: 50 
     },
     syllableDiagram: {
         flexDirection: 'row',

@@ -106,7 +106,7 @@ export default function ImageAudioScreen({
                 style={styles.topBackButton}
                 onPress={() => handleNavigation(onTopBack)}
             >
-                <Ionicons name="arrow-back" size={32} color="#2b2b2b" />
+                <Ionicons name="arrow-back" size={32} color="white" />
             </TouchableOpacity>
 
             <View style={styles.grid}>
@@ -179,16 +179,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingBottom: 120,
     },
-    topBackButton: {
+    topBackButton: { 
         position: 'absolute',
-        top: 40,
-        left: 20,
-        zIndex: 1,
-        backgroundColor: '#e0e0e0',
-        padding: 14,
-        borderRadius: 50,
-        elevation: 5,
-    },
+        top: 35, 
+        left: 15, 
+        zIndex: 10, 
+        backgroundColor: '#242C3B', 
+        padding: 15, 
+        borderRadius: 50 },
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -207,9 +205,9 @@ const styles = StyleSheet.create({
     },
     iconButton: {
         marginTop: 8,
-        backgroundColor: '#2b2b2b',
-        padding: 10,
-        borderRadius: 8,
+        backgroundColor: '#242C3B',
+        padding: 8,
+        borderRadius: 9,
     },
     bottomPanel: {
         position: 'absolute',

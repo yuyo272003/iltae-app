@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
+import { usePathname, useRouter } from 'expo-router';
 
 type LetterScreenProps = {
     letter: string,
@@ -28,6 +29,19 @@ export default function LetterScreen({
     const [practiceSound, setPracticeSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
+    const pathname = usePathname();
+    
+    // Define routes where bottom back button should be hidden
+    const noBottomBackPaths = [
+        '/niveles/nivel1/leccion2/Mm/leccion',
+        '/niveles/nivel1/leccion3/Bb/leccion',
+        '/niveles/nivel1/leccion4/Ff/leccion',
+        '/niveles/nivel1/leccion5/Ll/leccion',
+        '/niveles/nivel1/leccion6/Cc/leccion'
+    ];
+
+    // Check if current path should hide the bottom back button
+    const showBottomBack = !noBottomBackPaths.some(path => pathname.includes(path));
 
     const playLetterSound = async (file: AVPlaybackSource) => {
         const { sound } = await Audio.Sound.createAsync(file);
@@ -78,15 +92,23 @@ export default function LetterScreen({
         setIsPaused(false);
         navigationFn?.();
     };
-
+    
+    // Clean up audio on component unmount
+    useEffect(() => {
+        return () => {
+            if (practiceSound) {
+                practiceSound.unloadAsync();
+            }
+        };
+    }, [practiceSound]);
+   
     return (
         <View style={styles.container}>
             <TouchableOpacity
                 style={styles.topBackButton}
                 onPress={() => stopAudioAndNavigate(onTopBack)}
             >
-                <Ionicons name="arrow-back" size={32} color="white" />
-
+                <Ionicons name="arrow-back" size={32} color="#242C3B" />
             </TouchableOpacity>
 
             <Text style={styles.letterText}>{letter}</Text>
@@ -117,12 +139,14 @@ export default function LetterScreen({
                     <Ionicons name="refresh" size={24} color="white" />
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => stopAudioAndNavigate(onBottomBack)}
-                >
-                    <Ionicons name="arrow-back" size={24} color="white" />
-                </TouchableOpacity>
+                {showBottomBack && (
+                    <TouchableOpacity 
+                        style={styles.backButton} 
+                        onPress={() => stopAudioAndNavigate(onBottomBack)}
+                    >
+                        <Ionicons name="arrow-back" size={24} color="red" />
+                    </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
                     style={styles.nextButton}
@@ -210,19 +234,17 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 30,
         bottom: 20,
-        backgroundColor: '#ff6666',
+        backgroundColor: '#ffffff',
         borderRadius: 50,
         padding: 15,
     },
-    topBackButton: {
+    topBackButton: { 
         position: 'absolute',
-        top: 40,
-        left: 20,
-        zIndex: 1,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        padding: 14,
-        borderRadius: 50,
-        elevation: 5,
-    },
-
+        top: 35, 
+        left: 15, 
+        zIndex: 10, 
+        backgroundColor: '#f0f0f0', 
+        padding: 15, 
+        borderRadius: 50 },
+    
 });

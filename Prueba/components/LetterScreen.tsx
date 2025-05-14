@@ -9,6 +9,7 @@ import { Audio, AVPlaybackSource } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import api from '@/scripts/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { usePathname, useRouter } from 'expo-router';
 
 type LetterScreenProps = {
     letter: string,
@@ -32,6 +33,8 @@ export default function LetterScreen({
     const [isPaused, setIsPaused] = useState(false);
 
     const [userProgress, setUserProgress] = useState<number>(0);
+
+    const pathname = usePathname();
 
     useEffect(() => {
         (async () => {
@@ -98,6 +101,8 @@ export default function LetterScreen({
         navigationFn?.();
     };
 
+    const showBottomBack = pathname !== '/niveles/nivel1/leccion1/Aa/leccion';
+
     return (
         <View style={styles.container}>
             <TouchableOpacity
@@ -139,12 +144,11 @@ export default function LetterScreen({
                     <Ionicons name="refresh" size={24} color="white" />
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => stopAudioAndNavigate(onBottomBack)}
-                >
+                {showBottomBack && (
+                    <TouchableOpacity style={styles.backButton} onPress={() => stopAudioAndNavigate(onBottomBack)}>
                     <Ionicons name="arrow-back" size={24} color="red" />
-                </TouchableOpacity>
+                    </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
                     style={styles.nextButton}
@@ -163,7 +167,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingBottom: 200,
+        paddingBottom: 150,
     },
     letterText: {
         fontSize: 96,
@@ -171,9 +175,9 @@ const styles = StyleSheet.create({
         color: '#2b2b2b',
     },
     soundButton: {
-        marginTop: 16,
+        marginTop: -5,
         backgroundColor: '#2e6ef7',
-        padding: 12,
+        padding: 10,
         borderRadius: 8,
     },
     bottomPanel: {
@@ -181,8 +185,8 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 300,
-        backgroundColor: '#2b2b2b',
+        height: 200,
+        backgroundColor: '#242C3B',
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         padding: 24,
@@ -211,36 +215,34 @@ const styles = StyleSheet.create({
     },
     restartButton: {
         position: 'absolute',
-        bottom: 70,
+        bottom: 20,
         backgroundColor: '#2e6ef7',
         borderRadius: 50,
-        padding: 16,
+        padding: 15,
         alignSelf: 'center',
     },
     nextButton: {
         position: 'absolute',
         right: 30,
-        bottom: 70,
+        bottom: 20,
         backgroundColor: '#33cc66',
         borderRadius: 50,
-        padding: 20,
+        padding: 15,
     },
     backButton: {
         position: 'absolute',
         left: 30,
-        bottom: 70,
+        bottom: 20,
         backgroundColor: '#ffffff',
         borderRadius: 50,
-        padding: 20,
+        padding: 15,
     },
-    topBackButton: {
+    topBackButton: { 
         position: 'absolute',
-        top: 40,
-        left: 20,
-        zIndex: 1,
-        backgroundColor: '#e0e0e0',
-        padding: 14,
-        borderRadius: 50,
-        elevation: 5,
-    },
+        top: 35, 
+        left: 15, 
+        zIndex: 10, 
+        backgroundColor: '#f0f0f0', 
+        padding: 15, 
+        borderRadius: 50 },
 });

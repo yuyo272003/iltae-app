@@ -196,17 +196,31 @@ export default function Level1Screen() {
                 }}
                 contentContainerStyle={styles.grid}
                 ListFooterComponent={
-                    haTerminadoNivel1 ? (
+                    <View style={styles.footerContainer}>
+                        {/* El play button aparece siempre */}
                         <TouchableOpacity
-                            onPress={() => {
-                                stopAudioGlobal();
-                                router.push('/(tabs)/Level2Screen');
+                            onPress={async () => {
+                                await stopAudioGlobal();
+                                await playAudioGlobal(require('@assets/audio/levels/nivel1/introduccionGuia.wav'));
                             }}
-                            style={styles.nextButton}
+                            style={styles.playButton}
                         >
-                            <Ionicons name="arrow-forward" size={24} color="white" />
+                            <Ionicons name="play" size={22} color="white" />
                         </TouchableOpacity>
-                    ) : null
+                        
+                        {/* El next button solo aparece cuando ha terminado el nivel */}
+                        {haTerminadoNivel1 && (
+                            <TouchableOpacity
+                                onPress={() => {
+                                    stopAudioGlobal();
+                                    router.push('/(tabs)/Level2Screen');
+                                }}
+                                style={styles.nextButton}
+                            >
+                                <Ionicons name="arrow-forward" size={24} color="white" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 }
             />
         </SafeAreaView>
@@ -223,7 +237,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        marginBottom: 16,
+        marginBottom: 16, // 50
+        marginTop: 20,
     },
     titlePill: {
         backgroundColor: '#3E64FF',
@@ -287,18 +302,29 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    nextButton: {
-        position: 'relative',
-        alignSelf: 'flex-end',
-        marginRight: 16,
-        marginTop: 24,
+    footerContainer: {
+        alignItems: 'flex-end',
+        marginRight: 9,
+        marginLeft: 9,
+        marginTop: 15,
         marginBottom: 32,
+    },
+    nextButton: {
         backgroundColor: '#33cc66',
-        paddingVertical: 16,
-        paddingHorizontal: 32,
+        paddingVertical: 15,
+        paddingHorizontal: 15,
         borderRadius: 30,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
+        marginTop: 3,
+    },
+    playButton: {
+        backgroundColor: '#2e6ef7',
+        padding: 16,
+        borderRadius: 12,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 15,
     },
 });
