@@ -7,8 +7,8 @@ export default function Leccion1() {
         <FourImagesAudio
 
             images={[
-                { src: require('@assets/images/lecciones/nivel1/lessons/niño2.png'), audio: require('@assets/audio/levels/nivel1/lessons/Ñ/niño.wav') },
-                { src: require('@assets/images/lecciones/nivel1/lessons/leña.png'), audio: require('@assets/audio/levels/nivel1/lessons/Ñ/leña.wav') },
+                { src: require('@assets/images/lecciones/nivel2/piña.png'), audio: require('@assets/audio/levels/nivel2/audios_lesson1/piña.wav') },
+                { src: require('@assets/images/lecciones/nivel1/lessons/puño.png'), audio: require('@assets/audio/levels/nivel1/lessons/Ñ/puño.wav') },
                 { src: require('@assets/images/lecciones/nivel1/lessons/uña.png'), audio: require('@assets/audio/levels/nivel1/lessons/Ñ/Uña.wav') },
                 { src: require('@assets/images/lecciones/nivel1/lessons/moño.png'), audio: require('@assets/audio/levels/nivel1/lessons/Ñ/moño.wav') },
             ]}
