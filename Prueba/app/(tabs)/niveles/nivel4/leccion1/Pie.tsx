@@ -6,12 +6,12 @@ export default function LeccionSal() {
     return (
         <SyllableScreen
             syllables={[
-                { text: 'Pie', audio: require('@assets/audio/Todos.wav') }
+                { text: 'Pie', audio: require('@assets/audio/levels/nivel4/pie.wav') }
             ]}
             /** La palabra completa a verificar */
             targetWord="Pie"
             /** Audio de práctica para la palabra */
-            practiceAudio={require('@assets/audio/Todos.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel4/instruction.wav')}
             /** Audio que se reproduce al acertar */
             successAudio={require('@assets/audio/Todos.wav')}
             /** Audio que se reproduce al fallar */

@@ -18,9 +18,11 @@ export default function LeccionSal() {
 
     return (
         <SyllableScreen
-            syllables={[{ text: 'Sal', audio: require('@assets/audio/Todos.wav') }]}
+           syllables={[
+                { text: 'Sal', audio: require('@assets/audio/levels/nivel4/sal.wav') }
+            ]}
             targetWord="Sal"
-            practiceAudio={require('@assets/audio/Todos.wav')}
+            practiceAudio={require('@assets/audio/levels/nivel4/instruction.wav')}
             successAudio={require('@assets/audio/Todos.wav')}
             failureAudio={require('@assets/audio/Todos.wav')}
             imageSource={require('@assets/images/lecciones/nivel4/leccion1/monosilabas/sal.png')}

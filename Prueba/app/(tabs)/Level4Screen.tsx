@@ -19,7 +19,7 @@ const lessons = [
         title: 'Introducción',
         type: 'intro',
         image: require('@assets/images/lecciones/nivel1/vocales.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/intro.wav'), // revisar
+        audioFile: require('@assets/audio/levels/nivel4/introduccionGuia.wav'), // revisar
     },
     {
         id: 'leccion1',
@@ -147,7 +147,7 @@ export default function Level4Screen() {
                             <Image source={item.image} style={styles.image} resizeMode="contain" />
                             {isIntro ? (
                                 <>
-                                    <Text style={styles.subtitle}>{item.title}</Text>
+                                    {/* Se eliminó el Text que mostraba el título de la introducción */}
                                     <TouchableOpacity
                                         onPress={async e => {
                                             e.stopPropagation();

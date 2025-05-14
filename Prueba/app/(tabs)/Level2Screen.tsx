@@ -126,7 +126,7 @@ export default function Level2Screen() {
                             <Image source={item.image} style={styles.image} resizeMode="contain" />
                             {isIntro ? (
                                 <>
-                                    <Text style={styles.subtitle}>{item.title}</Text>
+                                    {/* Se elimina el título de Introducción pero se mantiene el botón de audio */}
                                     <TouchableOpacity
                                         onPress={async e => {
                                             e.stopPropagation();

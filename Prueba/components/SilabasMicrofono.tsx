@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
 import api from '@/scripts/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {router, usePathname} from 'expo-router'
+import { router, usePathname } from 'expo-router'
 
 type Syllable = {
     text: string;
@@ -37,16 +37,16 @@ type SyllableScreenProps = {
 };
 
 export default function SyllableScreen({
-                                           syllables,
-                                           targetWord,
-                                           practiceAudio,
-                                           successAudio,
-                                           failureAudio,
-                                           imageSource,
-                                           onNext,
-                                           onTopBack,
-                                           onBottomBack,
-                                       }: SyllableScreenProps) {
+    syllables,
+    targetWord,
+    practiceAudio,
+    successAudio,
+    failureAudio,
+    imageSource,
+    onNext,
+    onTopBack,
+    onBottomBack,
+}: SyllableScreenProps) {
     const [practiceSound, setPracticeSound] = useState<Audio.Sound | null>(null);
     const [feedbackSound, setFeedbackSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -54,13 +54,16 @@ export default function SyllableScreen({
     const [userProgress, setUserProgress] = useState<number>(0);
     const [isRecording, setIsRecording] = useState(false);
     const pathname = usePathname();
+    
     const noBottomBackPaths = [
         '/niveles/nivel4/leccion1/firstScreen',
         '/niveles/nivel4/leccion2/firstScreen',
         '/niveles/nivel4/leccion3/firstScreen',
         '/niveles/nivel4/leccion4/firstScreen'
-      ];
-      
+    ];
+    
+    // Determinar si es una pantalla "firstScreen"
+    const isFirstScreen = pathname.endsWith('/firstScreen');
 
     // Carga el progreso
     useEffect(() => {
@@ -254,9 +257,15 @@ export default function SyllableScreen({
             </View>
 
             {/* Panel inferior */}
-            <View style={styles.bottomPanel}>
-                {/* Micrófono */}
-                <View style={styles.micWrapper}>
+            <View style={[
+                styles.bottomPanel,
+                !isFirstScreen && styles.bottomPanelReduced
+            ]}>
+                {/* Micrófono - Mismo estilo pero posición diferente según pantalla */}
+                <View style={[
+                    styles.micWrapper,
+                    !isFirstScreen && styles.micWrapperRepositioned
+                ]}>
                     <TouchableOpacity
                         style={[styles.soundButton, isRecording && styles.recordingButton]}
                         onPress={() =>
@@ -271,38 +280,51 @@ export default function SyllableScreen({
                     </TouchableOpacity>
                 </View>
 
-                {/* Play práctica */}
-                <TouchableOpacity
-                    style={styles.playButton}
-                    onPress={togglePracticeAudio}
-                >
-                    <Ionicons
-                        name={isPlaying ? 'pause' : 'play'}
-                        size={24}
-                        color="white"
-                    />
-                </TouchableOpacity>
+                {/* Play práctica - Solo en firstScreen */}
+                {isFirstScreen && (
+                    <TouchableOpacity
+                        style={styles.playButton}
+                        onPress={togglePracticeAudio}
+                    >
+                        <Ionicons
+                            name={isPlaying ? 'pause' : 'play'}
+                            size={24}
+                            color="white"
+                        />
+                    </TouchableOpacity>
+                )}
+                
+                {/* Espacio adicional para no-firstScreen para compensar la posición del micrófono */}
+                {!isFirstScreen && <View style={{ height: 20 }} />}
 
                 {/* Barra de progreso */}
-                <View style={styles.progressBarContainer}>
+                <View style={[
+                    styles.progressBarContainer,
+                    !isFirstScreen && { marginTop: 20, marginBottom: 30 }
+                ]}>
                     <View style={[styles.progressFill, { flex: userProgress }]} />
                     <View style={{ flex: 100 - userProgress }} />
                 </View>
 
-                {/* Reiniciar */}
-                <TouchableOpacity
-                    style={styles.restartButton}
-                    onPress={restartPracticeAudio}
-                >
-                    <Ionicons name="refresh" size={24} color="white" />
-                </TouchableOpacity>
+                {/* Reiniciar - Solo en firstScreen */}
+                {isFirstScreen && (
+                    <TouchableOpacity
+                        style={styles.restartButton}
+                        onPress={restartPracticeAudio}
+                    >
+                        <Ionicons name="refresh" size={24} color="white" />
+                    </TouchableOpacity>
+                )}
 
                 {/* Back inferior */}
                 {showBottomBack && (
-              <TouchableOpacity style={styles.backButton} onPress={() => stopAllAndNavigate(onBottomBack)}>
-                <Ionicons name="arrow-back" size={24} color="red" />
-              </TouchableOpacity>
-          )}
+                    <TouchableOpacity 
+                        style={styles.backButton} 
+                        onPress={() => stopAllAndNavigate(onBottomBack)}
+                    >
+                        <Ionicons name="arrow-back" size={24} color="red" />
+                    </TouchableOpacity>
+                )}
 
                 {/* Next */}
                 <TouchableOpacity
@@ -338,8 +360,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         elevation: 10,
     },
+    bottomPanelReduced: {
+        height: 220, // Panel más pequeño para pantallas que no son firstScreen
+        paddingHorizontal: 24, // Mantener paddng horizontal original
+        paddingTop: 70, // Aumentar padding superior para compensar el botón de micrófono
+        paddingBottom: 24, // Mantener padding inferior original
+    },
     micWrapper: {
-
         borderRadius: 12,
         alignItems: 'center',
         marginBottom: 20,
@@ -347,8 +374,13 @@ const styles = StyleSheet.create({
         borderColor: '#2e6ef7',
         borderWidth: 1,
         backgroundColor: '#fff',
-        width: '100%', // o un valor fijo como 300 si quieres
-      },
+        width: '100%',
+    },
+    micWrapperRepositioned: {
+        position: 'absolute',
+        top: 10,
+        width: '100%', // Mismo ancho que en firstScreen
+    },
     soundButton: { backgroundColor: 'white', width: '90%', padding: 16, borderRadius: 8, alignItems: 'center' },
     recordingButton: { backgroundColor: '#FF5252' },
     playButton: { backgroundColor: '#2e6ef7', padding: 16, borderRadius: 12, width: '100%', alignItems: 'center', marginBottom: 20, marginTop: 10 },

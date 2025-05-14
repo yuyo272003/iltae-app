@@ -6,17 +6,19 @@ export default function LeccionManzana() {
     return (
         <SyllableScreen
             syllables={[
-                { text: 'Sol', audio: require('@assets/audio/Todos.wav') }
+                { text: 'Go', audio: require('@assets/audio/levels/nivel4/go.wav') },
+                { text: 'rra', audio: require('@assets/audio/levels/nivel4/rra.wav') },
             ]}
-            targetWord="Sol"
-            practiceAudio={require('@assets/audio/Todos.wav')}
+            targetWord="Hada"
+            practiceAudio={require('@assets/audio/levels/nivel4/instruction.wav')}
             // audios de retroalimentación
             successAudio={require('@assets/audio/Todos.wav')}
             failureAudio={require('@assets/audio/Todos.wav')}
-            imageSource={require('@assets/images/lecciones/nivel2/sol.png')}
+            imageSource={require('@assets/images/lecciones/nivel2/gorra.png')}
             onTopBack={() => router.push('/(tabs)/Level4Screen')}
+            onBottomBack={() => router.push('/(tabs)/niveles/nivel4/leccion2/firstScreen')}
             // @ts-ignore
-            onNext={() => router.push('(tabs)/niveles/nivel4/leccion1/Sal')}
+            onNext={() => router.push('(tabs)/niveles/nivel4/leccion2/Hongo')}
         />
     );
 }
