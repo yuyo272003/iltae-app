@@ -12,7 +12,7 @@ export default function Leccion2() {
             practiceAudio={require('@assets/audio/Todos.wav')}
             onTopBack={() => router.push('/(tabs)/Level5Screen')}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel5/leccion1/letras')}
-            onNext={() => router.push('/(tabs)/niveles/nivel5/leccion1/pizarron')}
+            onNext={() => router.push('/(tabs)/niveles/nivel5/leccion1/speakingfrase')}
         />
 
 
