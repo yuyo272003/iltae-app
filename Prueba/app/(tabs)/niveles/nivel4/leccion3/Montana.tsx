@@ -15,7 +15,7 @@ export default function LeccionManzana() {
             // audios de retroalimentación
             successAudio={require('@assets/audio/Todos.wav')}
             failureAudio={require('@assets/audio/Todos.wav')}
-            imageSource={require('@assets/images/lecciones/nivel2/muñeca.png')}
+            imageSource={require('@assets/images/lecciones/nivel2/montaña.png')}
             onTopBack={() => router.push('/(tabs)/Level4Screen')}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel4/leccion3/Helado')}
             // @ts-ignore

@@ -6,10 +6,10 @@ export default function LeccionManzana() {
     return (
         <SyllableScreen
             syllables={[
-                { text: 'Pa', audio: require('@assets/audio/levels/nivel4/ge.wav') },
-                { text: 'lo', audio: require('@assets/audio/levels/nivel4/ge.wav') },
-                { text: 'mi', audio: require('@assets/audio/levels/nivel4/ge.wav') },
-                { text: 'tas', audio: require('@assets/audio/levels/nivel4/ge.wav') },
+                { text: 'Pa', audio: require('@assets/audio/levels/nivel4/pa.wav') },
+                { text: 'lo', audio: require('@assets/audio/levels/nivel4/lo.wav') },
+                { text: 'mi', audio: require('@assets/audio/levels/nivel4/mi.wav') },
+                { text: 'tas', audio: require('@assets/audio/levels/nivel4/tas.wav') },
             ]}
             targetWord="Palomitas"
             practiceAudio={require('@assets/audio/levels/nivel4/instruction.wav')}

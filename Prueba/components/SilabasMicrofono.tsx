@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     micWrapperRepositioned: {
         position: 'absolute',
         top: 10,
-        width: '100%', // Mismo ancho que en firstScreen
+        width: '90%', // Mismo ancho que en firstScreen
     },
     soundButton: { backgroundColor: 'white', width: '90%', padding: 16, borderRadius: 8, alignItems: 'center' },
     recordingButton: { backgroundColor: '#FF5252' },
