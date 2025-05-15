@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -16,19 +16,20 @@ import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
 import { useFocusEffect } from 'expo-router';
 
-// Emitter solo en native (iOS/Android)
+// Emitter sólo en native (iOS/Android)
 const voiceEmitter =
     Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
-type SpeechOptions = {
+interface SpeechOptions {
     onResult: (spoken: string) => void;
     onError: () => void;
-};
+}
 
+// Hook de reconocimiento de voz con extras para Android
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
 
-    const requestPermission = useCallback(async (): Promise<boolean> => {
+    const requestPermission = React.useCallback(async (): Promise<boolean> => {
         if (Platform.OS !== 'android') return true;
         const result = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
@@ -42,7 +43,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         return result === PermissionsAndroid.RESULTS.GRANTED;
     }, []);
 
-    const start = useCallback(async () => {
+    const start = React.useCallback(async () => {
         if (Platform.OS === 'web') {
             Alert.alert('No soportado', 'Dictación de voz no funciona en web.');
             return;
@@ -54,13 +55,14 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         try {
             await Voice.cancel();
             // Extender tiempos de silencio en Android
-            const extras: { [key: string]: any } = {};
+            const extras: Record<string, any> = {};
             if (Platform.OS === 'android') {
                 extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
                 extras['android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
                 extras['android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS'] = 10000;
             }
             await Voice.start('es-MX', extras);
+            setIsRecording(true);
         } catch (e) {
             console.error('Voice.start error', e);
             setIsRecording(false);
@@ -68,8 +70,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         }
     }, [requestPermission, onError]);
 
-
-    const stop = useCallback(async () => {
+    const stop = React.useCallback(async () => {
         if (Platform.OS === 'web') return;
         try {
             await Voice.stop();
@@ -82,8 +83,8 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         }
     }, []);
 
-    const onSpeechStart = useCallback(() => setIsRecording(true), []);
-    const onSpeechResults = useCallback(
+    const onSpeechStart = React.useCallback(() => setIsRecording(true), []);
+    const onSpeechResults = React.useCallback(
         ({ value }: any) => {
             const spoken = value?.[0] ?? '';
             onResult(spoken);
@@ -91,12 +92,13 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         },
         [onResult, stop]
     );
-    const onSpeechErrorEvt = useCallback(() => {
-        onError();
+    const onSpeechErrorEvt = React.useCallback(() => {
+        console.warn('Speech recognition error');
         stop();
+        onError();
     }, [onError, stop]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (!voiceEmitter) return;
         const subs = [
             voiceEmitter.addListener('onSpeechStart', onSpeechStart),
@@ -107,7 +109,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     useFocusEffect(
-        useCallback(() => {
+        React.useCallback(() => {
             return () => stop();
         }, [stop])
     );
@@ -141,19 +143,8 @@ export default function SentenceSpeakingScreen({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
 
-    const { isRecording, start, stop } = useSpeechRecognition({
-        onResult: spoken => evaluate(spoken),
-        onError: () => playFeedback(failureAudio),
-    });
-
     const normalize = (s: string) =>
         s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-
-    const evaluate = (spoken: string) => {
-        normalize(spoken) === normalize(targetPhrase)
-            ? playFeedback(successAudio)
-            : playFeedback(failureAudio);
-    };
 
     const playFeedback = async (file: AVPlaybackSource) => {
         if (feedbackSound) {
@@ -166,13 +157,22 @@ export default function SentenceSpeakingScreen({
             await sound.playAsync();
             if (file === successAudio) {
                 sound.setOnPlaybackStatusUpdate(status => {
-                    if (!status.isLoaded || status.didJustFinish) {
-                        stopAll(onNext);
-                    }
+                    if (!status.isLoaded || status.didJustFinish) stopAll(onNext);
                 });
             }
         }
     };
+
+    const evaluate = (spoken: string) => {
+        normalize(spoken) === normalize(targetPhrase)
+            ? playFeedback(successAudio)
+            : playFeedback(failureAudio);
+    };
+
+    const { isRecording, start, stop } = useSpeechRecognition({
+        onResult: evaluate,
+        onError: () => playFeedback(failureAudio),
+    });
 
     const togglePracticeAudio = async () => {
         if (Platform.OS === 'web') return;
@@ -226,7 +226,6 @@ export default function SentenceSpeakingScreen({
                     <Ionicons name="arrow-back" size={28} color="#2b2b2b" />
                 </TouchableOpacity>
             )}
-
             <View style={styles.wordsContainer}>
                 {words.map((w, i) => (
                     <View key={i} style={styles.wordBlock}>
@@ -234,7 +233,6 @@ export default function SentenceSpeakingScreen({
                     </View>
                 ))}
             </View>
-
             <View style={styles.bottomPanel}>
                 <View style={styles.micWrapper}>
                     <TouchableOpacity
@@ -248,25 +246,20 @@ export default function SentenceSpeakingScreen({
                         />
                     </TouchableOpacity>
                 </View>
-
                 <TouchableOpacity style={styles.playButton} onPress={togglePracticeAudio}>
                     <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="white" />
                 </TouchableOpacity>
-
                 <View style={styles.progressBarContainer}>
                     <View style={[styles.progressFill, isPlaying ? { width: '50%' } : { width: 0 }]} />
                 </View>
-
                 <TouchableOpacity style={styles.restartButton} onPress={restartPracticeAudio}>
                     <Ionicons name="refresh" size={24} color="white" />
                 </TouchableOpacity>
-
                 {onBottomBack && (
                     <TouchableOpacity style={styles.backButton} onPress={() => stopAll(onBottomBack)}>
                         <Ionicons name="arrow-back" size={24} color="red" />
                     </TouchableOpacity>
                 )}
-
                 <TouchableOpacity style={styles.nextButton} onPress={() => stopAll(onNext)}>
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </TouchableOpacity>

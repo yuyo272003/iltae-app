@@ -29,7 +29,7 @@ import {
 } from "@/utils/AudioManager";
 import Voice from "@react-native-community/voice";
 
-// Emitter solo en native (iOS/Android)
+// Emitter sólo en native
 const voiceEmitter =
     Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
@@ -38,19 +38,19 @@ interface SpeechOptions {
     onError?: () => void;
 }
 
-// Hook de reconocimiento de voz sin onSpeechEnd para evitar cierres prematuros
+// Hook de reconocimiento de voz con extras para Android
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
 
     const requestAudioPermission = useCallback(async (): Promise<boolean> => {
-        if (Platform.OS !== "android") return true;
+        if (Platform.OS !== 'android') return true;
         const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
             {
-                title: "Permiso de micrófono",
-                message: "La app necesita acceso al micrófono.",
-                buttonNegative: "Cancelar",
-                buttonPositive: "Aceptar",
+                title: 'Permiso de micrófono',
+                message: 'La app necesita acceder al micrófono.',
+                buttonNegative: 'Cancelar',
+                buttonPositive: 'Aceptar',
             }
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
@@ -67,17 +67,17 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         }
         try {
             await Voice.cancel();
-            // Extender tiempos de silencio en Android
-            const extras: { [key: string]: any } = {};
+            // Extender tiempo de silencio en Android
+            const extras: Record<string, any> = {};
             if (Platform.OS === 'android') {
                 extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
                 extras['android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
                 extras['android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS'] = 10000;
             }
-            await Voice.start("es-MX", extras);
+            await Voice.start('es-MX', extras);
             setIsRecording(true);
         } catch (e) {
-            console.error("Voice.start error", e);
+            console.error('Voice.start error', e);
             setIsRecording(false);
             onError?.();
         }
@@ -89,91 +89,79 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             await Voice.stop();
             await Voice.cancel();
         } catch (e) {
-            console.error("Voice.stop error", e);
+            console.error('Voice.stop error', e);
         } finally {
             setIsRecording(false);
             Keyboard.dismiss();
         }
     }, []);
 
-    const onSpeechStart = useCallback(() => {
-        setIsRecording(true);
-    }, []);
-
+    const onSpeechStart = useCallback(() => setIsRecording(true), []);
     const onSpeechResults = useCallback(
         ({ value }: any) => {
-            const spoken = value?.[0] ?? "";
+            const spoken = value?.[0] ?? '';
             onResult(spoken);
-            // detenemos aquí, no en onSpeechEnd
             stop();
         },
         [onResult, stop]
     );
-
     const onSpeechErrorEvt = useCallback(() => {
-        onError?.();
-        stop();
-    }, [onError, stop]);
+            console.warn('Speech recognition error');
+            stop();
+        },
+        [stop]
+    );
 
     useEffect(() => {
         if (!voiceEmitter) return;
         const subs = [
-            voiceEmitter.addListener("onSpeechStart", onSpeechStart),
-            voiceEmitter.addListener("onSpeechResults", onSpeechResults),
-            voiceEmitter.addListener("onSpeechError", onSpeechErrorEvt),
+            voiceEmitter.addListener('onSpeechStart', onSpeechStart),
+            voiceEmitter.addListener('onSpeechResults', onSpeechResults),
+            voiceEmitter.addListener('onSpeechError', onSpeechErrorEvt),
         ];
         return () => subs.forEach(s => s.remove());
     }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     useFocusEffect(
         useCallback(() => {
-            return () => {
-                stop();
-            };
+            return () => stop();
         }, [stop])
     );
 
     return { isRecording, start, stop };
 }
 
-
 export default function RegistroScreen() {
-    const [nombre, setNombre] = useState("");
+    const [nombre, setNombre] = useState('');
     const { setUser } = useAuth();
     const [isAudioPlaying, setIsAudioPlaying] = useState(isAudioPlayingGlobal());
     const [keyboardVisible, setKeyboardVisible] = useState(false);
     const inputRef = useRef<TextInput>(null);
 
-    // AudioManager callbacks
     useEffect(() => {
         const cb = (playing: boolean) => setIsAudioPlaying(playing);
         registerStatusCallback(cb);
-        return () => {
-            unregisterStatusCallback(cb);
-            stopAudioGlobal();
-        };
+        return () => { unregisterStatusCallback(cb); stopAudioGlobal(); };
     }, []);
 
-    // Keyboard visibility
     useEffect(() => {
-        const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
-        const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+        const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+        const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
         return () => { show.remove(); hide.remove(); };
     }, []);
 
-    // Voz
     const { isRecording, start, stop } = useSpeechRecognition({
-        onResult: spoken => setNombre(spoken),
-        onError: () => Alert.alert("Error", "No se pudo reconocer la voz"),
+        onResult: shown => setNombre(shown),
+        onError: () => console.warn('Error de reconocimiento')
     });
 
     const reproducirInstrucciones = () => {
-        playAudioGlobal(require("@/assets/audio/registro_instrucciones.wav"));
+        playAudioGlobal(require('@/assets/audio/registro_instrucciones.wav'));
     };
 
     const handleRegister = async () => {
         if (!nombre.trim()) {
-            Alert.alert("Error", "Por favor ingresa tu nombre.");
+            Alert.alert('Error', 'Por favor ingresa tu nombre.');
             return;
         }
         try {
@@ -182,7 +170,7 @@ export default function RegistroScreen() {
             setUser(data.user);
             router.push('/(tabs)/perfiles');
         } catch (e: any) {
-            Alert.alert("Error", e.response?.data?.message || "Algo salió mal 😢");
+            Alert.alert('Error', e.response?.data?.message || 'Algo salió mal 😢');
         }
     };
 
@@ -191,28 +179,18 @@ export default function RegistroScreen() {
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={28} color="blue" />
             </TouchableOpacity>
-
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.keyboardAvoid}
-            >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContainer}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
-                >
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardAvoid}>
+                <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
                     <View style={[styles.content, keyboardVisible && styles.contentWithKeyboard]}>
                         <View style={styles.profileContainer}>
                             <Ionicons name="person-circle" size={100} color="#1E6ADB" />
                         </View>
-
                         <View style={styles.headerSection}>
                             <TouchableOpacity style={styles.speakerButton} onPress={reproducirInstrucciones}>
                                 <Ionicons name={isAudioPlaying ? 'pause' : 'volume-high'} size={20} color="white" />
                             </TouchableOpacity>
                             <Text style={styles.welcomeText}>¡Bienvenido!</Text>
                         </View>
-
                         <TextInput
                             ref={inputRef}
                             style={styles.input}
@@ -222,17 +200,10 @@ export default function RegistroScreen() {
                             onChangeText={setNombre}
                             editable={!isRecording}
                         />
-
-                        <TouchableOpacity
-                            style={[styles.voiceButton, isRecording && styles.dictatingButton]}
-                            onPress={() => (isRecording ? stop() : start())}
-                        >
+                        <TouchableOpacity style={[styles.voiceButton, isRecording && styles.dictatingButton]} onPress={() => isRecording ? stop() : start()}>
                             <Ionicons name={isRecording ? 'mic-off' : 'mic'} size={24} color="white" />
-                            <Text style={{ color: 'white', marginLeft: 8 }}>
-                                {isRecording ? 'Detener' : 'Dictar'}
-                            </Text>
+                            <Text style={{ color: 'white', marginLeft: 8 }}>{isRecording ? 'Detener' : 'Dictar'}</Text>
                         </TouchableOpacity>
-
                         <TouchableOpacity style={styles.nextButton} onPress={handleRegister}>
                             <Ionicons name="arrow-forward" size={24} color="white" />
                         </TouchableOpacity>

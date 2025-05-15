@@ -8,8 +8,8 @@ import {
     PermissionsAndroid,
     Platform,
     Keyboard,
-    NativeModules,
     NativeEventEmitter,
+    NativeModules,
     Alert,
 } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
@@ -17,11 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
 import api from '@/scripts/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect, router, usePathname } from 'expo-router';
-
-// Emitter sólo en nativo
-const voiceEmitter =
-    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
+import { useFocusEffect, usePathname } from 'expo-router';
 
 type Syllable = { text: string; audio: AVPlaybackSource };
 
@@ -36,6 +32,12 @@ interface Props {
     onTopBack?: () => void;
     onBottomBack?: () => void;
 }
+
+// Emitter sólo en nativo
+const voiceEmitter =
+    Platform.OS !== 'web'
+        ? new NativeEventEmitter(NativeModules.Voice)
+        : null;
 
 // Hook de reconocimiento de voz reutilizable
 function useSpeechRecognition(
@@ -69,21 +71,21 @@ function useSpeechRecognition(
         }
         try {
             await Voice.cancel();
-            // Extender tiempos de silencio en Android
-            const extras: { [key: string]: any } = {};
+            // Extiende silencio en Android
+            const extras: any = {};
             if (Platform.OS === 'android') {
                 extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
                 extras['android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
                 extras['android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS'] = 10000;
             }
             await Voice.start('es-MX', extras);
+            setIsRecording(true);
         } catch (e) {
             console.error('Voice.start error', e);
             setIsRecording(false);
             onError();
         }
     }, [requestPermission, onError]);
-
 
     const stop = useCallback(async () => {
         if (Platform.OS === 'web') return;
@@ -98,17 +100,21 @@ function useSpeechRecognition(
         }
     }, []);
 
-    const onSpeechStart = useCallback(() => setIsRecording(true), []);
+    const onSpeechStart = useCallback(() => {
+        setIsRecording(true);
+    }, []);
+
     const onSpeechResults = useCallback(
         ({ value }: any) => {
             const spoken = value?.[0] ?? '';
             onResult(spoken);
-            stop();
+            stop(); // detenemos al primer resultado
         },
         [onResult, stop]
     );
+
     const onSpeechErrorEvt = useCallback(() => {
-        onError();
+        onError(); // alert sólo una vez
         stop();
     }, [onError, stop]);
 
@@ -123,7 +129,9 @@ function useSpeechRecognition(
     }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     useFocusEffect(
-        useCallback(() => () => stop(), [stop])
+        useCallback(() => {
+            return () => stop();
+        }, [stop])
     );
 
     return { isRecording, start, stop };
@@ -157,8 +165,8 @@ export default function SyllableScreen({
 
     // Hook de voz
     const { isRecording, start, stop } = useSpeechRecognition(
-        (spoken: string) => evaluate(spoken),
-        () => playFeedback(failureAudio)
+        (spoken: string) => evaluatePronunciation(spoken),
+        () => Alert.alert('Error', 'No se pudo reconocer la voz')
     );
 
     // Carga progreso
@@ -167,7 +175,9 @@ export default function SyllableScreen({
             const token = await AsyncStorage.getItem('auth_token');
             if (!token) return;
             try {
-                const { data } = await api.get('/progreso', { headers: { Authorization: `Bearer ${token}` } });
+                const { data } = await api.get('/progreso', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
                 setUserProgress(data.porcentaje || 0);
             } catch (e) {
                 console.error(e);
@@ -175,19 +185,16 @@ export default function SyllableScreen({
         })();
     }, []);
 
-    const normalize = (s: string) => s
-        .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
-        .toLowerCase()
-        .trim();
+    const normalize = (s: string) =>
+        s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
-    const evaluate = (spoken: string) => {
+    const evaluatePronunciation = (spoken: string) => {
         normalize(spoken) === normalize(targetWord)
-            ? playFeedback(successAudio)
+            ? playFeedback(successAudio, onNext)
             : playFeedback(failureAudio);
     };
 
-    const playFeedback = async (file: AVPlaybackSource) => {
+    const playFeedback = async (file: AVPlaybackSource, nav?: () => void) => {
         if (Platform.OS === 'web') return;
         if (feedbackSound) {
             await feedbackSound.stopAsync();
@@ -196,11 +203,9 @@ export default function SyllableScreen({
         const { sound } = await Audio.Sound.createAsync(file);
         setFeedbackSound(sound);
         await sound.playAsync();
-        if (file === successAudio) {
+        if (file === successAudio && nav) {
             sound.setOnPlaybackStatusUpdate(status => {
-                if (!status.isLoaded || status.didJustFinish) {
-                    stopAll(onNext);
-                }
+                if (!status.isLoaded || status.didJustFinish) nav();
             });
         }
     };
@@ -230,7 +235,6 @@ export default function SyllableScreen({
     };
 
     const restartPractice = async () => {
-        if (Platform.OS === 'web') return;
         if (practiceSound) {
             await practiceSound.stopAsync();
             await practiceSound.setPositionAsync(0);
@@ -266,7 +270,10 @@ export default function SyllableScreen({
                     <React.Fragment key={i}>
                         <View style={styles.syllableContainer}>
                             <Text style={styles.syllableText}>{s.text}</Text>
-                            <TouchableOpacity style={styles.syllableAudioButton} onPress={() => Platform.OS !== 'web' && Audio.Sound.createAsync(s.audio)}>
+                            <TouchableOpacity
+                                style={styles.syllableAudioButton}
+                                onPress={() => Platform.OS !== 'web' && Audio.Sound.createAsync(s.audio)}
+                            >
                                 <Ionicons name="volume-high" size={20} color="white" />
                             </TouchableOpacity>
                         </View>
@@ -276,9 +283,11 @@ export default function SyllableScreen({
             </View>
 
             <View style={[styles.bottomPanel, !isFirst && styles.bottomPanelReduced]}>
-                <View style={[styles.micWrapper, !isFirst && styles.micWrapperRepositioned]}
-                >
-                    <TouchableOpacity style={[styles.soundButton, isRecording && styles.recordingButton]} onPress={() => (isRecording ? stop() : start())}>
+                <View style={[styles.micWrapper, !isFirst && styles.micWrapperRepositioned]}>
+                    <TouchableOpacity
+                        style={[styles.soundButton, isRecording && styles.recordingButton]}
+                        onPress={() => (isRecording ? stop() : start())}
+                    >
                         <Ionicons name={isRecording ? 'mic-off' : 'mic'} size={24} color={isRecording ? 'white' : '#2e6ef7'} />
                     </TouchableOpacity>
                 </View>
@@ -315,25 +324,119 @@ export default function SyllableScreen({
         </View>
     );
 }
+
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: 'white', alignItems: 'center', paddingTop: 150 },
-    topBackButton: { position: 'absolute', top: 40, left: 20, zIndex: 10, backgroundColor: '#f0f0f0', padding: 12, borderRadius: 24 },
+    topBackButton: {
+        position: 'absolute',
+        top: 40,
+        left: 20,
+        zIndex: 10,
+        backgroundColor: '#f0f0f0',
+        padding: 12,
+        borderRadius: 24,
+    },
     illustration: { width: 180, height: 180, marginBottom: 10, marginTop: 15 },
     syllablesRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 120, marginTop: 10 },
     syllableContainer: { alignItems: 'center', marginHorizontal: 8 },
     syllableText: { fontSize: 28, fontWeight: 'bold', color: '#2b2b2b' },
     hyphen: { fontSize: 28, color: '#2b2b2b', marginHorizontal: 4 },
-    syllableAudioButton: { backgroundColor: '#2e6ef7', width: 32, height: 32, justifyContent: 'center', alignItems: 'center', borderRadius: 16, marginTop: 4 },
-    bottomPanel: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 320, backgroundColor: '#242C3B', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, alignItems: 'center', elevation: 10 },
-    bottomPanelReduced: { height: 220, paddingHorizontal: 24, paddingTop: 70, paddingBottom: 24 },
-    micWrapper: { borderRadius: 12, alignItems: 'center', marginBottom: 20, marginTop: 10, borderColor: '#2e6ef7', borderWidth: 1, backgroundColor: '#fff', width: '100%' },
-    micWrapperRepositioned: { position: 'absolute', top: 10, width: '90%' },
-    soundButton: { backgroundColor: 'white', width: '90%', padding: 16, borderRadius: 8, alignItems: 'center' },
+    syllableAudioButton: {
+        backgroundColor: '#2e6ef7',
+        width: 32,
+        height: 32,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 16,
+        marginTop: 4,
+    },
+    bottomPanel: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 320,
+        backgroundColor: '#242C3B',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        padding: 24,
+        alignItems: 'center',
+        elevation: 10,
+    },
+    bottomPanelReduced: {
+        height: 220,
+        paddingHorizontal: 24,
+        paddingTop: 70,
+        paddingBottom: 24,
+    },
+    micWrapper: {
+        borderRadius: 12,
+        alignItems: 'center',
+        marginBottom: 20,
+        marginTop: 10,
+        borderColor: '#2e6ef7',
+        borderWidth: 1,
+        backgroundColor: '#fff',
+        width: '100%',
+    },
+    micWrapperRepositioned: {
+        position: 'absolute',
+        top: 10,
+        width: '90%',
+    },
+    soundButton: {
+        backgroundColor: 'white',
+        width: '90%',
+        padding: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
     recordingButton: { backgroundColor: '#FF5252' },
-    playButton: { backgroundColor: '#2e6ef7', padding: 16, borderRadius: 12, width: '100%', alignItems: 'center', marginBottom: 20, marginTop: 10 },
-    progressBarContainer: { flexDirection: 'row', height: 6, width: '90%', borderRadius: 3, overflow: 'hidden', marginBottom: 50, backgroundColor: '#555' },
-    progressFill: { height: '100%', backgroundColor: '#2e6ef7', borderRadius: 3 },
-    restartButton: { position: 'absolute', bottom: 20, backgroundColor: '#2e6ef7', borderRadius: 50, padding: 15, alignSelf: 'center' },
-    nextButton: { position: 'absolute', right: 30, bottom: 20, backgroundColor: '#33cc66', borderRadius: 50, padding: 15 },
-    backButton: { position: 'absolute', left: 30, bottom: 20, backgroundColor: '#ffffff', borderRadius: 50, padding: 15 },
+    playButton: {
+        backgroundColor: '#2e6ef7',
+        padding: 16,
+        borderRadius: 12,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 20,
+        marginTop: 10,
+    },
+    progressBarContainer: {
+        flexDirection: 'row',
+        height: 6,
+        width: '90%',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginBottom: 50,
+        backgroundColor: '#555',
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#2e6ef7',
+        borderRadius: 3,
+    },
+    restartButton: {
+        position: 'absolute',
+        bottom: 20,
+        backgroundColor: '#2e6ef7',
+        borderRadius: 50,
+        padding: 15,
+        alignSelf: 'center',
+    },
+    nextButton: {
+        position: 'absolute',
+        right: 30,
+        bottom: 20,
+        backgroundColor: '#33cc66',
+        borderRadius: 50,
+        padding: 15,
+    },
+    backButton: {
+        position: 'absolute',
+        left: 30,
+        bottom: 20,
+        backgroundColor: '#ffffff',
+        borderRadius: 50,
+        padding: 15,
+    },
 });

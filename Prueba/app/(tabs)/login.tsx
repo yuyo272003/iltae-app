@@ -106,9 +106,10 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         [onResult, stop]
     );
     const onSpeechErrorEvt = useCallback(() => {
+        // Simplemente detener la grabación sin disparar alertas infinitas
         stop();
-        onError?.();
-    }, [onError, stop]);
+        console.warn('Speech recognition error');
+    }, [stop]);
 
     useEffect(() => {
         if (!voiceEmitter) return;
