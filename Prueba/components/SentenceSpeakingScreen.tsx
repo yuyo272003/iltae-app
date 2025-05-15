@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
     View,
     Text,
@@ -17,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
 import { useFocusEffect } from 'expo-router';
 
-// Emitter sólo en nativo
+// Emitter solo en nativo
 const voiceEmitter =
     Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
@@ -28,38 +27,6 @@ interface SpeechOptions {
 
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
-    const initialized = useRef(false);
-
-    // Initialize Voice on first mount
-    useEffect(() => {
-        if (Platform.OS === 'web' || initialized.current) return;
-
-        const setupVoice = async () => {
-            try {
-                await Voice.destroy();
-                await Voice.removeAllListeners();
-                initialized.current = true;
-            } catch (e) {
-                console.error('Voice setup error', e);
-            }
-        };
-
-        setupVoice();
-
-        // Cleanup on unmount
-        return () => {
-            const cleanupVoice = async () => {
-                if (Platform.OS === 'web') return;
-                try {
-                    await Voice.destroy();
-                    await Voice.removeAllListeners();
-                } catch (e) {
-                    console.error('Voice cleanup error', e);
-                }
-            };
-            cleanupVoice();
-        };
-    }, []);
 
     const requestPermission = useCallback(async (): Promise<boolean> => {
         if (Platform.OS !== 'android') return true;
@@ -80,16 +47,10 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             Alert.alert('No soportado', 'Dictación de voz no funciona en web.');
             return;
         }
-
-        if (isRecording) {
-            await stop();
-        }
-
         if (!(await requestPermission())) {
             onError();
             return;
         }
-
         try {
             await Voice.cancel();
             const extras: Record<string, any> = {};
@@ -105,7 +66,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             setIsRecording(false);
             onError();
         }
-    }, [requestPermission, onError, isRecording]);
+    }, [requestPermission, onError]);
 
     const stop = useCallback(async () => {
         if (Platform.OS === 'web') return;
@@ -124,38 +85,30 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const onSpeechResults = useCallback(
         ({ value }: any) => {
             const spoken = value?.[0] ?? '';
-            console.log('Speech result:', spoken);
             onResult(spoken);
-            stop();
+            stop(); // detenemos en el primer resultado
         },
         [onResult, stop]
     );
     const onSpeechErrorEvt = useCallback(() => {
-        console.log('Speech recognition error');
+        console.warn('Speech recognition error');
         onError();
         stop();
     }, [onError, stop]);
 
     useEffect(() => {
         if (!voiceEmitter) return;
-
         const subs = [
             voiceEmitter.addListener('onSpeechStart', onSpeechStart),
             voiceEmitter.addListener('onSpeechResults', onSpeechResults),
             voiceEmitter.addListener('onSpeechError', onSpeechErrorEvt),
         ];
-
-        return () => {
-            subs.forEach(s => s.remove());
-        };
+        return () => subs.forEach((s) => s.remove());
     }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     useFocusEffect(
         useCallback(() => {
-            return () => {
-                console.log('Screen lost focus, stopping voice recognition');
-                stop();
-            };
+            return () => stop();
         }, [stop])
     );
 
@@ -188,132 +141,29 @@ export default function SentenceSpeakingScreen({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
 
-    // Refs to track if audio is currently playing
-    const isFeedbackPlaying = useRef(false);
-    const isPracticeLoading = useRef(false);
-    const audioProgress = useRef(0);
-
-    // Initialize Audio session
-    useEffect(() => {
-        const setAudioMode = async () => {
-            if (Platform.OS === 'web') return;
-
-            try {
-                await Audio.setAudioModeAsync({
-                    allowsRecordingIOS: true,
-                    playsInSilentModeIOS: true,
-                    staysActiveInBackground: false,
-                    shouldDuckAndroid: true,
-                    playThroughEarpieceAndroid: false,
-                });
-            } catch (e) {
-                console.error('Failed to set audio mode', e);
-            }
-        };
-
-        setAudioMode();
-    }, []);
-
-    // Cleanup all audio resources on unmount
-    useEffect(() => {
-        return () => {
-            const cleanup = async () => {
-                if (practiceSound) {
-                    try {
-                        await practiceSound.stopAsync();
-                        await practiceSound.unloadAsync();
-                    } catch (e) {
-                        console.error('Error cleaning up practice sound', e);
-                    }
-                }
-
-                if (feedbackSound) {
-                    try {
-                        await feedbackSound.stopAsync();
-                        await feedbackSound.unloadAsync();
-                    } catch (e) {
-                        console.error('Error cleaning up feedback sound', e);
-                    }
-                }
-            };
-
-            cleanup();
-        };
-    }, []);
-
     const normalize = (s: string) =>
         s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
-    const evaluate = (spoken: string) => {
-        const normalizedSpoken = normalize(spoken);
-        const normalizedTarget = normalize(targetPhrase);
-
-        console.log('Evaluating speech:', {
-            spoken: normalizedSpoken,
-            target: normalizedTarget,
-            match: normalizedSpoken === normalizedTarget
-        });
-
-        if (normalizedSpoken === normalizedTarget) {
-            playFeedback(successAudio);
-        } else {
-            playFeedback(failureAudio);
+    const playFeedback = async (file: AVPlaybackSource) => {
+        if (feedbackSound) {
+            await feedbackSound.stopAsync();
+            await feedbackSound.unloadAsync();
+        }
+        if (Platform.OS === 'web') return;
+        const { sound } = await Audio.Sound.createAsync(file);
+        setFeedbackSound(sound);
+        await sound.playAsync();
+        if (file === successAudio) {
+            sound.setOnPlaybackStatusUpdate((status) => {
+                if (!status.isLoaded || status.didJustFinish) stopAll(onNext);
+            });
         }
     };
 
-    const playFeedback = async (file: AVPlaybackSource) => {
-        if (isFeedbackPlaying.current) return;
-        isFeedbackPlaying.current = true;
-
-        // Stop any previous feedback sound
-        if (feedbackSound) {
-            try {
-                await feedbackSound.stopAsync();
-                await feedbackSound.unloadAsync();
-            } catch (e) {
-                console.error('Error stopping previous feedback sound', e);
-            }
-        }
-
-        if (Platform.OS === 'web') {
-            isFeedbackPlaying.current = false;
-            return;
-        }
-
-        try {
-            const { sound } = await Audio.Sound.createAsync(file,
-                { shouldPlay: true },
-                (status) => {
-                    if (!status.isLoaded) return;
-
-                    if (status.didJustFinish) {
-                        isFeedbackPlaying.current = false;
-
-                        // Cleanup after playback
-                        const cleanupSound = async () => {
-                            try {
-                                await sound.unloadAsync();
-                                setFeedbackSound(null);
-                            } catch (e) {
-                                console.error('Error unloading feedback sound', e);
-                            }
-
-                            // Navigate if needed
-                            if (file === successAudio && onNext) {
-                                stopAll(onNext);
-                            }
-                        };
-
-                        cleanupSound();
-                    }
-                }
-            );
-
-            setFeedbackSound(sound);
-        } catch (e) {
-            console.error('Error playing feedback sound', e);
-            isFeedbackPlaying.current = false;
-        }
+    const evaluate = (spoken: string) => {
+        normalize(spoken) === normalize(targetPhrase)
+            ? playFeedback(successAudio)
+            : playFeedback(failureAudio);
     };
 
     const { isRecording, start, stop } = useSpeechRecognition({
@@ -322,117 +172,56 @@ export default function SentenceSpeakingScreen({
     });
 
     const togglePracticeAudio = async () => {
-        if (Platform.OS === 'web' || isPracticeLoading.current) return;
-
+        if (Platform.OS === 'web') return;
         if (practiceSound && isPlaying) {
-            try {
-                await practiceSound.pauseAsync();
-                setIsPlaying(false);
-                setIsPaused(true);
-            } catch (e) {
-                console.error('Error pausing practice sound', e);
-            }
+            await practiceSound.pauseAsync();
+            setIsPlaying(false);
+            setIsPaused(true);
         } else if (practiceSound && isPaused) {
-            try {
-                await practiceSound.playAsync();
-                setIsPlaying(true);
-                setIsPaused(false);
-            } catch (e) {
-                console.error('Error resuming practice sound', e);
-            }
+            await practiceSound.playAsync();
+            setIsPlaying(true);
+            setIsPaused(false);
         } else {
-            // Create and play new sound
-            isPracticeLoading.current = true;
-
-            try {
-                const { sound } = await Audio.Sound.createAsync(
-                    practiceAudio,
-                    { shouldPlay: true },
-                    (status) => {
-                        if (!status.isLoaded) return;
-
-                        if (status.positionMillis && status.durationMillis) {
-                            audioProgress.current = status.positionMillis / status.durationMillis;
-                        }
-
-                        if (status.didJustFinish) {
-                            setIsPlaying(false);
-                            setIsPaused(false);
-                            audioProgress.current = 0;
-                        }
-                    }
-                );
-
-                setPracticeSound(sound);
-                setIsPlaying(true);
-                isPracticeLoading.current = false;
-            } catch (e) {
-                console.error('Error creating practice sound', e);
-                isPracticeLoading.current = false;
-            }
+            const { sound } = await Audio.Sound.createAsync(practiceAudio);
+            setPracticeSound(sound);
+            setIsPlaying(true);
+            await sound.playAsync();
+            sound.setOnPlaybackStatusUpdate((status) => {
+                if (!status.isLoaded || status.didJustFinish) {
+                    setIsPlaying(false);
+                    setIsPaused(false);
+                }
+            });
         }
     };
 
     const restartPracticeAudio = async () => {
-        if (!practiceSound || isPracticeLoading.current) return;
-
-        try {
-            await practiceSound.stopAsync();
-            await practiceSound.setPositionAsync(0);
-            await practiceSound.playAsync();
-            setIsPlaying(true);
-            setIsPaused(false);
-            audioProgress.current = 0;
-        } catch (e) {
-            console.error('Error restarting practice sound', e);
-        }
+        if (!practiceSound) return;
+        await practiceSound.stopAsync();
+        await practiceSound.setPositionAsync(0);
+        await practiceSound.playAsync();
+        setIsPlaying(true);
+        setIsPaused(false);
     };
 
     const stopAll = async (nav?: () => void) => {
-        if (isRecording) {
-            await stop();
-        }
-
         if (practiceSound) {
-            try {
-                await practiceSound.stopAsync();
-                await practiceSound.unloadAsync();
-                setPracticeSound(null);
-            } catch (e) {
-                console.error('Error stopping practice sound', e);
-            }
+            await practiceSound.stopAsync();
+            await practiceSound.unloadAsync();
+            setPracticeSound(null);
         }
-
-        if (feedbackSound) {
-            try {
-                await feedbackSound.stopAsync();
-                await feedbackSound.unloadAsync();
-                setFeedbackSound(null);
-            } catch (e) {
-                console.error('Error stopping feedback sound', e);
-            }
-        }
-
         setIsPlaying(false);
         setIsPaused(false);
-        audioProgress.current = 0;
-
-        if (nav) {
-            nav();
-        }
+        nav?.();
     };
 
     return (
         <View style={styles.container}>
             {onTopBack && (
-                <TouchableOpacity
-                    style={styles.topBackButton}
-                    onPress={() => stopAll(onTopBack)}
-                >
+                <TouchableOpacity style={styles.topBackButton} onPress={onTopBack}>
                     <Ionicons name="arrow-back" size={28} color="#2b2b2b" />
                 </TouchableOpacity>
             )}
-
             <View style={styles.wordsContainer}>
                 {words.map((w, i) => (
                     <View key={i} style={styles.wordBlock}>
@@ -440,54 +229,36 @@ export default function SentenceSpeakingScreen({
                     </View>
                 ))}
             </View>
-
             <View style={styles.bottomPanel}>
                 <View style={styles.micWrapper}>
                     <TouchableOpacity
                         style={[styles.soundButton, isRecording && styles.recordingButton]}
                         onPress={() => (isRecording ? stop() : start())}
-                        disabled={isFeedbackPlaying.current}
                     >
-                        <Ionicons name={isRecording ? 'mic-off' : 'mic'} size={24} color={isRecording ? 'white' : '#2e6ef7'} />
+                        <Ionicons
+                            name={isRecording ? 'mic-off' : 'mic'}
+                            size={24}
+                            color={isRecording ? 'white' : '#2e6ef7'}
+                        />
                     </TouchableOpacity>
                 </View>
-
-                <TouchableOpacity
-                    style={styles.playButton}
-                    onPress={togglePracticeAudio}
-                    disabled={isPracticeLoading.current || isFeedbackPlaying.current}
-                >
+                <TouchableOpacity style={styles.playButton} onPress={togglePracticeAudio}>
                     <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="white" />
                 </TouchableOpacity>
-
                 <View style={styles.progressBarContainer}>
-                    <View style={[
-                        styles.progressFill,
-                        isPlaying ? { width: `${audioProgress.current * 100}%` } : { width: 0 }
-                    ]} />
+                    <View
+                        style={[styles.progressFill, isPlaying ? { width: '50%' } : { width: 0 }]}
+                    />
                 </View>
-
-                <TouchableOpacity
-                    style={styles.restartButton}
-                    onPress={restartPracticeAudio}
-                    disabled={!practiceSound || isPracticeLoading.current || isFeedbackPlaying.current}
-                >
+                <TouchableOpacity style={styles.restartButton} onPress={restartPracticeAudio}>
                     <Ionicons name="refresh" size={24} color="white" />
                 </TouchableOpacity>
-
                 {onBottomBack && (
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => stopAll(onBottomBack)}
-                    >
+                    <TouchableOpacity style={styles.backButton} onPress={() => stopAll(onBottomBack)}>
                         <Ionicons name="arrow-back" size={24} color="red" />
                     </TouchableOpacity>
                 )}
-
-                <TouchableOpacity
-                    style={styles.nextButton}
-                    onPress={() => stopAll(onNext)}
-                >
+                <TouchableOpacity style={styles.nextButton} onPress={() => stopAll(onNext)}>
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </TouchableOpacity>
             </View>
@@ -504,7 +275,7 @@ const styles = StyleSheet.create({
     bottomPanel: {
         position: 'absolute', bottom: 0, left: 0, right: 0, height: 320,
         backgroundColor: '#242C3B', borderTopLeftRadius: 32, borderTopRightRadius: 32,
-        padding: 24, alignItems: 'center', elevation: 10
+        padding: 24, alignItems: 'center', elevation: 10,
     },
     micWrapper: { width: '90%', backgroundColor: '#fff', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 },
     soundButton: { width: '100%', alignItems: 'center' },
