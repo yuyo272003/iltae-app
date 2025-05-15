@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -7,8 +7,8 @@ import {
     Keyboard,
     PermissionsAndroid,
     Platform,
-    NativeModules,
     NativeEventEmitter,
+    NativeModules,
     Alert,
 } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
@@ -16,20 +16,20 @@ import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
 import { useFocusEffect } from 'expo-router';
 
-// Emitter sólo en native (iOS/Android)
-const voiceEmitter =
-    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
-
 interface SpeechOptions {
     onResult: (spoken: string) => void;
     onError: () => void;
 }
 
-// Hook de reconocimiento de voz con extras para Android
+const voiceEmitter =
+    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
+
+// Hook de reconocimiento con guard de error
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
+    const errorShownRef = useRef(false);
 
-    const requestPermission = React.useCallback(async (): Promise<boolean> => {
+    const requestPermission = useCallback(async (): Promise<boolean> => {
         if (Platform.OS !== 'android') return true;
         const result = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
@@ -43,18 +43,21 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         return result === PermissionsAndroid.RESULTS.GRANTED;
     }, []);
 
-    const start = React.useCallback(async () => {
+    const start = useCallback(async () => {
         if (Platform.OS === 'web') {
             Alert.alert('No soportado', 'Dictación de voz no funciona en web.');
             return;
         }
         if (!(await requestPermission())) {
-            onError();
+            if (!errorShownRef.current) {
+                errorShownRef.current = true;
+                onError();
+            }
             return;
         }
+        errorShownRef.current = false; // reset guard
         try {
             await Voice.cancel();
-            // Extender tiempos de silencio en Android
             const extras: Record<string, any> = {};
             if (Platform.OS === 'android') {
                 extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
@@ -66,11 +69,14 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         } catch (e) {
             console.error('Voice.start error', e);
             setIsRecording(false);
-            onError();
+            if (!errorShownRef.current) {
+                errorShownRef.current = true;
+                onError();
+            }
         }
     }, [requestPermission, onError]);
 
-    const stop = React.useCallback(async () => {
+    const stop = useCallback(async () => {
         if (Platform.OS === 'web') return;
         try {
             await Voice.stop();
@@ -83,8 +89,8 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         }
     }, []);
 
-    const onSpeechStart = React.useCallback(() => setIsRecording(true), []);
-    const onSpeechResults = React.useCallback(
+    const onSpeechStart = useCallback(() => setIsRecording(true), []);
+    const onSpeechResults = useCallback(
         ({ value }: any) => {
             const spoken = value?.[0] ?? '';
             onResult(spoken);
@@ -92,13 +98,15 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         },
         [onResult, stop]
     );
-    const onSpeechErrorEvt = React.useCallback(() => {
-        console.warn('Speech recognition error');
+    const onSpeechErrorEvt = useCallback(() => {
+        if (!errorShownRef.current) {
+            errorShownRef.current = true;
+            onError();
+        }
         stop();
-        onError();
     }, [onError, stop]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!voiceEmitter) return;
         const subs = [
             voiceEmitter.addListener('onSpeechStart', onSpeechStart),
@@ -109,7 +117,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     useFocusEffect(
-        React.useCallback(() => {
+        useCallback(() => {
             return () => stop();
         }, [stop])
     );
@@ -144,7 +152,7 @@ export default function SentenceSpeakingScreen({
     const [isPaused, setIsPaused] = useState(false);
 
     const normalize = (s: string) =>
-        s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+        s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
     const playFeedback = async (file: AVPlaybackSource) => {
         if (feedbackSound) {
@@ -157,7 +165,7 @@ export default function SentenceSpeakingScreen({
             await sound.playAsync();
             if (file === successAudio) {
                 sound.setOnPlaybackStatusUpdate(status => {
-                    if (!status.isLoaded || status.didJustFinish) stopAll(onNext);
+                    if (!status.isLoaded || status.didJustFinish) onNext?.();
                 });
             }
         }
@@ -239,11 +247,7 @@ export default function SentenceSpeakingScreen({
                         style={[styles.soundButton, isRecording && styles.recordingButton]}
                         onPress={() => (isRecording ? stop() : start())}
                     >
-                        <Ionicons
-                            name={isRecording ? 'mic-off' : 'mic'}
-                            size={24}
-                            color={isRecording ? 'white' : '#2e6ef7'}
-                        />
+                        <Ionicons name={isRecording ? 'mic-off' : 'mic'} size={24} color={isRecording ? 'white' : '#2e6ef7'} />
                     </TouchableOpacity>
                 </View>
                 <TouchableOpacity style={styles.playButton} onPress={togglePracticeAudio}>

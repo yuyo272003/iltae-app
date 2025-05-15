@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -33,18 +33,16 @@ interface Props {
     onBottomBack?: () => void;
 }
 
-// Emitter sólo en nativo
 const voiceEmitter =
-    Platform.OS !== 'web'
-        ? new NativeEventEmitter(NativeModules.Voice)
-        : null;
+    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
-// Hook de reconocimiento de voz reutilizable
+// Hook de reconocimiento de voz con guard de error
 function useSpeechRecognition(
     onResult: (spoken: string) => void,
     onError: () => void
 ) {
     const [isRecording, setIsRecording] = useState(false);
+    const errorShownRef = useRef(false);
 
     const requestPermission = useCallback(async () => {
         if (Platform.OS !== 'android') return true;
@@ -66,12 +64,15 @@ function useSpeechRecognition(
             return;
         }
         if (!(await requestPermission())) {
-            onError();
+            if (!errorShownRef.current) {
+                errorShownRef.current = true;
+                onError();
+            }
             return;
         }
+        errorShownRef.current = false; // reset guard al iniciar
         try {
             await Voice.cancel();
-            // Extiende silencio en Android
             const extras: any = {};
             if (Platform.OS === 'android') {
                 extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
@@ -83,7 +84,10 @@ function useSpeechRecognition(
         } catch (e) {
             console.error('Voice.start error', e);
             setIsRecording(false);
-            onError();
+            if (!errorShownRef.current) {
+                errorShownRef.current = true;
+                onError();
+            }
         }
     }, [requestPermission, onError]);
 
@@ -108,13 +112,16 @@ function useSpeechRecognition(
         ({ value }: any) => {
             const spoken = value?.[0] ?? '';
             onResult(spoken);
-            stop(); // detenemos al primer resultado
+            stop();
         },
         [onResult, stop]
     );
 
     const onSpeechErrorEvt = useCallback(() => {
-        onError(); // alert sólo una vez
+        if (!errorShownRef.current) {
+            errorShownRef.current = true;
+            onError();
+        }
         stop();
     }, [onError, stop]);
 
@@ -163,13 +170,11 @@ export default function SyllableScreen({
     const isFirst = pathname.endsWith('/firstScreen');
     const showBottom = !noBottom.includes(pathname);
 
-    // Hook de voz
     const { isRecording, start, stop } = useSpeechRecognition(
         (spoken: string) => evaluatePronunciation(spoken),
         () => Alert.alert('Error', 'No se pudo reconocer la voz')
     );
 
-    // Carga progreso
     useEffect(() => {
         (async () => {
             const token = await AsyncStorage.getItem('auth_token');
