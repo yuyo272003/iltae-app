@@ -1,5 +1,4 @@
-// RegistroScreen.tsx
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
     View,
     Text,
@@ -13,8 +12,6 @@ import {
     ScrollView,
     PermissionsAndroid,
     Platform,
-    NativeModules,
-    NativeEventEmitter,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, router } from "expo-router";
@@ -30,125 +27,28 @@ import {
 } from "@/utils/AudioManager";
 import Voice from "@react-native-community/voice";
 
-const voiceEmitter =
-    Platform.OS !== "web" ? new NativeEventEmitter(NativeModules.Voice) : null;
-
-interface SpeechOptions {
-    onResult: (spoken: string) => void;
-    onError?: () => void;
-}
-
-function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
-    const [isRecording, setIsRecording] = useState(false);
-
-    const requestAudioPermission = useCallback(async (): Promise<boolean> => {
-        if (Platform.OS !== "android") return true;
-        const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-            {
-                title: "Permiso de micrófono",
-                message: "La app necesita acceder al micrófono.",
-                buttonNegative: "Cancelar",
-                buttonPositive: "Aceptar",
-            }
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-    }, []);
-
-    const start = useCallback(async () => {
-        if (Platform.OS === "web") {
-            Alert.alert("No soportado", "Dictación de voz no funciona en web.");
-            return;
-        }
-        if (!(await requestAudioPermission())) {
-            onError?.();
-            return;
-        }
-        try {
-            await Voice.cancel();
-            const extras: Record<string, any> = {};
-            if (Platform.OS === "android") {
-                extras["android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS"] = 5000;
-                extras["android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS"] = 5000;
-                extras["android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS"] = 10000;
-            }
-            await Voice.start("es-MX", extras);
-            setIsRecording(true);
-        } catch (e) {
-            console.error("Voice.start error", e);
-            setIsRecording(false);
-            onError?.();
-        }
-    }, [requestAudioPermission, onError]);
-
-    const stop = useCallback(async () => {
-        if (Platform.OS === "web") return;
-        try {
-            await Voice.stop();
-            await Voice.cancel();
-        } catch (e) {
-            console.error("Voice.stop error", e);
-        } finally {
-            setIsRecording(false);
-            // omitimos Keyboard.dismiss() para no ocultar el teclado
-        }
-    }, []);
-
-    const onSpeechStart = useCallback(() => {
-        if (Platform.OS !== "web") setIsRecording(true);
-    }, []);
-
-    const onSpeechResults = useCallback(
-        ({ value }: any) => {
-            const spoken = value?.[0] ?? "";
-            onResult(spoken);
-            stop();
-        },
-        [onResult, stop]
-    );
-
-    const onSpeechErrorEvt = useCallback(() => {
-        console.warn("Speech recognition error");
-        stop();
-    }, [stop]);
-
-    useEffect(() => {
-        if (Platform.OS === "web" || !voiceEmitter) return;
-        const subs = [
-            voiceEmitter.addListener("onSpeechStart", onSpeechStart),
-            voiceEmitter.addListener("onSpeechResults", onSpeechResults),
-            voiceEmitter.addListener("onSpeechError", onSpeechErrorEvt),
-        ];
-        return () => subs.forEach((s) => s.remove());
-    }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
-
-    useFocusEffect(
-        useCallback(() => {
-            return () => stop();
-        }, [stop])
-    );
-
-    return { isRecording, start, stop };
-}
-
 export default function RegistroScreen() {
-    const [nombre, setNombre] = useState("");
+    const [nombre, setNombre] = useState<string>("");
     const { setUser } = useAuth();
+    const [isDictating, setIsDictating] = useState(false);
     const [isAudioPlaying, setIsAudioPlaying] = useState(isAudioPlayingGlobal());
     const [keyboardVisible, setKeyboardVisible] = useState(false);
     const inputRef = useRef<TextInput>(null);
 
-    // AudioManager
+    // Limpieza al perder foco
+    useFocusEffect(useCallback(() => () => stopAudioGlobal(), []));
+
+    // AudioManager callbacks
     useEffect(() => {
-        const cb = (playing: boolean) => setIsAudioPlaying(playing);
-        registerStatusCallback(cb);
+        const statusCb = (playing: boolean) => setIsAudioPlaying(playing);
+        registerStatusCallback(statusCb);
         return () => {
-            unregisterStatusCallback(cb);
+            unregisterStatusCallback(statusCb);
             stopAudioGlobal();
         };
     }, []);
 
-    // Keyboard
+    // Keyboard listeners
     useEffect(() => {
         const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
         const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
@@ -158,13 +58,71 @@ export default function RegistroScreen() {
         };
     }, []);
 
-    const { isRecording, start, stop } = useSpeechRecognition({
-        onResult: (spoken) => {
-            setNombre(spoken);
-            inputRef.current?.focus();
-        },
-        onError: () => console.warn("Error de reconocimiento"),
-    });
+    // Voice listeners
+    useEffect(() => {
+        Voice.onSpeechStart = () => {
+            console.log("🎤 onSpeechStart");
+            setIsDictating(true);
+        };
+        Voice.onSpeechPartialResults = (e) => {
+            console.log("⏳ onSpeechPartialResults:", e.value);
+            e.value?.[0] && setNombre(e.value[0]);
+        };
+        Voice.onSpeechResults = (e) => {
+            console.log("✔️ onSpeechResults:", e.value);
+            e.value?.[0] && setNombre(e.value[0]);
+            setIsDictating(false);
+        };
+        Voice.onSpeechError = (e) => {
+            console.warn("❌ onSpeechError:", e.error);
+            setIsDictating(false);
+        };
+        return () => {
+            Voice.destroy().then(() => Voice.removeAllListeners());
+        };
+    }, []);
+
+    // Permiso en Android
+    const requestAudioPermission = async (): Promise<boolean> => {
+        if (Platform.OS !== "android") return true;
+        const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            {
+                title: "Permiso de micrófono",
+                message: "La app necesita acceder al micrófono para dictar tu nombre.",
+                buttonNegative: "Cancelar",
+                buttonPositive: "Aceptar",
+            }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+    };
+
+    const startRecognizing = async () => {
+        const ok = await requestAudioPermission();
+        if (!ok) {
+            Alert.alert("Permiso denegado", "No podemos usar el micrófono sin permiso.");
+            return;
+        }
+        try {
+            console.log("📲 Starting Community Voice Recognition");
+            await Voice.start("es-MX", { REQUEST_PERMISSIONS_AUTO: true });
+        } catch (e) {
+            console.error("Voice.start error:", e);
+            setIsDictating(false);
+        }
+    };
+
+    const stopRecognizing = async () => {
+        try {
+            console.log("🛑 Stopping Voice Recognition");
+            await Voice.stop();
+        } catch (e) {
+            console.error("stopRecognizing error:", e);
+        } finally {
+            setIsDictating(false);
+            Keyboard.dismiss();
+        }
+    };
 
     const reproducirInstrucciones = () => {
         playAudioGlobal(require("@/assets/audio/registro_instrucciones.wav"));
@@ -176,14 +134,28 @@ export default function RegistroScreen() {
             return;
         }
         try {
-            const { data } = await api.post("/register", { name: nombre });
-            await AsyncStorage.setItem("auth_token", data.token);
-            setUser(data.user);
+            const response = await api.post("/register", { name: nombre });
+            const { token, user } = response.data;
+            await AsyncStorage.setItem("auth_token", token);
+            setUser(user);
             router.push("/(tabs)/perfiles");
-        } catch (e: any) {
-            Alert.alert("Error", e.response?.data?.message || "Algo salió mal 😢");
+        } catch (error: any) {
+            Alert.alert("Error", error.response?.data?.message || "Algo salió mal 😢");
         }
     };
+
+    // --- Aquí extraemos el TextInput ---
+    const renderInput = () => (
+        <TextInput
+            ref={inputRef}
+            style={styles.input}
+            placeholder="Ingresa tu nombre"
+            placeholderTextColor="#999"
+            value={nombre}
+            onChangeText={setNombre}    // ← necesario para poder editar/borrar
+            editable={!isDictating}     // desactiva teclado mientras dicta
+        />
+    );
 
     return (
         <SafeAreaView style={styles.container}>
@@ -197,8 +169,8 @@ export default function RegistroScreen() {
             >
                 <ScrollView
                     contentContainerStyle={styles.scrollContainer}
-                    keyboardShouldPersistTaps="always"
                     showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
                 >
                     <View style={[styles.content, keyboardVisible && styles.contentWithKeyboard]}>
                         <View style={styles.profileContainer}>
@@ -206,30 +178,32 @@ export default function RegistroScreen() {
                         </View>
 
                         <View style={styles.headerSection}>
-                            <TouchableOpacity style={styles.speakerButton} onPress={reproducirInstrucciones}>
-                                <Ionicons name={isAudioPlaying ? "pause" : "volume-high"} size={20} color="white" />
+                            <TouchableOpacity
+                                style={styles.speakerButton}
+                                onPress={reproducirInstrucciones}
+                            >
+                                <Ionicons
+                                    name={isAudioPlaying ? "pause" : "volume-high"}
+                                    size={20}
+                                    color="white"
+                                />
                             </TouchableOpacity>
                             <Text style={styles.welcomeText}>¡Bienvenido!</Text>
                         </View>
 
-                        <TextInput
-                            ref={inputRef}
-                            style={styles.input}
-                            placeholder="Ingresa tu nombre"
-                            placeholderTextColor="#999"
-                            value={nombre}
-                            onChangeText={setNombre}
-                            editable={!isRecording}
-                            returnKeyType="done"
-                        />
+                        {renderInput()}
 
                         <TouchableOpacity
-                            style={[styles.voiceButton, isRecording && styles.dictatingButton]}
-                            onPress={() => (isRecording ? stop() : start())}
+                            style={[styles.voiceButton, isDictating && styles.dictatingButton]}
+                            onPress={isDictating ? stopRecognizing : startRecognizing}
                         >
-                            <Ionicons name={isRecording ? "mic-off" : "mic"} size={24} color="white" />
+                            <Ionicons
+                                name={isDictating ? "mic-off" : "mic"}
+                                size={24}
+                                color="white"
+                            />
                             <Text style={{ color: "white", marginLeft: 8 }}>
-                                {isRecording ? "Detener" : "Dictar"}
+                                {isDictating ? "Detener" : "Dictar"}
                             </Text>
                         </TouchableOpacity>
 
@@ -265,12 +239,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         marginBottom: 10,
     },
-    welcomeText: {
-        fontSize: 24,
-        fontWeight: "bold",
-        marginBottom: 15,
-        color: "#000",
-    },
+    welcomeText: { fontSize: 24, fontWeight: "bold", marginBottom: 15, color: "#000" },
     input: {
         width: "100%",
         height: 48,

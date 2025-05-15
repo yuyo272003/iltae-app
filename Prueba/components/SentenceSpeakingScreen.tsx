@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -7,140 +7,12 @@ import {
     Keyboard,
     PermissionsAndroid,
     Platform,
-    NativeEventEmitter,
-    NativeModules,
-    Alert,
 } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
-import { useFocusEffect } from 'expo-router';
 
-// Emitter sólo en native
-const voiceEmitter =
-    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
-
-interface SpeechOptions {
-    onResult: (spoken: string) => void;
-    onError: () => void;
-}
-
-function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
-    const [isRecording, setIsRecording] = useState(false);
-    const errorPlayedRef = useRef(false);
-
-    const requestPermission = useCallback(async (): Promise<boolean> => {
-        if (Platform.OS !== 'android') return true;
-        const res = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-            {
-                title: 'Permiso de micrófono',
-                message: 'Necesitamos usar el micrófono.',
-                buttonNegative: 'Cancelar',
-                buttonPositive: 'Aceptar',
-            }
-        );
-        return res === PermissionsAndroid.RESULTS.GRANTED;
-    }, []);
-
-    const start = useCallback(async () => {
-        errorPlayedRef.current = false;
-        if (Platform.OS === 'web') {
-            Alert.alert('No soportado', 'Dictación de voz no funciona en web.');
-            return;
-        }
-        if (!(await requestPermission())) {
-            if (!errorPlayedRef.current) {
-                onError();
-                errorPlayedRef.current = true;
-            }
-            return;
-        }
-        try {
-            await Voice.cancel();
-            const extras: Record<string, any> = {};
-            if (Platform.OS === 'android') {
-                extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
-                extras['android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
-                extras['android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS'] = 10000;
-            }
-            await Voice.start('es-MX', extras);
-            setIsRecording(true);
-        } catch (e) {
-            console.error('Voice.start error', e);
-            setIsRecording(false);
-            if (!errorPlayedRef.current) {
-                onError();
-                errorPlayedRef.current = true;
-            }
-        }
-    }, [requestPermission, onError]);
-
-    const stop = useCallback(async () => {
-        if (Platform.OS === 'web') return;
-        try {
-            await Voice.stop();
-            await Voice.cancel();
-        } catch (e) {
-            console.error('Voice.stop error', e);
-        } finally {
-            setIsRecording(false);
-            Keyboard.dismiss();
-        }
-    }, []);
-
-    const onSpeechStart = useCallback(() => {
-        setIsRecording(true);
-    }, []);
-
-    const onSpeechResults = useCallback(
-        ({ value }: any) => {
-            const spoken = value?.[0] ?? '';
-            onResult(spoken);
-            stop();
-        },
-        [onResult, stop]
-    );
-
-    const onSpeechErrorEvt = useCallback(() => {
-        if (!errorPlayedRef.current) {
-            onError();
-            errorPlayedRef.current = true;
-        }
-        stop();
-    }, [onError, stop]);
-
-    const onSpeechEnd = useCallback(() => {
-        setIsRecording(false);
-    }, []);
-
-    useEffect(() => {
-        // Limpieza previa
-        Voice.destroy().then(() => Voice.removeAllListeners());
-
-        if (!voiceEmitter) return;
-        const subs = [
-            voiceEmitter.addListener('onSpeechStart', onSpeechStart),
-            voiceEmitter.addListener('onSpeechResults', onSpeechResults),
-            voiceEmitter.addListener('onSpeechError', onSpeechErrorEvt),
-            voiceEmitter.addListener('onSpeechEnd', onSpeechEnd),
-        ];
-        return () => {
-            subs.forEach((s) => s.remove());
-            Voice.destroy().then(() => Voice.removeAllListeners());
-        };
-    }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt, onSpeechEnd]);
-
-    useFocusEffect(
-        useCallback(() => {
-            return () => stop();
-        }, [stop])
-    );
-
-    return { isRecording, start, stop };
-}
-
-interface Props {
+interface SentenceSpeakingScreenProps {
     words: string[];
     targetPhrase: string;
     practiceAudio: AVPlaybackSource;
@@ -160,44 +32,100 @@ export default function SentenceSpeakingScreen({
                                                    onNext,
                                                    onTopBack,
                                                    onBottomBack,
-                                               }: Props) {
+                                               }: SentenceSpeakingScreenProps) {
     const [practiceSound, setPracticeSound] = useState<Audio.Sound | null>(null);
     const [feedbackSound, setFeedbackSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
 
-    const normalize = (s: string) =>
-        s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    // Configuración de Voice
+    useEffect(() => {
+        Voice.onSpeechStart = () => setIsRecording(true);
+        Voice.onSpeechResults = (e) => {
+            const spoken = e.value?.[0] ?? '';
+            evaluatePronunciation(spoken);
+            setIsRecording(false);
+            Keyboard.dismiss();
+        };
+        Voice.onSpeechError = () => {
+            setIsRecording(false);
+            playFeedback(failureAudio);
+        };
+        return () => {
+            Voice.destroy().then(() => Voice.removeAllListeners());
+        };
+    }, [targetPhrase]);
 
-    const playFeedback = async (file: AVPlaybackSource, nav?: () => void) => {
+    const requestAudioPermission = async (): Promise<boolean> => {
+        if (Platform.OS !== 'android') return true;
+        const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            {
+                title: 'Permiso de micrófono',
+                message: 'Necesitamos usar el micrófono para verificar tu pronunciación.',
+                buttonNegative: 'Cancelar',
+                buttonPositive: 'Aceptar',
+            }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+    };
+
+    const startRecognizing = async () => {
+        if (!(await requestAudioPermission())) {
+            playFeedback(failureAudio);
+            return;
+        }
+        try {
+            await Voice.start('es-MX');
+        } catch (e) {
+            console.error('Voice.start error', e);
+            setIsRecording(false);
+        }
+    };
+
+    const stopRecognizing = async () => {
+        try {
+            await Voice.stop();
+        } catch {}
+    };
+
+    // Feedback audio
+    const playFeedback = async (file: AVPlaybackSource) => {
         if (feedbackSound) {
             await feedbackSound.stopAsync();
             await feedbackSound.unloadAsync();
         }
-        if (Platform.OS === 'web') return;
         const { sound } = await Audio.Sound.createAsync(file);
         setFeedbackSound(sound);
         await sound.playAsync();
-        if (file === successAudio && nav) {
+        if (file === successAudio) {
             sound.setOnPlaybackStatusUpdate((status) => {
-                if (!status.isLoaded || status.didJustFinish) nav();
+                if (!(status.isLoaded) || status.didJustFinish) {
+                    stopAllAndNavigate(onNext);
+                }
             });
         }
     };
 
-    const evaluate = (spoken: string) => {
-        normalize(spoken) === normalize(targetPhrase)
-            ? playFeedback(successAudio, onNext)
-            : playFeedback(failureAudio);
+    // Evaluación de pronunciación
+    const normalize = (s: string) =>
+        s
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+
+    const evaluatePronunciation = (spoken: string) => {
+        if (normalize(spoken) === normalize(targetPhrase)) {
+            playFeedback(successAudio);
+        } else {
+            playFeedback(failureAudio);
+        }
     };
 
-    const { isRecording, start, stop } = useSpeechRecognition({
-        onResult: evaluate,
-        onError: () => playFeedback(failureAudio),
-    });
-
+    // Reproducción de práctica
     const togglePracticeAudio = async () => {
-        if (Platform.OS === 'web') return;
         if (practiceSound && isPlaying) {
             await practiceSound.pauseAsync();
             setIsPlaying(false);
@@ -209,10 +137,10 @@ export default function SentenceSpeakingScreen({
         } else {
             const { sound } = await Audio.Sound.createAsync(practiceAudio);
             setPracticeSound(sound);
-            setIsPlaying(true);
             await sound.playAsync();
+            setIsPlaying(true);
             sound.setOnPlaybackStatusUpdate((status) => {
-                if (!status.isLoaded || status.didJustFinish) {
+                if (!(status.isLoaded) || status.didJustFinish) {
                     setIsPlaying(false);
                     setIsPaused(false);
                 }
@@ -220,16 +148,7 @@ export default function SentenceSpeakingScreen({
         }
     };
 
-    const restartPracticeAudio = async () => {
-        if (!practiceSound) return;
-        await practiceSound.stopAsync();
-        await practiceSound.setPositionAsync(0);
-        await practiceSound.playAsync();
-        setIsPlaying(true);
-        setIsPaused(false);
-    };
-
-    const stopAll = async (nav?: () => void) => {
+    const stopAllAndNavigate = async (nav?: () => void) => {
         if (practiceSound) {
             await practiceSound.stopAsync();
             await practiceSound.unloadAsync();
@@ -240,13 +159,34 @@ export default function SentenceSpeakingScreen({
         nav?.();
     };
 
+    const restartPracticeAudio = async () => {
+        if (practiceSound) {
+            await practiceSound.stopAsync();
+            await practiceSound.unloadAsync();
+        }
+        const { sound } = await Audio.Sound.createAsync(practiceAudio);
+        setPracticeSound(sound);
+        await sound.playAsync();
+        setIsPlaying(true);
+        setIsPaused(false);
+        sound.setOnPlaybackStatusUpdate((status) => {
+            if (!(status.isLoaded) || status.didJustFinish) {
+                setIsPlaying(false);
+                setIsPaused(false);
+            }
+        });
+    };
+
     return (
         <View style={styles.container}>
+            {/* ← Atrás arriba */}
             {onTopBack && (
                 <TouchableOpacity style={styles.topBackButton} onPress={onTopBack}>
                     <Ionicons name="arrow-back" size={28} color="#2b2b2b" />
                 </TouchableOpacity>
             )}
+
+            {/* Fila de palabras */}
             <View style={styles.wordsContainer}>
                 {words.map((w, i) => (
                     <View key={i} style={styles.wordBlock}>
@@ -254,11 +194,19 @@ export default function SentenceSpeakingScreen({
                     </View>
                 ))}
             </View>
+
+            {/* Panel inferior */}
             <View style={styles.bottomPanel}>
+                {/* Micrófono */}
                 <View style={styles.micWrapper}>
                     <TouchableOpacity
-                        style={[styles.soundButton, isRecording && styles.recordingButton]}
-                        onPress={() => (isRecording ? stop() : start())}
+                        style={[
+                            styles.soundButton,
+                            isRecording && styles.recordingButton,
+                        ]}
+                        onPress={() =>
+                            isRecording ? stopRecognizing() : startRecognizing()
+                        }
                     >
                         <Ionicons
                             name={isRecording ? 'mic-off' : 'mic'}
@@ -267,23 +215,52 @@ export default function SentenceSpeakingScreen({
                         />
                     </TouchableOpacity>
                 </View>
-                <TouchableOpacity style={styles.playButton} onPress={togglePracticeAudio}>
-                    <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="white" />
+
+                {/* Play práctica */}
+                <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={togglePracticeAudio}
+                >
+                    <Ionicons
+                        name={isPlaying ? 'pause' : 'play'}
+                        size={24}
+                        color="white"
+                    />
                 </TouchableOpacity>
+
+                {/* Barra de progreso */}
                 <View style={styles.progressBarContainer}>
                     <View
-                        style={[styles.progressFill, isPlaying ? { width: '50%' } : { width: 0 }]}
+                        style={[
+                            styles.progressFill,
+                            isPlaying ? { width: '50%' } : { width: 0 },
+                        ]}
                     />
                 </View>
-                <TouchableOpacity style={styles.restartButton} onPress={restartPracticeAudio}>
+
+                {/* Botón Reiniciar */}
+                <TouchableOpacity
+                    style={styles.restartButton}
+                    onPress={restartPracticeAudio}
+                >
                     <Ionicons name="refresh" size={24} color="white" />
                 </TouchableOpacity>
+
+                {/* Botón Back inferior */}
                 {onBottomBack && (
-                    <TouchableOpacity style={styles.backButton} onPress={() => stopAll(onBottomBack)}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => stopAllAndNavigate(onBottomBack)}
+                    >
                         <Ionicons name="arrow-back" size={24} color="red" />
                     </TouchableOpacity>
                 )}
-                <TouchableOpacity style={styles.nextButton} onPress={() => stopAll(onNext)}>
+
+                {/* Siguiente */}
+                <TouchableOpacity
+                    style={styles.nextButton}
+                    onPress={() => stopAllAndNavigate(onNext)}
+                >
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </TouchableOpacity>
             </View>
@@ -292,47 +269,108 @@ export default function SentenceSpeakingScreen({
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#1D2233', paddingTop: 60, alignItems: 'center' },
+    container: {
+        flex: 1,
+        backgroundColor: '#1D2233',
+        paddingTop: 60,
+        alignItems: 'center',
+    },
     topBackButton: {
-        position: 'absolute', top: 40, left: 20, backgroundColor: '#f0f0f0',
-        padding: 12, borderRadius: 24, zIndex: 10,
+        position: 'absolute',
+        top: 40,
+        left: 20,
+        backgroundColor: '#f0f0f0',
+        padding: 12,
+        borderRadius: 24,
+        zIndex: 10,
     },
-    wordsContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 80 },
+    wordsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: 80,
+    },
     wordBlock: {
-        backgroundColor: '#fff', paddingHorizontal: 18, paddingVertical: 10,
-        borderRadius: 10, marginHorizontal: 4,
+        backgroundColor: '#fff',
+        paddingHorizontal: 18,
+        paddingVertical: 10,
+        borderRadius: 10,
+        marginHorizontal: 4,
     },
-    wordText: { fontSize: 20, fontWeight: '600', color: '#2b2b2b' },
+    wordText: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#2b2b2b',
+    },
     bottomPanel: {
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: 320,
-        backgroundColor: '#242C3B', borderTopLeftRadius: 32, borderTopRightRadius: 32,
-        padding: 24, alignItems: 'center', elevation: 10,
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 320,
+        backgroundColor: '#242C3B',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        padding: 24,
+        alignItems: 'center',
+        elevation: 10,
     },
     micWrapper: {
-        width: '90%', backgroundColor: '#fff', borderRadius: 12,
-        padding: 16, alignItems: 'center', marginBottom: 16,
+        width: '90%',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+        marginBottom: 16,
     },
-    soundButton: { width: '100%', alignItems: 'center' },
-    recordingButton: { backgroundColor: '#FF5252' },
+    soundButton: {
+        width: '100%',
+        alignItems: 'center',
+    },
+    recordingButton: {
+        backgroundColor: '#FF5252',
+    },
     playButton: {
-        backgroundColor: '#2e6ef7', padding: 14, borderRadius: 12,
-        width: '90%', alignItems: 'center', marginBottom: 12,
+        backgroundColor: '#2e6ef7',
+        padding: 14,
+        borderRadius: 12,
+        width: '90%',
+        alignItems: 'center',
+        marginBottom: 12,
     },
     progressBarContainer: {
-        height: 6, width: '90%', backgroundColor: '#ccc',
-        borderRadius: 3, overflow: 'hidden', marginBottom: 24,
+        height: 6,
+        width: '90%',
+        backgroundColor: '#ccc',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginBottom: 24,
     },
-    progressFill: { height: '100%', backgroundColor: '#2e6ef7' },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#2e6ef7',
+    },
     restartButton: {
-        position: 'absolute', bottom: 20, backgroundColor: '#2e6ef7',
-        borderRadius: 50, padding: 15, alignSelf: 'center',
+        position: 'absolute',
+        bottom: 20,
+        backgroundColor: '#2e6ef7',
+        borderRadius: 50,
+        padding: 15,
+        alignSelf: 'center',
     },
     nextButton: {
-        position: 'absolute', right: 30, bottom: 20,
-        backgroundColor: '#33cc66', borderRadius: 50, padding: 15,
+        position: 'absolute',
+        right: 30,
+        bottom: 20,
+        backgroundColor: '#33cc66',
+        borderRadius: 50,
+        padding: 15,
     },
     backButton: {
-        position: 'absolute', left: 30, bottom: 20,
-        backgroundColor: '#ffffff', borderRadius: 50, padding: 15,
+        position: 'absolute',
+        left: 30,
+        bottom: 20,
+        backgroundColor: '#ffffff',
+        borderRadius: 50,
+        padding: 15,
     },
 });
