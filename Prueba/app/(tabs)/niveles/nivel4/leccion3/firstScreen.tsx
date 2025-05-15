@@ -13,8 +13,8 @@ export default function LeccionManzana() {
             targetWord="Muñeca"
             practiceAudio={require('@assets/audio/levels/nivel4/instruction.wav')}
             // audios de retroalimentación
-            successAudio={require('@assets/audio/Todos.wav')}
-            failureAudio={require('@assets/audio/Todos.wav')}
+            successAudio={require('@assets/audio/levels/nivel4/correctopalabra.wav')}
+            failureAudio={require('@assets/audio/levels/nivel4/fallopalabra.wav')}
             imageSource={require('@assets/images/lecciones/nivel2/muñeca.png')}
             onTopBack={() => router.push('/(tabs)/Level4Screen')}
             onBottomBack={() => router.push('/(tabs)/Level4Screen')} 

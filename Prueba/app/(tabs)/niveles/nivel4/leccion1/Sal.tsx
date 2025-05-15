@@ -23,8 +23,8 @@ export default function LeccionSal() {
             ]}
             targetWord="Sal"
             practiceAudio={require('@assets/audio/levels/nivel4/instruction.wav')}
-            successAudio={require('@assets/audio/Todos.wav')}
-            failureAudio={require('@assets/audio/Todos.wav')}
+           successAudio={require('@assets/audio/levels/nivel4/correctopalabra.wav')}
+           failureAudio={require('@assets/audio/levels/nivel4/fallopalabra.wav')}
             imageSource={require('@assets/images/lecciones/nivel4/leccion1/monosilabas/sal.png')}
             onTopBack={() => router.push('/(tabs)/Level4Screen')}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel4/leccion1/Pez')}

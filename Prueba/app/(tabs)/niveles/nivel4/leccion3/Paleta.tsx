@@ -13,11 +13,11 @@ export default function LeccionManzana() {
             targetWord="Paleta"
             practiceAudio={require('@assets/audio/levels/nivel4/instruction.wav')}
             // audios de retroalimentación
-            successAudio={require('@assets/audio/Todos.wav')}
-            failureAudio={require('@assets/audio/Todos.wav')}
+            successAudio={require('@assets/audio/levels/nivel4/correctopalabra.wav')}
+            failureAudio={require('@assets/audio/levels/nivel4/fallopalabra.wav')}
             imageSource={require('@assets/images/lecciones/nivel2/paleta.png')}
             onTopBack={() => router.push('/(tabs)/Level4Screen')}
-            onBottomBack={() => router.push('/(tabs)/niveles/nivel4/leccion3/Montaña')}
+            onBottomBack={() => router.push('/(tabs)/niveles/nivel4/leccion3/Montana')}
             // @ts-ignore
             onNext={() => router.push('/(tabs)/niveles/nivel4/leccion3/Tomate')}
         />

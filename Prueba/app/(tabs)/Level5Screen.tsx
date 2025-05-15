@@ -14,13 +14,13 @@ import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import api from '@/scripts/api';
 
 const lessons = [
-    {
-        id: 'intro',
-        title: 'Introducción',
-        type: 'intro',
-        image: require('@assets/images/lecciones/nivel1/vocales.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/intro.wav'), // revisar
-    },
+    // {
+    //     id: 'intro',
+    //     title: 'Introducción',
+    //     type: 'intro',
+    //     image: require('@assets/images/lecciones/nivel1/vocales.png'), // revisar
+    //     audioFile: require('@assets/audio/levels/nivel2/intro.wav'), // revisar
+    // },
     {
         id: 'leccion1',
         title: 'Acentuación',

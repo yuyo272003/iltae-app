@@ -13,9 +13,8 @@ export default function LeccionSal() {
             /** Audio de práctica para la palabra */
             practiceAudio={require('@assets/audio/levels/nivel4/instruction.wav')}
             /** Audio que se reproduce al acertar */
-            successAudio={require('@assets/audio/Todos.wav')}
-            /** Audio que se reproduce al fallar */
-            failureAudio={require('@assets/audio/Todos.wav')}
+            successAudio={require('@assets/audio/levels/nivel4/correctopalabra.wav')}
+            failureAudio={require('@assets/audio/levels/nivel4/fallopalabra.wav')}
             /** Ilustración de la palabra */
             imageSource={require('@assets/images/lecciones/nivel4/leccion1/monosilabas/pie.png')}
             /** Atrás (arriba) */

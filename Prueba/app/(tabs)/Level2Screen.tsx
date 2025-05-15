@@ -7,13 +7,13 @@ import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import api from '@/scripts/api';
 
 const lessons = [
-    {
-        id: 'intro',
-        title: 'Introducción',
-        type: 'intro',
-        image: require('@assets/images/lecciones/nivel1/vocales.png'),
-        audioFile: require('@assets/audio/levels/nivel2/introduccionGuia.wav'),
-    },
+    // {
+    //     id: 'intro',
+    //     title: 'Introducción',
+    //     type: 'intro',
+    //     image: require('@assets/images/lecciones/nivel1/vocales.png'),
+    //     audioFile: require('@assets/audio/levels/nivel2/introduccionGuia.wav'),
+    // },
     {
         id: 'leccion1',
         title: 'Revisión y práctica de consonantes',
