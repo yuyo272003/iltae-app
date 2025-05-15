@@ -68,17 +68,14 @@ const lessons = [
 export default function Level1Screen() {
     const router = useRouter();
     const [leccionDesbloqueada, setLeccionDesbloqueada] = useState(1);
-    const haTerminadoNivel1 = leccionDesbloqueada > 6;
+    const totalLecciones = lessons.length; // aquí 6
+    const haTerminadoNivel1 = leccionDesbloqueada > totalLecciones;
 
-    // La función que obtiene los datos de la API
     const fetchLeccionDesbloqueada = useCallback(async () => {
         try {
-            console.log('📥 Solicitando datos de progreso a la API...');
             const response = await api.post('/progreso/get-leccion');
-            const id = parseInt(response.data.leccion_id);
-
+            const id = parseInt(response.data.leccion_id, 10);
             if (!isNaN(id)) {
-                console.log('📥 Progreso actualizado:', id);
                 setLeccionDesbloqueada(id);
             }
         } catch (error) {
@@ -86,35 +83,18 @@ export default function Level1Screen() {
         }
     }, []);
 
-    // Este efecto solo se ejecuta cuando el componente se monta inicialmente
     useEffect(() => {
-        console.log('Componente montado, obteniendo progreso inicial...');
         fetchLeccionDesbloqueada();
-
-        // Limpieza cuando se desmonta completamente
-        return () => {
-            console.log('Componente desmontado, deteniendo audio...');
-            stopAudioGlobal();
-        };
+        return () => { stopAudioGlobal(); };
     }, [fetchLeccionDesbloqueada]);
 
-    // Este efecto se ejecutará cada vez que la pantalla vuelva a estar en foco
-    useFocusEffect(
-        useCallback(() => {
-            console.log('Pantalla en foco, actualizando progreso...');
-            fetchLeccionDesbloqueada();
-
-            return () => {
-                // No es necesario hacer nada cuando pierde el foco, solo cuando se desmonta
-            };
-        }, [fetchLeccionDesbloqueada])
-    );
-
-    // El resto del componente permanece igual, solo añadimos markForRefetch
-    // cuando navegamos a una lección
+    useFocusEffect(useCallback(() => {
+        fetchLeccionDesbloqueada();
+    }, [fetchLeccionDesbloqueada]));
 
     return (
         <SafeAreaView style={styles.container}>
+            {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity
                     onPress={async () => {
@@ -136,16 +116,14 @@ export default function Level1Screen() {
                 <View style={{ width: 28 }} />
             </View>
 
+            {/* Lista de Lecciones */}
             <FlatList
                 data={lessons}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 renderItem={({ item }) => {
-                    const isIntro = item.type === 'intro';
-                    const leccionMatch = item.id.match(/^leccion(\d+)$/);
-                    const leccionNum = leccionMatch ? parseInt(leccionMatch[1]) : null;
-
-                    const isUnlocked = isIntro || (leccionNum !== null && leccionDesbloqueada >= leccionNum);
+                    const leccionNum = parseInt(item.id.replace('leccion', ''), 10);
+                    const isUnlocked = leccionDesbloqueada >= leccionNum;
 
                     return (
                         <TouchableOpacity
@@ -153,51 +131,33 @@ export default function Level1Screen() {
                             disabled={!isUnlocked}
                             onPress={async () => {
                                 await stopAudioGlobal();
-                                if (item.type === 'leccion' && item.id && item.carpeta) {
-                                    // @ts-ignore
-                                    router.push(`/(tabs)/niveles/nivel1/${item.id}/${item.carpeta}/leccion`);
-                                }
+                                // @ts-ignore
+                                router.push(`/(tabs)/niveles/nivel1/${item.id}/${item.carpeta}/leccion`);
                             }}
                         >
                             <Image source={item.image} style={styles.image} resizeMode="contain" />
-                            {isIntro ? (
-                                <>
-                                    {/* Se elimina el título de Introducción pero se mantiene el botón de audio */}
+                            <View style={styles.row}>
+                                <Text style={styles.subtitle}>{item.title}</Text>
+                                {isUnlocked && (
                                     <TouchableOpacity
                                         onPress={async (e) => {
                                             e.stopPropagation();
                                             await stopAudioGlobal();
                                             await playAudioGlobal(item.audioFile);
                                         }}
-                                        style={styles.playBar}
+                                        style={styles.audioPill}
                                     >
-                                        <Ionicons name="play" size={16} color="#fff" />
+                                        <Ionicons name="volume-high" size={18} color="#fff" />
                                     </TouchableOpacity>
-                                </>
-                            ) : (
-                                <View style={styles.row}>
-                                    <Text style={styles.subtitle}>{item.title}</Text>
-                                    {isUnlocked && (
-                                        <TouchableOpacity
-                                            onPress={async (e) => {
-                                                e.stopPropagation();
-                                                await stopAudioGlobal();
-                                                await playAudioGlobal(item.audioFile);
-                                            }}
-                                            style={styles.audioPill}
-                                        >
-                                            <Ionicons name="volume-high" size={18} color="#fff" />
-                                        </TouchableOpacity>
-                                    )}
-                                </View>
-                            )}
+                                )}
+                            </View>
                         </TouchableOpacity>
                     );
                 }}
                 contentContainerStyle={styles.grid}
                 ListFooterComponent={
                     <View style={styles.footerContainer}>
-                        {/* El play button aparece siempre */}
+                        {/* Botón de Audio Guía */}
                         <TouchableOpacity
                             onPress={async () => {
                                 await stopAudioGlobal();
@@ -207,8 +167,7 @@ export default function Level1Screen() {
                         >
                             <Ionicons name="play" size={22} color="white" />
                         </TouchableOpacity>
-                        
-                        {/* El next button solo aparece cuando ha terminado el nivel */}
+                        {/* Botón de Siguiente Nivel */}
                         {haTerminadoNivel1 && (
                             <TouchableOpacity
                                 onPress={() => {

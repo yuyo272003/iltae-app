@@ -14,36 +14,29 @@ import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import api from '@/scripts/api';
 
 const lessons = [
-    // {
-    //     id: 'intro',
-    //     title: 'Introducción',
-    //     type: 'intro',
-    //     image: require('@assets/images/lecciones/nivel1/vocales.png'), // revisar
-    //     audioFile: require('@assets/audio/levels/nivel3/introduccionGuia.wav'), // revisar
-    // },
     {
         id: 'leccion1',
         title: 'Combinación de consonantes',
         carpeta: 'bl',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel3/combinacion.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/leccion1.wav'), // revisar
+        image: require('@assets/images/lecciones/nivel3/combinacion.png'),
+        audioFile: require('@assets/audio/levels/nivel3/leccion1.wav'),
     },
     {
         id: 'leccion2',
         title: 'Consonantes combinadas y vocales',
         carpeta: 'a',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel3/combinadas.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/leccion2.wav'), // revisar
+        image: require('@assets/images/lecciones/nivel3/combinadas.png'),
+        audioFile: require('@assets/audio/levels/nivel3/leccion2.wav'),
     },
     {
         id: 'leccion3',
         title: 'Formación de palabras',
         carpeta: 'global',
         type: 'leccion',
-        image: require('@assets/images/lecciones/nivel3/palabras.png'), // revisar
-        audioFile: require('@assets/audio/levels/nivel2/leccion3.wav'),// revisar
+        image: require('@assets/images/lecciones/nivel3/palabras.png'),
+        audioFile: require('@assets/audio/levels/nivel3/leccion3.wav'),
     },
 ];
 
@@ -51,22 +44,18 @@ export default function Level3Screen() {
     const router = useRouter();
     const [leccionDesbloqueada, setLeccionDesbloqueada] = useState(1);
 
-    // OFFSET: 6 lecciones de Nivel1 + 3 de Nivel2 = 9
+    // OFFSET: 6 lecciones Nivel1 + 3 lecciones Nivel2 = 9
     const levelOffset = 9;
-    const lessonCount = lessons.filter(l => l.type === 'leccion').length; // = 3
-    const lastGlobalId = levelOffset + lessonCount;                      // = 12
+    const lessonCount = lessons.length;         // 3
+    const lastGlobalId = levelOffset + lessonCount; // 12
 
     const haTerminadoNivel3 = leccionDesbloqueada > lastGlobalId;
 
     const fetchLeccionDesbloqueada = useCallback(async () => {
         try {
-            console.log('📥 Solicitando datos de progreso a la API...');
             const res = await api.post('/progreso/get-leccion');
             const id = parseInt(res.data.leccion_id, 10);
-            if (!isNaN(id)) {
-                console.log('📥 Progreso actualizado:', id);
-                setLeccionDesbloqueada(id);
-            }
+            if (!isNaN(id)) setLeccionDesbloqueada(id);
         } catch (e) {
             console.error('Error al obtener lección:', e);
         }
@@ -81,8 +70,6 @@ export default function Level3Screen() {
         fetchLeccionDesbloqueada();
     }, [fetchLeccionDesbloqueada]));
 
-    
-
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -96,7 +83,7 @@ export default function Level3Screen() {
                     <Ionicons name="arrow-back" size={28} color="#3E64FF" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel3/nivel3.wav'))} // revisar
+                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel3/nivel3.wav'))}
                     style={styles.titlePill}
                 >
                     <Ionicons name="volume-high" size={14} color="#fff" />
@@ -111,13 +98,11 @@ export default function Level3Screen() {
                 keyExtractor={item => item.id}
                 numColumns={2}
                 renderItem={({ item }) => {
-                    const isIntro = item.type === 'intro';
                     const match = item.id.match(/^leccion(\d+)$/);
                     const leccionNum = match ? parseInt(match[1], 10) : null;
-
-                    // desbloqueo: intro siempre; leccionN si globalID >= offset + N
-                    const isUnlocked = isIntro
-                        || (leccionNum !== null && leccionDesbloqueada >= levelOffset + leccionNum);
+                    const isUnlocked =
+                        leccionNum !== null &&
+                        leccionDesbloqueada >= levelOffset + leccionNum;
 
                     return (
                         <TouchableOpacity
@@ -125,63 +110,55 @@ export default function Level3Screen() {
                             disabled={!isUnlocked}
                             onPress={async () => {
                                 await stopAudioGlobal();
-                                if (item.type === 'leccion') {
-                                    // @ts-ignore
-                                    router.push(`/(tabs)/niveles/nivel3/${item.id}/${item.carpeta}/firstScreen`);
-                                }
+                                // @ts-ignore
+                                router.push(`/(tabs)/niveles/nivel3/${item.id}/${item.carpeta}/firstScreen`);
                             }}
                         >
                             <Image source={item.image} style={styles.image} resizeMode="contain" />
-                            {isIntro ? (
-                                <>
-                                    {/* Se elimina el título de Introducción pero se mantiene el botón de audio */}
+                            <View style={styles.row}>
+                                <Text style={styles.subtitle}>{item.title}</Text>
+                                {isUnlocked && (
                                     <TouchableOpacity
                                         onPress={async e => {
                                             e.stopPropagation();
                                             await stopAudioGlobal();
                                             await playAudioGlobal(item.audioFile);
                                         }}
-                                        style={styles.playBar}
+                                        style={styles.audioPill}
                                     >
-                                        <Ionicons name="play" size={16} color="#fff" />
+                                        <Ionicons name="volume-high" size={18} color="#fff" />
                                     </TouchableOpacity>
-                                </>
-                            ) : (
-                                <View style={styles.row}>
-                                    <Text style={styles.subtitle}>{item.title}</Text>
-                                    {isUnlocked && (
-                                        <TouchableOpacity
-                                            onPress={async e => {
-                                                e.stopPropagation();
-                                                await stopAudioGlobal();
-                                                await playAudioGlobal(item.audioFile);
-                                            }}
-                                            style={styles.audioPill}
-                                        >
-                                            <Ionicons name="volume-high" size={18} color="#fff" />
-                                        </TouchableOpacity>
-                                    )}
-                                </View>
-                            )}
+                                )}
+                            </View>
                         </TouchableOpacity>
                     );
                 }}
                 contentContainerStyle={styles.grid}
                 ListFooterComponent={
-                    haTerminadoNivel3
-                        ? (
+                    <View style={styles.footerContainer}>
+                        {/* Botón de Audio Guía */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                await stopAudioGlobal();
+                                await playAudioGlobal(require('@assets/audio/levels/nivel3/introduccionGuia.wav'));
+                            }}
+                            style={styles.playButton}
+                        >
+                            <Ionicons name="play" size={22} color="white" />
+                        </TouchableOpacity>
+                        {/* Botón de Siguiente Nivel */}
+                        {haTerminadoNivel3 && (
                             <TouchableOpacity
                                 onPress={() => {
                                     stopAudioGlobal();
-                                    // @ts-ignore
                                     router.push('/(tabs)/Level4Screen');
                                 }}
                                 style={styles.nextButton}
                             >
                                 <Ionicons name="arrow-forward" size={24} color="white" />
                             </TouchableOpacity>
-                        )
-                        : null
+                        )}
+                    </View>
                 }
             />
         </SafeAreaView>
@@ -195,6 +172,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
+        marginTop: 20,
         marginBottom: 16,
     },
     titlePill: {
@@ -221,21 +199,13 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     image: { width: '100%', height: 90, marginBottom: 8 },
-    subtitle: { fontSize: 14, fontWeight: '600', flexShrink: 1 },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
     },
-    playBar: {
-        marginTop: 8,
-        backgroundColor: '#3E64FF',
-        borderRadius: 25,
-        paddingVertical: 10,
-        alignItems: 'center',
-        width: '100%',
-    },
+    subtitle: { fontSize: 14, fontWeight: '600', flexShrink: 1 },
     audioPill: {
         backgroundColor: '#3E64FF',
         borderRadius: 12,
@@ -244,11 +214,21 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    nextButton: {
-        alignSelf: 'flex-end',
-        marginRight: 16,
+    footerContainer: {
+        alignItems: 'flex-end',
+        marginHorizontal: 16,
         marginTop: 24,
         marginBottom: 32,
+    },
+    playButton: {
+        backgroundColor: '#2e6ef7',
+        padding: 16,
+        borderRadius: 12,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    nextButton: {
         backgroundColor: '#33cc66',
         paddingVertical: 16,
         paddingHorizontal: 32,
