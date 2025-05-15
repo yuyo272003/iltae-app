@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {
     View,
     Text,
@@ -16,31 +16,30 @@ import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
 import { useFocusEffect } from 'expo-router';
 
+// Emitter sólo en nativo
+const voiceEmitter =
+    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
+
 interface SpeechOptions {
     onResult: (spoken: string) => void;
     onError: () => void;
 }
 
-const voiceEmitter =
-    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
-
-// Hook de reconocimiento con guard de error
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
-    const errorShownRef = useRef(false);
 
     const requestPermission = useCallback(async (): Promise<boolean> => {
         if (Platform.OS !== 'android') return true;
-        const result = await PermissionsAndroid.request(
+        const res = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
             {
                 title: 'Permiso de micrófono',
-                message: 'Necesitamos usar el micrófono para verificar tu pronunciación.',
+                message: 'Necesitamos usar el micrófono.',
                 buttonNegative: 'Cancelar',
                 buttonPositive: 'Aceptar',
             }
         );
-        return result === PermissionsAndroid.RESULTS.GRANTED;
+        return res === PermissionsAndroid.RESULTS.GRANTED;
     }, []);
 
     const start = useCallback(async () => {
@@ -49,13 +48,9 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             return;
         }
         if (!(await requestPermission())) {
-            if (!errorShownRef.current) {
-                errorShownRef.current = true;
-                onError();
-            }
+            onError();
             return;
         }
-        errorShownRef.current = false; // reset guard
         try {
             await Voice.cancel();
             const extras: Record<string, any> = {};
@@ -69,10 +64,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         } catch (e) {
             console.error('Voice.start error', e);
             setIsRecording(false);
-            if (!errorShownRef.current) {
-                errorShownRef.current = true;
-                onError();
-            }
+            onError();
         }
     }, [requestPermission, onError]);
 
@@ -99,10 +91,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         [onResult, stop]
     );
     const onSpeechErrorEvt = useCallback(() => {
-        if (!errorShownRef.current) {
-            errorShownRef.current = true;
-            onError();
-        }
+        onError();
         stop();
     }, [onError, stop]);
 
@@ -159,15 +148,14 @@ export default function SentenceSpeakingScreen({
             await feedbackSound.stopAsync();
             await feedbackSound.unloadAsync();
         }
-        if (Platform.OS !== 'web') {
-            const { sound } = await Audio.Sound.createAsync(file);
-            setFeedbackSound(sound);
-            await sound.playAsync();
-            if (file === successAudio) {
-                sound.setOnPlaybackStatusUpdate(status => {
-                    if (!status.isLoaded || status.didJustFinish) onNext?.();
-                });
-            }
+        if (Platform.OS === 'web') return;
+        const { sound } = await Audio.Sound.createAsync(file);
+        setFeedbackSound(sound);
+        await sound.playAsync();
+        if (file === successAudio) {
+            sound.setOnPlaybackStatusUpdate(status => {
+                if (!status.isLoaded || status.didJustFinish) stopAll(onNext);
+            });
         }
     };
 
@@ -207,13 +195,12 @@ export default function SentenceSpeakingScreen({
     };
 
     const restartPracticeAudio = async () => {
-        if (practiceSound) {
-            await practiceSound.stopAsync();
-            await practiceSound.setPositionAsync(0);
-            await practiceSound.playAsync();
-            setIsPlaying(true);
-            setIsPaused(false);
-        }
+        if (!practiceSound) return;
+        await practiceSound.stopAsync();
+        await practiceSound.setPositionAsync(0);
+        await practiceSound.playAsync();
+        setIsPlaying(true);
+        setIsPaused(false);
     };
 
     const stopAll = async (nav?: () => void) => {
@@ -278,7 +265,11 @@ const styles = StyleSheet.create({
     wordsContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 80 },
     wordBlock: { backgroundColor: '#fff', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 10, marginHorizontal: 4 },
     wordText: { fontSize: 20, fontWeight: '600', color: '#2b2b2b' },
-    bottomPanel: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 320, backgroundColor: '#242C3B', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, alignItems: 'center', elevation: 10 },
+    bottomPanel: {
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: 320,
+        backgroundColor: '#242C3B', borderTopLeftRadius: 32, borderTopRightRadius: 32,
+        padding: 24, alignItems: 'center', elevation: 10
+    },
     micWrapper: { width: '90%', backgroundColor: '#fff', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 },
     soundButton: { width: '100%', alignItems: 'center' },
     recordingButton: { backgroundColor: '#FF5252' },
