@@ -29,7 +29,7 @@ import {
 } from "@/utils/AudioManager";
 import Voice from "@react-native-community/voice";
 
-// Hook de reconocimiento de voz con guard Web
+// Emitter solo en native (iOS/Android)
 const voiceEmitter =
     Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
@@ -38,6 +38,7 @@ interface SpeechOptions {
     onError?: () => void;
 }
 
+// Hook de reconocimiento de voz sin onSpeechEnd para evitar cierres prematuros
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
 
@@ -47,7 +48,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
             {
                 title: "Permiso de micrófono",
-                message: "La app necesita acceder al micrófono.",
+                message: "La app necesita acceso al micrófono.",
                 buttonNegative: "Cancelar",
                 buttonPositive: "Aceptar",
             }
@@ -57,7 +58,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
 
     const start = useCallback(async () => {
         if (Platform.OS === 'web') {
-            Alert.alert('No soportado', 'La dictación de voz no funciona en web.');
+            Alert.alert('No soportado', 'Dictación de voz no funciona en web.');
             return;
         }
         if (!(await requestAudioPermission())) {
@@ -116,9 +117,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
 
     useFocusEffect(
         useCallback(() => {
-            return () => {
-                stop();
-            };
+            return () => stop();
         }, [stop])
     );
 
@@ -142,13 +141,14 @@ export default function RegistroScreen() {
         };
     }, []);
 
-    // Keyboard listeners
+    // Keyboard visibility
     useEffect(() => {
         const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
         const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
         return () => { show.remove(); hide.remove(); };
     }, []);
 
+    // Voz
     const { isRecording, start, stop } = useSpeechRecognition({
         onResult: spoken => setNombre(spoken),
         onError: () => Alert.alert("Error", "No se pudo reconocer la voz"),

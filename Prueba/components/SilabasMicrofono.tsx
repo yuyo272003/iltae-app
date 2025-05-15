@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -17,17 +17,15 @@ import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
 import api from '@/scripts/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router, usePathname } from 'expo-router';
+import { useFocusEffect, router, usePathname } from 'expo-router';
 
-// Crear emitter sólo en iOS/Android
+// Emitter sólo en nativo
 const voiceEmitter =
-    Platform.OS !== 'web'
-        ? new NativeEventEmitter(NativeModules.Voice)
-        : null;
+    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
 type Syllable = { text: string; audio: AVPlaybackSource };
 
-type SyllableScreenProps = {
+interface Props {
     syllables: Syllable[];
     targetWord: string;
     practiceAudio: AVPlaybackSource;
@@ -37,7 +35,91 @@ type SyllableScreenProps = {
     onNext?: () => void;
     onTopBack?: () => void;
     onBottomBack?: () => void;
-};
+}
+
+// Hook de reconocimiento de voz reutilizable
+function useSpeechRecognition(
+    onResult: (spoken: string) => void,
+    onError: () => void
+) {
+    const [isRecording, setIsRecording] = useState(false);
+
+    const requestPermission = useCallback(async () => {
+        if (Platform.OS !== 'android') return true;
+        const res = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            {
+                title: 'Permiso de micrófono',
+                message: 'Necesitamos acceso al micrófono.',
+                buttonNegative: 'Cancelar',
+                buttonPositive: 'Aceptar',
+            }
+        );
+        return res === PermissionsAndroid.RESULTS.GRANTED;
+    }, []);
+
+    const start = useCallback(async () => {
+        if (Platform.OS === 'web') {
+            Alert.alert('No soportado', 'Dictación de voz no funciona en web.');
+            return;
+        }
+        if (!(await requestPermission())) {
+            onError();
+            return;
+        }
+        try {
+            await Voice.cancel();
+            await Voice.start('es-MX');
+        } catch (e) {
+            console.error('Voice.start error', e);
+            setIsRecording(false);
+            onError();
+        }
+    }, [requestPermission, onError]);
+
+    const stop = useCallback(async () => {
+        if (Platform.OS === 'web') return;
+        try {
+            await Voice.stop();
+            await Voice.cancel();
+        } catch (e) {
+            console.error('Voice.stop error', e);
+        } finally {
+            setIsRecording(false);
+            Keyboard.dismiss();
+        }
+    }, []);
+
+    const onSpeechStart = useCallback(() => setIsRecording(true), []);
+    const onSpeechResults = useCallback(
+        ({ value }: any) => {
+            const spoken = value?.[0] ?? '';
+            onResult(spoken);
+            stop();
+        },
+        [onResult, stop]
+    );
+    const onSpeechErrorEvt = useCallback(() => {
+        onError();
+        stop();
+    }, [onError, stop]);
+
+    useEffect(() => {
+        if (!voiceEmitter) return;
+        const subs = [
+            voiceEmitter.addListener('onSpeechStart', onSpeechStart),
+            voiceEmitter.addListener('onSpeechResults', onSpeechResults),
+            voiceEmitter.addListener('onSpeechError', onSpeechErrorEvt),
+        ];
+        return () => subs.forEach(s => s.remove());
+    }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
+
+    useFocusEffect(
+        useCallback(() => () => stop(), [stop])
+    );
+
+    return { isRecording, start, stop };
+}
 
 export default function SyllableScreen({
                                            syllables,
@@ -49,15 +131,13 @@ export default function SyllableScreen({
                                            onNext,
                                            onTopBack,
                                            onBottomBack,
-                                       }: SyllableScreenProps) {
+                                       }: Props) {
     const [practiceSound, setPracticeSound] = useState<Audio.Sound | null>(null);
     const [feedbackSound, setFeedbackSound] = useState<Audio.Sound | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
-    const [userProgress, setUserProgress] = useState<number>(0);
-    const [isRecording, setIsRecording] = useState(false);
+    const [userProgress, setUserProgress] = useState(0);
     const pathname = usePathname();
-
     const noBottom = [
         '/niveles/nivel4/leccion1/firstScreen',
         '/niveles/nivel4/leccion2/firstScreen',
@@ -67,100 +147,38 @@ export default function SyllableScreen({
     const isFirst = pathname.endsWith('/firstScreen');
     const showBottom = !noBottom.includes(pathname);
 
+    // Hook de voz
+    const { isRecording, start, stop } = useSpeechRecognition(
+        (spoken: string) => evaluate(spoken),
+        () => playFeedback(failureAudio)
+    );
+
     // Carga progreso
     useEffect(() => {
         (async () => {
             const token = await AsyncStorage.getItem('auth_token');
             if (!token) return;
             try {
-                const { data } = await api.get('/progreso', {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
+                const { data } = await api.get('/progreso', { headers: { Authorization: `Bearer ${token}` } });
                 setUserProgress(data.porcentaje || 0);
             } catch (e) {
-                console.error('Error progreso', e);
+                console.error(e);
             }
         })();
     }, []);
 
-    // Voice callbacks
-    const onSpeechStart = useCallback(() => {
-        console.log('Speech start');
-        setIsRecording(true);
-    }, []);
+    const normalize = (s: string) => s
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .trim();
 
-    const onSpeechResults = useCallback(
-        ({ value }: any) => {
-            const spoken = value?.[0] ?? '';
-            console.log('Speech results:', spoken);
-            evaluatePronunciation(spoken);
-            stopRecognizing(); // detiene tras resultados
-        },
-        [targetWord]
-    );
-
-    const onSpeechError = useCallback((err: any) => {
-        console.warn('Speech error', err);
-        playFeedback(failureAudio);
-        stopRecognizing(); // detiene en error
-    }, [failureAudio]);
-
-    // Suscribir / limpiar listeners (sin onSpeechEnd)
-    useEffect(() => {
-        if (!voiceEmitter) return;
-        const subs = [
-            voiceEmitter.addListener('onSpeechStart', onSpeechStart),
-            voiceEmitter.addListener('onSpeechResults', onSpeechResults),
-            voiceEmitter.addListener('onSpeechError', onSpeechError),
-        ];
-        return () => subs.forEach(s => s.remove());
-    }, [onSpeechStart, onSpeechResults, onSpeechError]);
-
-    // Permiso Android
-    const requestPermission = async () => {
-        if (Platform.OS !== 'android') return true;
-        const res = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-            {
-                title: 'Permiso micrófono',
-                message: 'Necesitamos micrófono para dictar la palabra.',
-                buttonNegative: 'Cancelar',
-                buttonPositive: 'Aceptar',
-            }
-        );
-        return res === PermissionsAndroid.RESULTS.GRANTED;
+    const evaluate = (spoken: string) => {
+        normalize(spoken) === normalize(targetWord)
+            ? playFeedback(successAudio)
+            : playFeedback(failureAudio);
     };
 
-    // Iniciar
-    const startRecognizing = async () => {
-        if (Platform.OS === 'web') {
-            Alert.alert('No disponible', 'Voice no funciona en web');
-            return;
-        }
-        if (!(await requestPermission())) {
-            playFeedback(failureAudio);
-            return;
-        }
-        try {
-            await Voice.cancel();
-            await Voice.start('es-MX');
-        } catch (e) {
-            console.error(e);
-            setIsRecording(false);
-        }
-    };
-
-    // Detener
-    const stopRecognizing = async () => {
-        if (Platform.OS === 'web') return;
-        try {
-            await Voice.stop();
-            await Voice.cancel();
-        } catch {}
-        setIsRecording(false);
-    };
-
-    // Feedback y navegación
     const playFeedback = async (file: AVPlaybackSource) => {
         if (Platform.OS === 'web') return;
         if (feedbackSound) {
@@ -172,20 +190,13 @@ export default function SyllableScreen({
         await sound.playAsync();
         if (file === successAudio) {
             sound.setOnPlaybackStatusUpdate(status => {
-                if (!status.isLoaded || status.didJustFinish) stopAll(onNext);
+                if (!status.isLoaded || status.didJustFinish) {
+                    stopAll(onNext);
+                }
             });
         }
     };
 
-    const normalize = (s: string) =>
-        s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-    const evaluatePronunciation = (spoken: string) => {
-        normalize(spoken) === normalize(targetWord)
-            ? playFeedback(successAudio)
-            : playFeedback(failureAudio);
-    };
-
-    // Práctica audio
     const togglePractice = async () => {
         if (Platform.OS === 'web') return;
         if (practiceSound && isPlaying) {
@@ -234,67 +245,45 @@ export default function SyllableScreen({
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity
-                style={styles.topBackButton}
-                onPress={() => stopAll(onTopBack)}
-            >
-                <Ionicons name="arrow-back" size={28} color="#2b2b2b" />
-            </TouchableOpacity>
-
-            {imageSource && (
-                <Image
-                    source={imageSource}
-                    style={styles.illustration}
-                    resizeMode="contain"
-                />
+            {onTopBack && (
+                <TouchableOpacity style={styles.topBackButton} onPress={() => stopAll(onTopBack)}>
+                    <Ionicons name="arrow-back" size={28} color="#2b2b2b" />
+                </TouchableOpacity>
             )}
+
+            {imageSource && <Image source={imageSource} style={styles.illustration} resizeMode="contain" />}
 
             <View style={styles.syllablesRow}>
                 {syllables.map((s, i) => (
                     <React.Fragment key={i}>
                         <View style={styles.syllableContainer}>
                             <Text style={styles.syllableText}>{s.text}</Text>
-                            <TouchableOpacity
-                                style={styles.syllableAudioButton}
-                                onPress={() => Platform.OS !== 'web' && Audio.Sound.createAsync(s.audio)}
-                            >
+                            <TouchableOpacity style={styles.syllableAudioButton} onPress={() => Platform.OS !== 'web' && Audio.Sound.createAsync(s.audio)}>
                                 <Ionicons name="volume-high" size={20} color="white" />
                             </TouchableOpacity>
                         </View>
-                        {i < syllables.
-                            length - 1 && <Text style={styles.hyphen}>-</Text>}
+                        {i < syllables.length - 1 && <Text style={styles.hyphen}>-</Text>}
                     </React.Fragment>
                 ))}
             </View>
 
-            <View style={[
-                styles.bottomPanel,
-                !isFirst && styles.bottomPanelReduced,
-            ]}>
-                <View style={[styles.micWrapper, !isFirst && styles.micWrapperRepositioned]}>
-                    <TouchableOpacity
-                        style={[styles.soundButton, isRecording && styles.recordingButton]}
-                        onPress={() => (isRecording ? stopRecognizing() : startRecognizing())}
-                    >
-                        <Ionicons
-                            name={isRecording ? 'mic-off' : 'mic'}
-                            size={24}
-                            color={isRecording ? 'white' : '#2e6ef7'}
-                        />
+            <View style={[styles.bottomPanel, !isFirst && styles.bottomPanelReduced]}>
+                <View style={[styles.micWrapper, !isFirst && styles.micWrapperRepositioned]}
+                >
+                    <TouchableOpacity style={[styles.soundButton, isRecording && styles.recordingButton]} onPress={() => (isRecording ? stop() : start())}>
+                        <Ionicons name={isRecording ? 'mic-off' : 'mic'} size={24} color={isRecording ? 'white' : '#2e6ef7'} />
                     </TouchableOpacity>
                 </View>
 
-                {isFirst && (
+                {isFirst ? (
                     <TouchableOpacity style={styles.playButton} onPress={togglePractice}>
                         <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="white" />
                     </TouchableOpacity>
+                ) : (
+                    <View style={{ height: 20 }} />
                 )}
-                {!isFirst && <View style={{ height: 20 }} />}
 
-                <View style={[
-                    styles.progressBarContainer,
-                    !isFirst && { marginTop: 20, marginBottom: 30 },
-                ]}>
+                <View style={[styles.progressBarContainer, !isFirst && { marginTop: 20, marginBottom: 30 }]}>
                     <View style={[styles.progressFill, { flex: userProgress }]} />
                     <View style={{ flex: 100 - userProgress }} />
                 </View>

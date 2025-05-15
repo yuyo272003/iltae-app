@@ -29,7 +29,7 @@ import {
 } from "@/utils/AudioManager";
 import Voice from "@react-native-community/voice";
 
-// Emitter sólo en native
+// Emitter solo en native
 const voiceEmitter =
     Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
@@ -38,7 +38,7 @@ interface SpeechOptions {
     onError?: () => void;
 }
 
-// Hook reutilizable de voz con guard Web
+// Hook reutilizable de voz sin onSpeechEnd
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
 
@@ -117,16 +117,14 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
 
     useFocusEffect(
         useCallback(() => {
-            return () => {
-                stop();
-            };
+            return () => stop();
         }, [stop])
     );
 
     return { isRecording, start, stop };
 }
 
-// Componente Login
+// Componente LoginScreen
 export default function LoginScreen() {
     const [nombre, setNombre] = useState("");
     const { setUser } = useAuth();
@@ -151,7 +149,7 @@ export default function LoginScreen() {
         return () => { show.remove(); hide.remove(); };
     }, []);
 
-    // Voz
+    // Hook de voz
     const { isRecording, start, stop } = useSpeechRecognition({
         onResult: spoken => setNombre(spoken),
         onError: () => Alert.alert("Error", "No se pudo reconocer la voz"),
