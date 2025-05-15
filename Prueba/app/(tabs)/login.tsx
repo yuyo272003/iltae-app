@@ -1,3 +1,4 @@
+// LoginScreen.tsx
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
     View,
@@ -29,7 +30,6 @@ import {
 } from "@/utils/AudioManager";
 import Voice from "@react-native-community/voice";
 
-// Emitter sólo en native (iOS/Android)
 const voiceEmitter =
     Platform.OS !== "web" ? new NativeEventEmitter(NativeModules.Voice) : null;
 
@@ -38,7 +38,6 @@ interface SpeechOptions {
     onError?: () => void;
 }
 
-// Hook reutilizable de dictado sin onSpeechEnd ni dismiss forzado
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
 
@@ -67,15 +66,10 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         }
         try {
             await Voice.cancel();
-            // Extender silencios en Android
             const extras: Record<string, any> = {};
             if (Platform.OS === "android") {
-                extras[
-                    "android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS"
-                    ] = 5000;
-                extras[
-                    "android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS"
-                    ] = 5000;
+                extras["android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS"] = 5000;
+                extras["android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS"] = 5000;
                 extras["android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS"] = 10000;
             }
             await Voice.start("es-MX", extras);
@@ -96,11 +90,14 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             console.error("Voice.stop error", e);
         } finally {
             setIsRecording(false);
-            // <-- quitamos Keyboard.dismiss() para no ocultar el teclado aquí
+            // no dismiss here so the keyboard stays up
         }
     }, []);
 
-    const onSpeechStart = useCallback(() => setIsRecording(true), []);
+    const onSpeechStart = useCallback(() => {
+        if (Platform.OS !== "web") setIsRecording(true);
+    }, []);
+
     const onSpeechResults = useCallback(
         ({ value }: any) => {
             const spoken = value?.[0] ?? "";
@@ -109,13 +106,14 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         },
         [onResult, stop]
     );
+
     const onSpeechErrorEvt = useCallback(() => {
-        stop();
         console.warn("Speech recognition error");
+        stop();
     }, [stop]);
 
     useEffect(() => {
-        if (!voiceEmitter) return;
+        if (Platform.OS === "web" || !voiceEmitter) return;
         const subs = [
             voiceEmitter.addListener("onSpeechStart", onSpeechStart),
             voiceEmitter.addListener("onSpeechResults", onSpeechResults),
@@ -140,7 +138,7 @@ export default function LoginScreen() {
     const [keyboardVisible, setKeyboardVisible] = useState(false);
     const inputRef = useRef<TextInput>(null);
 
-    // AudioManager callbacks
+    // AudioManager
     useEffect(() => {
         const cb = (playing: boolean) => setIsAudioPlaying(playing);
         registerStatusCallback(cb);
@@ -150,23 +148,21 @@ export default function LoginScreen() {
         };
     }, []);
 
-    // Keyboard listeners
+    // Keyboard
     useEffect(() => {
-        const show = Keyboard.addListener("keyboardDidShow", () =>
-            setKeyboardVisible(true)
-        );
-        const hide = Keyboard.addListener("keyboardDidHide", () =>
-            setKeyboardVisible(false)
-        );
+        const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
+        const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
         return () => {
             show.remove();
             hide.remove();
         };
     }, []);
 
-    // Dictado de voz
     const { isRecording, start, stop } = useSpeechRecognition({
-        onResult: (spoken) => setNombre(spoken),
+        onResult: (spoken) => {
+            setNombre(spoken);
+            inputRef.current?.focus();
+        },
         onError: () => Alert.alert("Error", "No se pudo reconocer la voz"),
     });
 
@@ -185,19 +181,13 @@ export default function LoginScreen() {
             setUser({ ...data.user, niveles_completados: data.niveles_completados });
             router.push("/(tabs)/perfiles");
         } catch (e: any) {
-            Alert.alert(
-                "Error",
-                e.response?.data?.message || "No se pudo iniciar sesión 😢"
-            );
+            Alert.alert("Error", e.response?.data?.message || "No se pudo iniciar sesión 😢");
         }
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-            >
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={28} color="blue" />
             </TouchableOpacity>
 
@@ -207,29 +197,17 @@ export default function LoginScreen() {
             >
                 <ScrollView
                     contentContainerStyle={styles.scrollContainer}
+                    keyboardShouldPersistTaps="always"
                     showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="always"  // <— aquí
                 >
-                    <View
-                        style={[
-                            styles.content,
-                            keyboardVisible && styles.contentWithKeyboard,
-                        ]}
-                    >
+                    <View style={[styles.content, keyboardVisible && styles.contentWithKeyboard]}>
                         <View style={styles.profileContainer}>
                             <Ionicons name="person-circle" size={100} color="#1E6ADB" />
                         </View>
 
                         <View style={styles.headerSection}>
-                            <TouchableOpacity
-                                style={styles.speakerButton}
-                                onPress={reproducirInstrucciones}
-                            >
-                                <Ionicons
-                                    name={isAudioPlaying ? "pause" : "volume-high"}
-                                    size={20}
-                                    color="white"
-                                />
+                            <TouchableOpacity style={styles.speakerButton} onPress={reproducirInstrucciones}>
+                                <Ionicons name={isAudioPlaying ? "pause" : "volume-high"} size={20} color="white" />
                             </TouchableOpacity>
                             <Text style={styles.welcomeText}>¡Iniciar Sesión!</Text>
                         </View>
@@ -242,17 +220,14 @@ export default function LoginScreen() {
                             value={nombre}
                             onChangeText={setNombre}
                             editable={!isRecording}
+                            returnKeyType="done"
                         />
 
                         <TouchableOpacity
                             style={[styles.voiceButton, isRecording && styles.dictatingButton]}
                             onPress={() => (isRecording ? stop() : start())}
                         >
-                            <Ionicons
-                                name={isRecording ? "mic-off" : "mic"}
-                                size={24}
-                                color="white"
-                            />
+                            <Ionicons name={isRecording ? "mic-off" : "mic"} size={24} color="white" />
                             <Text style={{ color: "white", marginLeft: 8 }}>
                                 {isRecording ? "Detener" : "Dictar"}
                             </Text>
@@ -262,10 +237,7 @@ export default function LoginScreen() {
                             <Ionicons name="arrow-forward" size={24} color="white" />
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.registerLink}
-                            onPress={() => router.push("/(tabs)/registro")}
-                        >
+                        <TouchableOpacity style={styles.registerLink} onPress={() => router.push("/(tabs)/registro")}>
                             <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
                         </TouchableOpacity>
                     </View>
@@ -278,12 +250,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#EEF3FF" },
     keyboardAvoid: { flex: 1 },
-    scrollContainer: {
-        flexGrow: 1,
-        alignItems: "center",
-        paddingTop: 120,
-        paddingBottom: 30,
-    },
+    scrollContainer: { flexGrow: 1, alignItems: "center", paddingTop: 120, paddingBottom: 30 },
     content: { width: 327, alignItems: "flex-start", justifyContent: "center" },
     contentWithKeyboard: { paddingTop: 10 },
     profileContainer: { alignSelf: "center", marginBottom: 20 },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Voice from '@react-native-community/voice';
 import api from '@/scripts/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect, usePathname } from 'expo-router';
+import { usePathname } from 'expo-router';
 
 // Emitter sólo en nativo
 const voiceEmitter =
@@ -37,17 +37,15 @@ interface Props {
     onBottomBack?: () => void;
 }
 
-/**
- * Hook de reconocimiento de voz reutilizable.
- * onError sólo se dispara una vez por error.
- */
+// Hook reutilizable de voz mejorado
 function useSpeechRecognition(
     onResult: (spoken: string) => void,
     onError: () => void
 ) {
     const [isRecording, setIsRecording] = useState(false);
+    const errorPlayedRef = useRef(false);
 
-    const requestPermission = useCallback(async () => {
+    const requestPermission = useCallback(async (): Promise<boolean> => {
         if (Platform.OS !== 'android') return true;
         const res = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
@@ -62,25 +60,26 @@ function useSpeechRecognition(
     }, []);
 
     const start = useCallback(async () => {
+        // reset error flag on new start
+        errorPlayedRef.current = false;
+
         if (Platform.OS === 'web') {
             Alert.alert('No soportado', 'Dictación de voz no funciona en web.');
             return;
         }
         if (!(await requestPermission())) {
-            onError();
+            if (!errorPlayedRef.current) {
+                onError();
+                errorPlayedRef.current = true;
+            }
             return;
         }
         try {
             await Voice.cancel();
-            // Extiende silencios en Android
             const extras: Record<string, any> = {};
             if (Platform.OS === 'android') {
-                extras[
-                    'android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'
-                    ] = 5000;
-                extras[
-                    'android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS'
-                    ] = 5000;
+                extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
+                extras['android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
                 extras['android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS'] = 10000;
             }
             await Voice.start('es-MX', extras);
@@ -88,7 +87,10 @@ function useSpeechRecognition(
         } catch (e) {
             console.error('Voice.start error', e);
             setIsRecording(false);
-            onError();
+            if (!errorPlayedRef.current) {
+                onError();
+                errorPlayedRef.current = true;
+            }
         }
     }, [requestPermission, onError]);
 
@@ -101,41 +103,52 @@ function useSpeechRecognition(
             console.error('Voice.stop error', e);
         } finally {
             setIsRecording(false);
-            // NO Keyboard.dismiss() para no ocultar teclado si lo hubiera
+            Keyboard.dismiss();
         }
     }, []);
 
-    const onSpeechStart = useCallback(() => setIsRecording(true), []);
+    const onSpeechStart = useCallback(() => {
+        setIsRecording(true);
+    }, []);
+
     const onSpeechResults = useCallback(
         ({ value }: any) => {
             const spoken = value?.[0] ?? '';
             onResult(spoken);
-            stop(); // detenemos tras primer resultado
+            stop();
         },
         [onResult, stop]
     );
+
     const onSpeechErrorEvt = useCallback(() => {
-        console.warn('Speech recognition error');
-        onError();
+        if (!errorPlayedRef.current) {
+            onError();
+            errorPlayedRef.current = true;
+        }
         stop();
     }, [onError, stop]);
 
+    const onSpeechEnd = useCallback(() => {
+        // Reactivar el botón al terminar aunque no haya resultados
+        setIsRecording(false);
+    }, []);
+
     useEffect(() => {
+        // Limpieza previa
+        Voice.destroy().then(() => Voice.removeAllListeners());
+
         if (!voiceEmitter) return;
         const subs = [
             voiceEmitter.addListener('onSpeechStart', onSpeechStart),
             voiceEmitter.addListener('onSpeechResults', onSpeechResults),
             voiceEmitter.addListener('onSpeechError', onSpeechErrorEvt),
+            voiceEmitter.addListener('onSpeechEnd', onSpeechEnd),
         ];
-        return () => subs.forEach((s) => s.remove());
-    }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
-
-    // Detener al perder foco
-    useFocusEffect(
-        useCallback(() => {
-            return () => stop();
-        }, [stop])
-    );
+        return () => {
+            subs.forEach((s) => s.remove());
+            Voice.destroy().then(() => Voice.removeAllListeners());
+        };
+    }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt, onSpeechEnd]);
 
     return { isRecording, start, stop };
 }
@@ -167,9 +180,16 @@ export default function SyllableScreen({
     const isFirst = pathname.endsWith('/firstScreen');
     const showBottom = !noBottom.includes(pathname);
 
-    // Hook de voz — onError sólo reproduce failureAudio UNA vez
+    const normalize = (s: string) =>
+        s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+    // Hook de voz
     const { isRecording, start, stop } = useSpeechRecognition(
-        (spoken) => evaluatePronunciation(spoken),
+        (spoken: string) => {
+            normalize(spoken) === normalize(targetWord)
+                ? playFeedback(successAudio, onNext)
+                : playFeedback(failureAudio);
+        },
         () => playFeedback(failureAudio)
     );
 
@@ -188,15 +208,6 @@ export default function SyllableScreen({
             }
         })();
     }, []);
-
-    const normalize = (s: string) =>
-        s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-
-    const evaluatePronunciation = (spoken: string) => {
-        normalize(spoken) === normalize(targetWord)
-            ? playFeedback(successAudio, onNext)
-            : playFeedback(failureAudio);
-    };
 
     const playFeedback = async (file: AVPlaybackSource, nav?: () => void) => {
         if (feedbackSound) {
@@ -383,21 +394,40 @@ export default function SyllableScreen({
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: 'white', alignItems: 'center', paddingTop: 150 },
-    topBackButton: { position: 'absolute', top: 40, left: 20, zIndex: 10, backgroundColor: '#f0f0f0', padding: 12, borderRadius: 24 },
+    topBackButton: {
+        position: 'absolute', top: 40, left: 20, zIndex: 10,
+        backgroundColor: '#f0f0f0', padding: 12, borderRadius: 24,
+    },
     illustration: { width: 180, height: 180, marginBottom: 10, marginTop: 15 },
     syllablesRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 120, marginTop: 10 },
     syllableContainer: { alignItems: 'center', marginHorizontal: 8 },
     syllableText: { fontSize: 28, fontWeight: 'bold', color: '#2b2b2b' },
     hyphen: { fontSize: 28, color: '#2b2b2b', marginHorizontal: 4 },
-    syllableAudioButton: { backgroundColor: '#2e6ef7', width: 32, height: 32, justifyContent: 'center', alignItems: 'center', borderRadius: 16, marginTop: 4 },
-    bottomPanel: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 320, backgroundColor: '#242C3B', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, alignItems: 'center', elevation: 10 },
+    syllableAudioButton: {
+        backgroundColor: '#2e6ef7', width: 32, height: 32,
+        justifyContent: 'center', alignItems: 'center', borderRadius: 16, marginTop: 4,
+    },
+    bottomPanel: {
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: 320,
+        backgroundColor: '#242C3B', borderTopLeftRadius: 32, borderTopRightRadius: 32,
+        padding: 24, alignItems: 'center', elevation: 10,
+    },
     bottomPanelReduced: { height: 220, paddingHorizontal: 24, paddingTop: 70, paddingBottom: 24 },
-    micWrapper: { borderRadius: 12, alignItems: 'center', marginBottom: 20, marginTop: 10, borderColor: '#2e6ef7', borderWidth: 1, backgroundColor: '#fff', width: '100%' },
+    micWrapper: {
+        borderRadius: 12, alignItems: 'center', marginBottom: 20, marginTop: 10,
+        borderColor: '#2e6ef7', borderWidth: 1, backgroundColor: '#fff', width: '100%',
+    },
     micWrapperRepositioned: { position: 'absolute', top: 10, width: '90%' },
     soundButton: { backgroundColor: 'white', width: '90%', padding: 16, borderRadius: 8, alignItems: 'center' },
     recordingButton: { backgroundColor: '#FF5252' },
-    playButton: { backgroundColor: '#2e6ef7', padding: 16, borderRadius: 12, width: '100%', alignItems: 'center', marginBottom: 20, marginTop: 10 },
-    progressBarContainer: { flexDirection: 'row', height: 6, width: '90%', borderRadius: 3, overflow: 'hidden', marginBottom: 50, backgroundColor: '#555' },
+    playButton: {
+        backgroundColor: '#2e6ef7', padding: 16, borderRadius: 12,
+        width: '100%', alignItems: 'center', marginBottom: 20, marginTop: 10,
+    },
+    progressBarContainer: {
+        flexDirection: 'row', height: 6, width: '90%', borderRadius: 3,
+        overflow: 'hidden', marginBottom: 50, backgroundColor: '#555',
+    },
     progressFill: { height: '100%', backgroundColor: '#2e6ef7', borderRadius: 3 },
     restartButton: { position: 'absolute', bottom: 20, backgroundColor: '#2e6ef7', borderRadius: 50, padding: 15, alignSelf: 'center' },
     nextButton: { position: 'absolute', right: 30, bottom: 20, backgroundColor: '#33cc66', borderRadius: 50, padding: 15 },
