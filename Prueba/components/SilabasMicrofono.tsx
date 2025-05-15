@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -43,6 +43,7 @@ function useSpeechRecognition(
     onError: () => void
 ) {
     const [isRecording, setIsRecording] = useState(false);
+    const initialized = useRef(false);
 
     const requestPermission = useCallback(async () => {
         if (Platform.OS !== 'android') return true;
@@ -58,15 +59,52 @@ function useSpeechRecognition(
         return res === PermissionsAndroid.RESULTS.GRANTED;
     }, []);
 
+    // Initialize Voice on first mount
+    useEffect(() => {
+        if (Platform.OS === 'web' || initialized.current) return;
+
+        const setupVoice = async () => {
+            try {
+                await Voice.destroy();
+                await Voice.removeAllListeners();
+                initialized.current = true;
+            } catch (e) {
+                console.error('Voice setup error', e);
+            }
+        };
+
+        setupVoice();
+
+        // Cleanup on unmount
+        return () => {
+            const cleanupVoice = async () => {
+                if (Platform.OS === 'web') return;
+                try {
+                    await Voice.destroy();
+                    await Voice.removeAllListeners();
+                } catch (e) {
+                    console.error('Voice cleanup error', e);
+                }
+            };
+            cleanupVoice();
+        };
+    }, []);
+
     const start = useCallback(async () => {
         if (Platform.OS === 'web') {
             Alert.alert('No soportado', 'Voice no funciona en web.');
             return;
         }
+
+        if (isRecording) {
+            await stop();
+        }
+
         if (!(await requestPermission())) {
             onError();
             return;
         }
+
         try {
             await Voice.cancel();
             // Extiende silencio en Android
@@ -83,7 +121,7 @@ function useSpeechRecognition(
             setIsRecording(false);
             onError();
         }
-    }, [requestPermission, onError]);
+    }, [requestPermission, onError, isRecording]);
 
     const stop = useCallback(async () => {
         if (Platform.OS === 'web') return;
@@ -114,12 +152,16 @@ function useSpeechRecognition(
 
     useEffect(() => {
         if (!voiceEmitter) return;
+
         const subs = [
             voiceEmitter.addListener('onSpeechStart', onSpeechStart),
             voiceEmitter.addListener('onSpeechResults', onSpeechResults),
             voiceEmitter.addListener('onSpeechError', onSpeechErrorEvt),
         ];
-        return () => subs.forEach(s => s.remove());
+
+        return () => {
+            subs.forEach(s => s.remove());
+        };
     }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     return { isRecording, start, stop };
@@ -143,6 +185,10 @@ export default function SyllableScreen({
     const [userProgress, setUserProgress] = useState(0);
     const pathname = usePathname();
 
+    // Refs to track if audio is currently playing
+    const isFeedbackPlaying = useRef(false);
+    const isPracticeLoading = useRef(false);
+
     const noBottom = [
         '/niveles/nivel4/leccion1/firstScreen',
         '/niveles/nivel4/leccion2/firstScreen',
@@ -152,6 +198,54 @@ export default function SyllableScreen({
     const isFirst = pathname.endsWith('/firstScreen');
     const showBottom = !noBottom.includes(pathname);
 
+    // Initialize Audio session
+    useEffect(() => {
+        const setAudioMode = async () => {
+            if (Platform.OS === 'web') return;
+
+            try {
+                await Audio.setAudioModeAsync({
+                    allowsRecordingIOS: true,
+                    playsInSilentModeIOS: true,
+                    staysActiveInBackground: false,
+                    shouldDuckAndroid: true,
+                    playThroughEarpieceAndroid: false,
+                });
+            } catch (e) {
+                console.error('Failed to set audio mode', e);
+            }
+        };
+
+        setAudioMode();
+    }, []);
+
+    // Cleanup all audio resources on unmount
+    useEffect(() => {
+        return () => {
+            const cleanup = async () => {
+                if (practiceSound) {
+                    try {
+                        await practiceSound.stopAsync();
+                        await practiceSound.unloadAsync();
+                    } catch (e) {
+                        console.error('Error cleaning up practice sound', e);
+                    }
+                }
+
+                if (feedbackSound) {
+                    try {
+                        await feedbackSound.stopAsync();
+                        await feedbackSound.unloadAsync();
+                    } catch (e) {
+                        console.error('Error cleaning up feedback sound', e);
+                    }
+                }
+            };
+
+            cleanup();
+        };
+    }, []);
+
     // Voz
     const { isRecording, start, stop } = useSpeechRecognition(
         (spoken: string) => evaluatePronunciation(spoken),
@@ -160,88 +254,208 @@ export default function SyllableScreen({
 
     // Cargar progreso
     useEffect(() => {
-        (async () => {
+        const loadProgress = async () => {
             const token = await AsyncStorage.getItem('auth_token');
             if (!token) return;
+
             try {
                 const { data } = await api.get('/progreso', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setUserProgress(data.porcentaje || 0);
             } catch (e) {
-                console.error(e);
+                console.error('Error loading progress', e);
             }
-        })();
+        };
+
+        loadProgress();
     }, []);
 
     const normalize = (s: string) =>
         s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
     const evaluatePronunciation = (spoken: string) => {
-        normalize(spoken) === normalize(targetWord)
-            ? playFeedback(successAudio, onNext)
-            : playFeedback(failureAudio);
+        const normalizedSpoken = normalize(spoken);
+        const normalizedTarget = normalize(targetWord);
+
+        console.log('Evaluating pronunciation:', {
+            spoken: normalizedSpoken,
+            target: normalizedTarget,
+            match: normalizedSpoken === normalizedTarget
+        });
+
+        if (normalizedSpoken === normalizedTarget) {
+            playFeedback(successAudio, onNext);
+        } else {
+            playFeedback(failureAudio);
+        }
     };
 
     const playFeedback = async (file: AVPlaybackSource, nav?: () => void) => {
+        if (isFeedbackPlaying.current) return;
+        isFeedbackPlaying.current = true;
+
+        // Stop any previous feedback sound
         if (feedbackSound) {
-            await feedbackSound.stopAsync();
-            await feedbackSound.unloadAsync();
+            try {
+                await feedbackSound.stopAsync();
+                await feedbackSound.unloadAsync();
+            } catch (e) {
+                console.error('Error stopping previous feedback sound', e);
+            }
         }
-        if (Platform.OS === 'web') return;
-        const { sound } = await Audio.Sound.createAsync(file);
-        setFeedbackSound(sound);
-        await sound.playAsync();
-        if (file === successAudio && nav) {
-            sound.setOnPlaybackStatusUpdate(status => {
-                if (!status.isLoaded || status.didJustFinish) nav();
-            });
+
+        if (Platform.OS === 'web') {
+            isFeedbackPlaying.current = false;
+            return;
+        }
+
+        try {
+            const { sound } = await Audio.Sound.createAsync(file,
+                { shouldPlay: true },
+                (status) => {
+                    if (!status.isLoaded) return;
+
+                    if (status.didJustFinish) {
+                        isFeedbackPlaying.current = false;
+
+                        // Cleanup after playback
+                        const cleanupSound = async () => {
+                            try {
+                                await sound.unloadAsync();
+                                setFeedbackSound(null);
+                            } catch (e) {
+                                console.error('Error unloading feedback sound', e);
+                            }
+
+                            // Navigate if needed
+                            if (file === successAudio && nav) {
+                                nav();
+                            }
+                        };
+
+                        cleanupSound();
+                    }
+                }
+            );
+
+            setFeedbackSound(sound);
+        } catch (e) {
+            console.error('Error playing feedback sound', e);
+            isFeedbackPlaying.current = false;
         }
     };
 
     const togglePractice = async () => {
-        if (Platform.OS === 'web') return;
+        if (Platform.OS === 'web' || isPracticeLoading.current) return;
+
         if (practiceSound && isPlaying) {
-            await practiceSound.pauseAsync();
-            setIsPlaying(false);
-            setIsPaused(true);
+            try {
+                await practiceSound.pauseAsync();
+                setIsPlaying(false);
+                setIsPaused(true);
+            } catch (e) {
+                console.error('Error pausing practice sound', e);
+            }
         } else if (practiceSound && isPaused) {
-            await practiceSound.playAsync();
-            setIsPlaying(true);
-            setIsPaused(false);
+            try {
+                await practiceSound.playAsync();
+                setIsPlaying(true);
+                setIsPaused(false);
+            } catch (e) {
+                console.error('Error resuming practice sound', e);
+            }
         } else {
-            // CREO el sound y LO REPRODUZCO
-            const { sound } = await Audio.Sound.createAsync(practiceAudio);
-            setPracticeSound(sound);
-            setIsPlaying(true);
-            await sound.playAsync();
-            sound.setOnPlaybackStatusUpdate(status => {
-                if (!status.isLoaded || status.didJustFinish) {
-                    setIsPlaying(false);
-                    setIsPaused(false);
-                }
-            });
+            // Create and play new sound
+            isPracticeLoading.current = true;
+
+            try {
+                const { sound } = await Audio.Sound.createAsync(
+                    practiceAudio,
+                    { shouldPlay: true },
+                    (status) => {
+                        if (!status.isLoaded) return;
+
+                        if (status.didJustFinish) {
+                            setIsPlaying(false);
+                            setIsPaused(false);
+                        }
+                    }
+                );
+
+                setPracticeSound(sound);
+                setIsPlaying(true);
+                isPracticeLoading.current = false;
+            } catch (e) {
+                console.error('Error creating practice sound', e);
+                isPracticeLoading.current = false;
+            }
         }
     };
 
     const restartPractice = async () => {
-        if (!practiceSound) return;
-        await practiceSound.stopAsync();
-        await practiceSound.setPositionAsync(0);
-        await practiceSound.playAsync();
-        setIsPlaying(true);
-        setIsPaused(false);
+        if (!practiceSound || isPracticeLoading.current) return;
+
+        try {
+            await practiceSound.stopAsync();
+            await practiceSound.setPositionAsync(0);
+            await practiceSound.playAsync();
+            setIsPlaying(true);
+            setIsPaused(false);
+        } catch (e) {
+            console.error('Error restarting practice sound', e);
+        }
     };
 
     const stopAll = async (nav?: () => void) => {
-        if (practiceSound) {
-            await practiceSound.stopAsync();
-            await practiceSound.unloadAsync();
-            setPracticeSound(null);
+        if (isRecording) {
+            await stop();
         }
+
+        if (practiceSound) {
+            try {
+                await practiceSound.stopAsync();
+                await practiceSound.unloadAsync();
+                setPracticeSound(null);
+            } catch (e) {
+                console.error('Error stopping practice sound', e);
+            }
+        }
+
+        if (feedbackSound) {
+            try {
+                await feedbackSound.stopAsync();
+                await feedbackSound.unloadAsync();
+                setFeedbackSound(null);
+            } catch (e) {
+                console.error('Error stopping feedback sound', e);
+            }
+        }
+
         setIsPlaying(false);
         setIsPaused(false);
-        nav?.();
+
+        if (nav) {
+            nav();
+        }
+    };
+
+    const playSyllableAudio = async (syllableAudio: AVPlaybackSource) => {
+        if (Platform.OS === 'web') return;
+
+        try {
+            const { sound } = await Audio.Sound.createAsync(syllableAudio);
+            await sound.playAsync();
+
+            // Cleanup after playback
+            sound.setOnPlaybackStatusUpdate((status) => {
+                if (!status.isLoaded || status.didJustFinish) {
+                    sound.unloadAsync();
+                }
+            });
+        } catch (e) {
+            console.error('Error playing syllable audio', e);
+        }
     };
 
     return (
@@ -261,11 +475,7 @@ export default function SyllableScreen({
                             <Text style={styles.syllableText}>{s.text}</Text>
                             <TouchableOpacity
                                 style={styles.syllableAudioButton}
-                                onPress={async () => {
-                                    if (Platform.OS === 'web') return;
-                                    const { sound } = await Audio.Sound.createAsync(s.audio);
-                                    await sound.playAsync();
-                                }}
+                                onPress={() => playSyllableAudio(s.audio)}
                             >
                                 <Ionicons name="volume-high" size={20} color="white" />
                             </TouchableOpacity>
@@ -280,13 +490,18 @@ export default function SyllableScreen({
                     <TouchableOpacity
                         style={[styles.soundButton, isRecording && styles.recordingButton]}
                         onPress={() => (isRecording ? stop() : start())}
+                        disabled={isFeedbackPlaying.current}
                     >
                         <Ionicons name={isRecording ? 'mic-off' : 'mic'} size={24} color={isRecording ? 'white' : '#2e6ef7'} />
                     </TouchableOpacity>
                 </View>
 
                 {isFirst ? (
-                    <TouchableOpacity style={styles.playButton} onPress={togglePractice}>
+                    <TouchableOpacity
+                        style={styles.playButton}
+                        onPress={togglePractice}
+                        disabled={isPracticeLoading.current || isFeedbackPlaying.current}
+                    >
                         <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="white" />
                     </TouchableOpacity>
                 ) : (
@@ -299,7 +514,11 @@ export default function SyllableScreen({
                 </View>
 
                 {isFirst && (
-                    <TouchableOpacity style={styles.restartButton} onPress={restartPractice}>
+                    <TouchableOpacity
+                        style={styles.restartButton}
+                        onPress={restartPractice}
+                        disabled={!practiceSound || isPracticeLoading.current || isFeedbackPlaying.current}
+                    >
                         <Ionicons name="refresh" size={24} color="white" />
                     </TouchableOpacity>
                 )}
