@@ -31,7 +31,6 @@ const lessons = [
     {
         id: 'leccion2',
         title: 'Introducción a los signos de puntuación',
-        carpeta: 'a',
         type: 'leccion',
         image: require('@assets/images/lecciones/nivel5/signos.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel5/leccion2.wav'), // revisar
@@ -39,7 +38,6 @@ const lessons = [
     {
         id: 'leccion3',
         title: 'Párrafos cortos',
-        carpeta: 'global',
         type: 'leccion',
         image: require('@assets/images/lecciones/nivel4/lectura.png'), // revisar
         audioFile: require('@assets/audio/levels/nivel5/leccion3.wav'),// revisar
@@ -120,7 +118,7 @@ export default function Level5Screen() {
                             onPress={async () => {
                                 await stopAudioGlobal();
                                 // @ts-ignore
-                                router.push(`/(tabs)/niveles/nivel5/${item.id}/${item.carpeta}/firstScreen`);
+                                router.push(`/(tabs)/niveles/nivel5/${item.id}/firstScreen`);
                             }}
                         >
                             <Image source={item.image} style={styles.image} resizeMode="contain" />

@@ -109,7 +109,7 @@ export default function Level4Screen() {
                     <Ionicons name="arrow-back" size={28} color="#3E64FF" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel5/nivel5.wav'))}
+                    onPress={() => playAudioGlobal(require('@assets/audio/levels/nivel4/nivel4.wav'))}
                     style={styles.titlePill}
                 >
                     <Ionicons name="volume-high" size={14} color="#fff" />

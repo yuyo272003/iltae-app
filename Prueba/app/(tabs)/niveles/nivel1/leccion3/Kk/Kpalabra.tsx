@@ -19,7 +19,7 @@ export default function Leccion1() {
             // @ts-ignore
             onBottomBack={() => router.push('/(tabs)/niveles//nivel1/leccion3/Kk/Ksilabas')}
             // @ts-ignore
-            onNext={() => router.push('/(tabs)/niveles/nivel1/leccion3/CompletionPractice')}
+            onNext={() => router.push('/(tabs)/niveles//nivel1/leccion3/Pp/Plearn')}
 
         />
     );
