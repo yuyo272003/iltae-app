@@ -69,13 +69,21 @@ function useSpeechRecognition(
         }
         try {
             await Voice.cancel();
-            await Voice.start('es-MX');
+            // Extender tiempos de silencio en Android
+            const extras: { [key: string]: any } = {};
+            if (Platform.OS === 'android') {
+                extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
+                extras['android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
+                extras['android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS'] = 10000;
+            }
+            await Voice.start('es-MX', extras);
         } catch (e) {
             console.error('Voice.start error', e);
             setIsRecording(false);
             onError();
         }
     }, [requestPermission, onError]);
+
 
     const stop = useCallback(async () => {
         if (Platform.OS === 'web') return;

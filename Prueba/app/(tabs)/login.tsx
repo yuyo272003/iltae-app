@@ -29,7 +29,7 @@ import {
 } from "@/utils/AudioManager";
 import Voice from "@react-native-community/voice";
 
-// Emitter solo en native
+// Emitter sólo en native (iOS/Android)
 const voiceEmitter =
     Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
@@ -38,19 +38,19 @@ interface SpeechOptions {
     onError?: () => void;
 }
 
-// Hook reutilizable de voz sin onSpeechEnd
+// Hook reutilizable de reconocimiento de voz con extras Android
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
 
     const requestAudioPermission = useCallback(async (): Promise<boolean> => {
-        if (Platform.OS !== "android") return true;
+        if (Platform.OS !== 'android') return true;
         const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
             {
-                title: "Permiso de micrófono",
-                message: "La app necesita acceder al micrófono.",
-                buttonNegative: "Cancelar",
-                buttonPositive: "Aceptar",
+                title: 'Permiso de micrófono',
+                message: 'La app necesita acceder al micrófono.',
+                buttonNegative: 'Cancelar',
+                buttonPositive: 'Aceptar',
             }
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
@@ -58,7 +58,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
 
     const start = useCallback(async () => {
         if (Platform.OS === 'web') {
-            Alert.alert('No soportado', 'La dictación de voz no funciona en web.');
+            Alert.alert('No soportado', 'Dictación de voz no funciona en web.');
             return;
         }
         if (!(await requestAudioPermission())) {
@@ -67,9 +67,17 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         }
         try {
             await Voice.cancel();
-            await Voice.start("es-MX");
+            // Extender tiempos de silencio en Android
+            const extras: Record<string, any> = {};
+            if (Platform.OS === 'android') {
+                extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
+                extras['android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
+                extras['android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS'] = 10000;
+            }
+            await Voice.start('es-MX', extras);
+            setIsRecording(true);
         } catch (e) {
-            console.error("Voice.start error", e);
+            console.error('Voice.start error', e);
             setIsRecording(false);
             onError?.();
         }
@@ -81,7 +89,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             await Voice.stop();
             await Voice.cancel();
         } catch (e) {
-            console.error("Voice.stop error", e);
+            console.error('Voice.stop error', e);
         } finally {
             setIsRecording(false);
             Keyboard.dismiss();
@@ -91,7 +99,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const onSpeechStart = useCallback(() => setIsRecording(true), []);
     const onSpeechResults = useCallback(
         ({ value }: any) => {
-            const spoken = value?.[0] ?? "";
+            const spoken = value?.[0] ?? '';
             onResult(spoken);
             stop();
         },
@@ -105,14 +113,11 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     useEffect(() => {
         if (!voiceEmitter) return;
         const subs = [
-            voiceEmitter.addListener("onSpeechStart", onSpeechStart),
-            voiceEmitter.addListener("onSpeechResults", onSpeechResults),
-            voiceEmitter.addListener("onSpeechError", onSpeechErrorEvt),
+            voiceEmitter.addListener('onSpeechStart', onSpeechStart),
+            voiceEmitter.addListener('onSpeechResults', onSpeechResults),
+            voiceEmitter.addListener('onSpeechError', onSpeechErrorEvt),
         ];
-        return () => {
-            subs.forEach(s => s.remove());
-            Voice.destroy().then(() => Voice.removeAllListeners());
-        };
+        return () => subs.forEach(s => s.remove());
     }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     useFocusEffect(
@@ -124,9 +129,8 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     return { isRecording, start, stop };
 }
 
-// Componente LoginScreen
 export default function LoginScreen() {
-    const [nombre, setNombre] = useState("");
+    const [nombre, setNombre] = useState('');
     const { setUser } = useAuth();
     const [isAudioPlaying, setIsAudioPlaying] = useState(isAudioPlayingGlobal());
     const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -144,24 +148,24 @@ export default function LoginScreen() {
 
     // Keyboard listeners
     useEffect(() => {
-        const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
-        const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+        const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+        const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
         return () => { show.remove(); hide.remove(); };
     }, []);
 
-    // Hook de voz
+    // Voz
     const { isRecording, start, stop } = useSpeechRecognition({
         onResult: spoken => setNombre(spoken),
-        onError: () => Alert.alert("Error", "No se pudo reconocer la voz"),
+        onError: () => Alert.alert('Error', 'No se pudo reconocer la voz'),
     });
 
     const reproducirInstrucciones = () => {
-        playAudioGlobal(require("@/assets/audio/registro_instrucciones.wav"));
+        playAudioGlobal(require('@/assets/audio/registro_instrucciones.wav'));
     };
 
     const handleLogin = async () => {
         if (!nombre.trim()) {
-            Alert.alert("Error", "Por favor ingresa tu nombre.");
+            Alert.alert('Error', 'Por favor ingresa tu nombre.');
             return;
         }
         try {
@@ -170,7 +174,7 @@ export default function LoginScreen() {
             setUser({ ...data.user, niveles_completados: data.niveles_completados });
             router.push('/(tabs)/perfiles');
         } catch (e: any) {
-            Alert.alert("Error", e.response?.data?.message || "No se pudo iniciar sesión 😢");
+            Alert.alert('Error', e.response?.data?.message || 'No se pudo iniciar sesión 😢');
         }
     };
 

@@ -67,7 +67,15 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         }
         try {
             await Voice.cancel();
-            await Voice.start("es-MX");
+            // Extender tiempos de silencio en Android
+            const extras: { [key: string]: any } = {};
+            if (Platform.OS === 'android') {
+                extras['android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
+                extras['android.speech.extra.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS'] = 5000;
+                extras['android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS'] = 10000;
+            }
+            await Voice.start("es-MX", extras);
+            setIsRecording(true);
         } catch (e) {
             console.error("Voice.start error", e);
             setIsRecording(false);
@@ -88,18 +96,23 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         }
     }, []);
 
-    const onSpeechStart = useCallback(() => setIsRecording(true), []);
+    const onSpeechStart = useCallback(() => {
+        setIsRecording(true);
+    }, []);
+
     const onSpeechResults = useCallback(
         ({ value }: any) => {
             const spoken = value?.[0] ?? "";
             onResult(spoken);
+            // detenemos aquí, no en onSpeechEnd
             stop();
         },
         [onResult, stop]
     );
+
     const onSpeechErrorEvt = useCallback(() => {
-        stop();
         onError?.();
+        stop();
     }, [onError, stop]);
 
     useEffect(() => {
@@ -109,20 +122,20 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             voiceEmitter.addListener("onSpeechResults", onSpeechResults),
             voiceEmitter.addListener("onSpeechError", onSpeechErrorEvt),
         ];
-        return () => {
-            subs.forEach(s => s.remove());
-            Voice.destroy().then(() => Voice.removeAllListeners());
-        };
+        return () => subs.forEach(s => s.remove());
     }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     useFocusEffect(
         useCallback(() => {
-            return () => stop();
+            return () => {
+                stop();
+            };
         }, [stop])
     );
 
     return { isRecording, start, stop };
 }
+
 
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState("");
