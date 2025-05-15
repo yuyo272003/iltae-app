@@ -29,11 +29,9 @@ import {
 } from "@/utils/AudioManager";
 import Voice from "@react-native-community/voice";
 
-// --- Hook de reconocimiento de voz con guard Web ---
+// Hook de reconocimiento de voz con guard Web
 const voiceEmitter =
-    Platform.OS !== 'web'
-        ? new NativeEventEmitter(NativeModules.Voice)
-        : null;
+    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
 interface SpeechOptions {
     onResult: (spoken: string) => void;
@@ -94,16 +92,14 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         ({ value }: any) => {
             const spoken = value?.[0] ?? "";
             onResult(spoken);
-            setIsRecording(false);
-            Keyboard.dismiss();
+            stop();
         },
-        [onResult]
+        [onResult, stop]
     );
     const onSpeechErrorEvt = useCallback(() => {
-        setIsRecording(false);
+        stop();
         onError?.();
-    }, [onError]);
-    const onSpeechEnd = useCallback(() => setIsRecording(false), []);
+    }, [onError, stop]);
 
     useEffect(() => {
         if (!voiceEmitter) return;
@@ -111,13 +107,12 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             voiceEmitter.addListener("onSpeechStart", onSpeechStart),
             voiceEmitter.addListener("onSpeechResults", onSpeechResults),
             voiceEmitter.addListener("onSpeechError", onSpeechErrorEvt),
-            voiceEmitter.addListener("onSpeechEnd", onSpeechEnd),
         ];
         return () => {
             subs.forEach(s => s.remove());
             Voice.destroy().then(() => Voice.removeAllListeners());
         };
-    }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt, onSpeechEnd]);
+    }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     useFocusEffect(
         useCallback(() => {
@@ -130,7 +125,6 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     return { isRecording, start, stop };
 }
 
-// --- RegistroScreen ---
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState("");
     const { setUser } = useAuth();
@@ -138,7 +132,7 @@ export default function RegistroScreen() {
     const [keyboardVisible, setKeyboardVisible] = useState(false);
     const inputRef = useRef<TextInput>(null);
 
-    // AudioManager
+    // AudioManager callbacks
     useEffect(() => {
         const cb = (playing: boolean) => setIsAudioPlaying(playing);
         registerStatusCallback(cb);
@@ -148,14 +142,13 @@ export default function RegistroScreen() {
         };
     }, []);
 
-    // Keyboard
+    // Keyboard listeners
     useEffect(() => {
         const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
         const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
         return () => { show.remove(); hide.remove(); };
     }, []);
 
-    // Voz
     const { isRecording, start, stop } = useSpeechRecognition({
         onResult: spoken => setNombre(spoken),
         onError: () => Alert.alert("Error", "No se pudo reconocer la voz"),

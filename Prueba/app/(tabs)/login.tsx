@@ -29,17 +29,16 @@ import {
 } from "@/utils/AudioManager";
 import Voice from "@react-native-community/voice";
 
-// --- Hook para reconocimiento de voz con guard Web ---
+// Emitter sólo en native
 const voiceEmitter =
-    Platform.OS !== 'web'
-        ? new NativeEventEmitter(NativeModules.Voice)
-        : null;
+    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
 
 interface SpeechOptions {
     onResult: (spoken: string) => void;
     onError?: () => void;
 }
 
+// Hook reutilizable de voz con guard Web
 function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     const [isRecording, setIsRecording] = useState(false);
 
@@ -94,16 +93,14 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
         ({ value }: any) => {
             const spoken = value?.[0] ?? "";
             onResult(spoken);
-            setIsRecording(false);
-            Keyboard.dismiss();
+            stop();
         },
-        [onResult]
+        [onResult, stop]
     );
     const onSpeechErrorEvt = useCallback(() => {
-        setIsRecording(false);
+        stop();
         onError?.();
-    }, [onError]);
-    const onSpeechEnd = useCallback(() => setIsRecording(false), []);
+    }, [onError, stop]);
 
     useEffect(() => {
         if (!voiceEmitter) return;
@@ -111,13 +108,12 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
             voiceEmitter.addListener("onSpeechStart", onSpeechStart),
             voiceEmitter.addListener("onSpeechResults", onSpeechResults),
             voiceEmitter.addListener("onSpeechError", onSpeechErrorEvt),
-            voiceEmitter.addListener("onSpeechEnd", onSpeechEnd),
         ];
         return () => {
             subs.forEach(s => s.remove());
             Voice.destroy().then(() => Voice.removeAllListeners());
         };
-    }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt, onSpeechEnd]);
+    }, [onSpeechStart, onSpeechResults, onSpeechErrorEvt]);
 
     useFocusEffect(
         useCallback(() => {
@@ -130,7 +126,7 @@ function useSpeechRecognition({ onResult, onError }: SpeechOptions) {
     return { isRecording, start, stop };
 }
 
-// --- LoginScreen con dictado de voz ---
+// Componente Login
 export default function LoginScreen() {
     const [nombre, setNombre] = useState("");
     const { setUser } = useAuth();
@@ -155,7 +151,7 @@ export default function LoginScreen() {
         return () => { show.remove(); hide.remove(); };
     }, []);
 
-    // Hook de voz
+    // Voz
     const { isRecording, start, stop } = useSpeechRecognition({
         onResult: spoken => setNombre(spoken),
         onError: () => Alert.alert("Error", "No se pudo reconocer la voz"),

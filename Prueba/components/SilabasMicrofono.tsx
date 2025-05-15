@@ -10,6 +10,7 @@ import {
     Keyboard,
     NativeModules,
     NativeEventEmitter,
+    Alert,
 } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,9 +19,11 @@ import api from '@/scripts/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, usePathname } from 'expo-router';
 
-// Creamos el emitter sólo en iOS/Android
+// Crear emitter sólo en iOS/Android
 const voiceEmitter =
-    Platform.OS !== 'web' ? new NativeEventEmitter(NativeModules.Voice) : null;
+    Platform.OS !== 'web'
+        ? new NativeEventEmitter(NativeModules.Voice)
+        : null;
 
 type Syllable = { text: string; audio: AVPlaybackSource };
 
@@ -64,7 +67,7 @@ export default function SyllableScreen({
     const isFirst = pathname.endsWith('/firstScreen');
     const showBottom = !noBottom.includes(pathname);
 
-    // Cargar progreso
+    // Carga progreso
     useEffect(() => {
         (async () => {
             const token = await AsyncStorage.getItem('auth_token');
@@ -81,34 +84,39 @@ export default function SyllableScreen({
     }, []);
 
     // Voice callbacks
-    const onSpeechStart = useCallback(() => setIsRecording(true), []);
+    const onSpeechStart = useCallback(() => {
+        console.log('Speech start');
+        setIsRecording(true);
+    }, []);
+
     const onSpeechResults = useCallback(
         ({ value }: any) => {
             const spoken = value?.[0] ?? '';
+            console.log('Speech results:', spoken);
             evaluatePronunciation(spoken);
+            stopRecognizing(); // detiene tras resultados
         },
         [targetWord]
     );
+
     const onSpeechError = useCallback((err: any) => {
         console.warn('Speech error', err);
-        setIsRecording(false);
         playFeedback(failureAudio);
-    }, []);
-    const onSpeechEnd = useCallback(() => setIsRecording(false), []);
+        stopRecognizing(); // detiene en error
+    }, [failureAudio]);
 
-    // Suscribir / limpiar listeners
+    // Suscribir / limpiar listeners (sin onSpeechEnd)
     useEffect(() => {
         if (!voiceEmitter) return;
         const subs = [
             voiceEmitter.addListener('onSpeechStart', onSpeechStart),
             voiceEmitter.addListener('onSpeechResults', onSpeechResults),
             voiceEmitter.addListener('onSpeechError', onSpeechError),
-            voiceEmitter.addListener('onSpeechEnd', onSpeechEnd),
         ];
         return () => subs.forEach(s => s.remove());
-    }, [onSpeechStart, onSpeechResults, onSpeechError, onSpeechEnd]);
+    }, [onSpeechStart, onSpeechResults, onSpeechError]);
 
-    // Pedir permiso Android
+    // Permiso Android
     const requestPermission = async () => {
         if (Platform.OS !== 'android') return true;
         const res = await PermissionsAndroid.request(
@@ -123,8 +131,12 @@ export default function SyllableScreen({
         return res === PermissionsAndroid.RESULTS.GRANTED;
     };
 
-    // Iniciar / detener
+    // Iniciar
     const startRecognizing = async () => {
+        if (Platform.OS === 'web') {
+            Alert.alert('No disponible', 'Voice no funciona en web');
+            return;
+        }
         if (!(await requestPermission())) {
             playFeedback(failureAudio);
             return;
@@ -137,7 +149,10 @@ export default function SyllableScreen({
             setIsRecording(false);
         }
     };
+
+    // Detener
     const stopRecognizing = async () => {
+        if (Platform.OS === 'web') return;
         try {
             await Voice.stop();
             await Voice.cancel();
@@ -163,7 +178,7 @@ export default function SyllableScreen({
     };
 
     const normalize = (s: string) =>
-        s.normalize('NFD').replace(/[̀-\u036f]/g, '').toLowerCase().trim();
+        s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
     const evaluatePronunciation = (spoken: string) => {
         normalize(spoken) === normalize(targetWord)
             ? playFeedback(successAudio)
@@ -196,6 +211,7 @@ export default function SyllableScreen({
     };
 
     const restartPractice = async () => {
+        if (Platform.OS === 'web') return;
         if (practiceSound) {
             await practiceSound.stopAsync();
             await practiceSound.setPositionAsync(0);
@@ -226,7 +242,11 @@ export default function SyllableScreen({
             </TouchableOpacity>
 
             {imageSource && (
-                <Image source={imageSource} style={styles.illustration} resizeMode="contain" />
+                <Image
+                    source={imageSource}
+                    style={styles.illustration}
+                    resizeMode="contain"
+                />
             )}
 
             <View style={styles.syllablesRow}>
@@ -241,7 +261,8 @@ export default function SyllableScreen({
                                 <Ionicons name="volume-high" size={20} color="white" />
                             </TouchableOpacity>
                         </View>
-                        {i < syllables.length - 1 && <Text style={styles.hyphen}>-</Text>}
+                        {i < syllables.
+                            length - 1 && <Text style={styles.hyphen}>-</Text>}
                     </React.Fragment>
                 ))}
             </View>
@@ -297,7 +318,6 @@ export default function SyllableScreen({
         </View>
     );
 }
-
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: 'white', alignItems: 'center', paddingTop: 150 },
     topBackButton: { position: 'absolute', top: 40, left: 20, zIndex: 10, backgroundColor: '#f0f0f0', padding: 12, borderRadius: 24 },
