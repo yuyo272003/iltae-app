@@ -25,7 +25,7 @@ const nivelesBase: Nivel[] = [
     { id: 2, titulo: 'Nivel 2', descripcion: 'Consonantes y Vocales', estado: 'pendiente' },
     { id: 3, titulo: 'Nivel 3', descripcion: 'Combinaciones de consonantes', estado: 'pendiente' },
     { id: 4, titulo: 'Nivel 4', descripcion: 'Sílabas', estado: 'pendiente' },
-    { id: 5, titulo: 'Nivel 5', descripcion: 'Acentuación y signos de puntuación', estado: 'pendiente' },
+
 ];
 const audiosPorNivel: { [key: number]: any } = {
     1: require('@/assets/audio/AudioNivel1.wav'),
