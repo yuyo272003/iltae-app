@@ -9,7 +9,7 @@ export default function Leccion1() {
     return (
         <SyllableScreen
             letter="x"
-            syllables={["sa", "se", "si", "so", "su"]}
+            syllables={["xa", "xe", "xi", "xo", "xu"]}
             practiceAudio={require('@assets/audio/levels/nivel1/lessons/X/Xsilabaslearn.wav')}
             syllablesAudio={require('@assets/audio/levels/nivel1/lessons/X/Xsilabas.wav')}
             // @ts-ignore
