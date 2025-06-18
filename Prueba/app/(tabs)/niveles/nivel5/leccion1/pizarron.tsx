@@ -5,6 +5,7 @@ import WordAccentScreen from "@/components/WordAccentScreen";
 
 export default function Leccion2() {
 
+    // @ts-ignore
     return (
         <WordAccentScreen
             word="arbol"
@@ -12,6 +13,7 @@ export default function Leccion2() {
             practiceAudio={require('@assets/audio/Todos.wav')}
             onTopBack={() => router.push('/(tabs)/Level5Screen')}
             onBottomBack={() => router.push('/(tabs)/niveles/nivel5/leccion1/letras')}
+            // @ts-ignore
             onNext={() => router.push('/(tabs)/niveles/nivel5/leccion1/speakingfrase')}
         />
 

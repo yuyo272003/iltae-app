@@ -12,6 +12,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import api from '@/scripts/api';
+import {useAuth} from "@/contexts/AuthContext";
 
 const lessons = [
     {
@@ -51,15 +52,20 @@ export default function Level3Screen() {
 
     const haTerminadoNivel3 = leccionDesbloqueada > lastGlobalId;
 
+    const { user } = useAuth()                // o donde guardes tu user
+    const usuarioId = user?.id
+
     const fetchLeccionDesbloqueada = useCallback(async () => {
         try {
-            const res = await api.post('/progreso/get-leccion');
-            const id = parseInt(res.data.leccion_id, 10);
-            if (!isNaN(id)) setLeccionDesbloqueada(id);
-        } catch (e) {
-            console.error('Error al obtener lección:', e);
+            const response = await api.obtenerLeccionId(usuarioId)
+            const id = parseInt(response.data.leccion_id, 10);
+            if (!isNaN(id)) {
+                setLeccionDesbloqueada(id);
+            }
+        } catch (error) {
+            console.error('Error al obtener lección:', error);
         }
-    }, []);
+    }, [])
 
     useEffect(() => {
         fetchLeccionDesbloqueada();
@@ -146,18 +152,7 @@ export default function Level3Screen() {
                         >
                             <Ionicons name="play" size={22} color="white" />
                         </TouchableOpacity>
-                        {/* Botón de Siguiente Nivel */}
-                        {haTerminadoNivel3 && (
-                            <TouchableOpacity
-                                onPress={() => {
-                                    stopAudioGlobal();
-                                    router.push('/(tabs)/Level4Screen');
-                                }}
-                                style={styles.nextButton}
-                            >
-                                <Ionicons name="arrow-forward" size={24} color="white" />
-                            </TouchableOpacity>
-                        )}
+
                     </View>
                 }
             />

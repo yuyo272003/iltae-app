@@ -24,7 +24,7 @@ const nivelesBase: Nivel[] = [
     { id: 1, titulo: 'Nivel 1', descripcion: 'Aprendizaje del alfabeto', estado: 'pendiente' },
     { id: 2, titulo: 'Nivel 2', descripcion: 'Consonantes y Vocales', estado: 'pendiente' },
     { id: 3, titulo: 'Nivel 3', descripcion: 'Combinaciones de consonantes', estado: 'pendiente' },
-    { id: 4, titulo: 'Nivel 4', descripcion: 'Sílabas', estado: 'pendiente' },
+
 
 ];
 const audiosPorNivel: { [key: number]: any } = {
@@ -38,6 +38,7 @@ const audiosPorNivel: { [key: number]: any } = {
 export default function NivelesScreen() {
     const { user, logout } = useAuth();
     const router = useRouter();
+    const usuarioId = user?.id
 
     // 1. Estado local para completados
     const [nivelesCompletados, setNivelesCompletados] = useState<number>(user?.niveles_completados ?? 0);
@@ -47,7 +48,7 @@ export default function NivelesScreen() {
     const fetchNivelesCompletados = useCallback(async () => {
         try {
             console.log('📥 Solicitando niveles completados a la API...');
-            const response = await api.post('/progreso/get-niveles-completados');
+            const response = await api.obtenerNivelesCompletados(usuarioId)
             const completed = parseInt(response.data.niveles_completados, 10);
             if (!isNaN(completed)) {
                 console.log('✅ Niveles completados:', completed);

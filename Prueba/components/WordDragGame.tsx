@@ -69,24 +69,24 @@ export default function WordDragGame({
         .filter((i) => i !== null) as number[];
 
     useEffect(() => {
-        const fetchProgreso = async () => {
-            try {
-                const token = await AsyncStorage.getItem("auth_token");
-                const response = await api.get("/progreso", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: "application/json",
-                    },
-                });
-
-                setNivelId(response.data.nivel_id);
-                setLeccionId(response.data.leccion_id);
-            } catch (error) {
-                console.error("Error al obtener el progreso del usuario:", error);
-            }
-        };
-
-        fetchProgreso();
+        // const fetchProgreso = async () => {
+        //     try {
+        //         const token = await AsyncStorage.getItem("auth_token");
+        //         const response = await api.get("/progreso", {
+        //             headers: {
+        //                 Authorization: `Bearer ${token}`,
+        //                 Accept: "application/json",
+        //             },
+        //         });
+        //
+        //         setNivelId(response.data.nivel_id);
+        //         setLeccionId(response.data.leccion_id);
+        //     } catch (error) {
+        //         console.error("Error al obtener el progreso del usuario:", error);
+        //     }
+        // };
+        //
+        // fetchProgreso();
     }, []);
 
     useEffect(() => {

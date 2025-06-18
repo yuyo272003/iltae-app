@@ -12,6 +12,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import api from '@/scripts/api';
+import {useAuth} from "@/contexts/AuthContext";
 
 const lessons = [
     // {
@@ -73,19 +74,20 @@ export default function Level4Screen() {
 
     const haTerminadoNivel4 = leccionDesbloqueada > lastGlobalId;
 
+    const { user } = useAuth()                // o donde guardes tu user
+    const usuarioId = user?.id
+
     const fetchLeccionDesbloqueada = useCallback(async () => {
         try {
-            console.log('📥 Solicitando datos de progreso a la API...');
-            const res = await api.post('/progreso/get-leccion');
-            const id = parseInt(res.data.leccion_id, 10);
+            const response = await api.obtenerLeccionId(usuarioId)
+            const id = parseInt(response.data.leccion_id, 10);
             if (!isNaN(id)) {
-                console.log('📥 Progreso actualizado:', id);
                 setLeccionDesbloqueada(id);
             }
-        } catch (e) {
-            console.error('Error al obtener lección:', e);
+        } catch (error) {
+            console.error('Error al obtener lección:', error);
         }
-    }, []);
+    }, [])
 
     useEffect(() => {
         fetchLeccionDesbloqueada();

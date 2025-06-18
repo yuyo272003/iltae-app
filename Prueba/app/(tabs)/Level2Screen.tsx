@@ -5,6 +5,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { playAudioGlobal, stopAudioGlobal } from '@/utils/AudioManager';
 import api from '@/scripts/api';
+import {useAuth} from "@/contexts/AuthContext";
 
 const lessons = [
     {
@@ -40,9 +41,12 @@ export default function Level2Screen() {
 
     const haTerminadoNivel2 = leccionDesbloqueada > lastLevel2GlobalId;
 
+    const { user } = useAuth()                // o donde guardes tu user
+    const usuarioId = user?.id
+
     const fetchLeccionDesbloqueada = useCallback(async () => {
         try {
-            const response = await api.post('/progreso/get-leccion');
+            const response = await api.obtenerLeccionId(usuarioId)
             const id = parseInt(response.data.leccion_id, 10);
             if (!isNaN(id)) {
                 setLeccionDesbloqueada(id);
@@ -50,7 +54,7 @@ export default function Level2Screen() {
         } catch (error) {
             console.error('Error al obtener lección:', error);
         }
-    }, []);
+    }, [])
 
     useEffect(() => {
         fetchLeccionDesbloqueada();
