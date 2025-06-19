@@ -2,7 +2,7 @@ import { executeSql } from "@/db/executeSql";
 
 export class AuthenticatedSessionController {
     // Maneja autenticación local por nombre de usuario
-    static async store(requestBody: { name?: string }) {
+    static async store(requestBody: { name: { name: string } }) {
         try {
             if (!requestBody.name || requestBody.name.trim() === '') {
                 return {
@@ -31,10 +31,7 @@ export class AuthenticatedSessionController {
             const token = 'fake-token-' + Math.random().toString(36).slice(2);
 
             // Obtener último progreso del usuario
-            const progresos = await executeSql(
-                'SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1',
-                [user.id]
-            );
+            const progresos = await executeSql('SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1', [user.id]);
             const ultimoProgreso = progresos.length ? progresos[0] : null;
             const nivelesCompletados = ultimoProgreso?.niveles_completados || 0;
 

@@ -23,10 +23,7 @@ export class ProgresoController {
             const nivel_id = lecciones[0].nivel_id;
 
             // Verificar si progreso ya existe
-            const existentes = await executeSql(
-                'SELECT * FROM progreso WHERE usuario_id = ? AND leccion_id = ?',
-                [usuario_id, leccion_id]
-            );
+            const existentes = await executeSql('SELECT * FROM progreso WHERE usuario_id = ? AND leccion_id = ?', [usuario_id, leccion_id]);
             if (existentes.length) {
                 return {
                     status: 200,
@@ -38,20 +35,14 @@ export class ProgresoController {
             }
 
             // Crear nuevo progreso
-            await executeSql(
-                `INSERT INTO progreso (usuario_id, nivel_id, leccion_id, porcentaje, niveles_completados, created_at, updated_at)
-         VALUES (?, ?, ?, 0, 0, datetime('now'), datetime('now'))`,
-                [usuario_id, nivel_id, leccion_id]
-            );
+            await executeSql(`INSERT INTO progreso (usuario_id, nivel_id, leccion_id, porcentaje, niveles_completados, created_at, updated_at)
+     VALUES (?, ?, ?, 0, 0, datetime('now'), datetime('now'))`, [usuario_id, nivel_id, leccion_id]);
 
             // Recalcular porcentaje
             const porcentaje = await this.calcularProgresoNivel(usuario_id, nivel_id);
 
             // Actualizar porcentaje en todos los progresos de este nivel para el usuario
-            await executeSql(
-                'UPDATE progreso SET porcentaje = ? WHERE usuario_id = ? AND nivel_id = ?',
-                [porcentaje, usuario_id, nivel_id]
-            );
+            await executeSql('UPDATE progreso SET porcentaje = ? WHERE usuario_id = ? AND nivel_id = ?', [porcentaje, usuario_id, nivel_id]);
 
             // Actualizar niveles completados si porcentaje es 100%
             if (porcentaje === 100) {
@@ -78,11 +69,8 @@ export class ProgresoController {
         ]);
         const totalLecciones = totalRes[0]?.total || 0;
 
-        const completadasRes = await executeSql(
-            `SELECT COUNT(DISTINCT leccion_id) as completadas
-       FROM progreso WHERE usuario_id = ? AND nivel_id = ?`,
-            [usuario_id, nivel_id]
-        );
+        const completadasRes = await executeSql(`SELECT COUNT(DISTINCT leccion_id) as completadas
+   FROM progreso WHERE usuario_id = ? AND nivel_id = ?`, [usuario_id, nivel_id]);
         const leccionesCompletadas = completadasRes[0]?.completadas || 0;
 
         return totalLecciones > 0 ? (leccionesCompletadas / totalLecciones) * 100 : 0;
@@ -90,10 +78,7 @@ export class ProgresoController {
 
     // Actualizar conteo de niveles completados para usuario
     static async actualizarConteoNivelesCompletados(usuario_id: number) {
-        const nivelesCompletadosRes = await executeSql(
-            `SELECT COUNT(DISTINCT nivel_id) as completos FROM progreso WHERE usuario_id = ? AND porcentaje = 100`,
-            [usuario_id]
-        );
+        const nivelesCompletadosRes = await executeSql(`SELECT COUNT(DISTINCT nivel_id) as completos FROM progreso WHERE usuario_id = ? AND porcentaje = 100`, [usuario_id]);
         const nivelesCompletados = nivelesCompletadosRes[0]?.completos || 0;
 
         await executeSql('UPDATE progreso SET niveles_completados = ? WHERE usuario_id = ?', [
@@ -143,10 +128,7 @@ export class ProgresoController {
 
     // Obtener la lección más reciente que el usuario completó
     static async obtenerLeccionId(usuario_id: number | undefined) {
-        const progresos = await executeSql(
-            'SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1',
-            [usuario_id]
-        );
+        const progresos = await executeSql('SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1', [usuario_id]);
         const progreso = progresos.length ? progresos[0] : null;
 
         return {
@@ -159,10 +141,7 @@ export class ProgresoController {
 
     // Obtener niveles completados del usuario
     static async obtenerNivelesCompletados(usuario_id: number | undefined) {
-        const progresos = await executeSql(
-            'SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1',
-            [usuario_id]
-        );
+        const progresos = await executeSql('SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1', [usuario_id]);
         const progreso = progresos.length ? progresos[0] : null;
 
         return {
@@ -181,19 +160,13 @@ export class ProgresoController {
     ) {
         try {
             // Buscar último progreso o crear uno nuevo
-            const progresos = await executeSql(
-                'SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1',
-                [usuario_id]
-            );
+            const progresos = await executeSql('SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1', [usuario_id]);
             let progreso = progresos.length ? progresos[0] : null;
 
             if (!progreso) {
                 // Crear progreso nuevo inicial
-                await executeSql(
-                    `INSERT INTO progreso (usuario_id, nivel_id, leccion_id, porcentaje, niveles_completados, created_at, updated_at)
-          VALUES (?, ?, ?, 0, 0, datetime('now'), datetime('now'))`,
-                    [usuario_id, nivelPantalla, leccionPantalla]
-                );
+                await executeSql(`INSERT INTO progreso (usuario_id, nivel_id, leccion_id, porcentaje, niveles_completados, created_at, updated_at)
+      VALUES (?, ?, ?, 0, 0, datetime('now'), datetime('now'))`, [usuario_id, nivelPantalla, leccionPantalla]);
                 progreso = {
                     usuario_id,
                     nivel_id: nivelPantalla,
@@ -218,24 +191,15 @@ export class ProgresoController {
             }
 
             // Obtener orden actual
-            const ordenActualRes = await executeSql(
-                'SELECT orden FROM lecciones WHERE nivel_id = ? AND id = ? LIMIT 1',
-                [nivelPantalla, leccionPantalla]
-            );
+            const ordenActualRes = await executeSql('SELECT orden FROM lecciones WHERE nivel_id = ? AND id = ? LIMIT 1', [nivelPantalla, leccionPantalla]);
             const ordenActual = ordenActualRes.length ? ordenActualRes[0].orden : 1;
 
             // Buscar siguiente lección en el mismo nivel
-            let siguiente = await executeSql(
-                'SELECT * FROM lecciones WHERE nivel_id = ? AND orden > ? ORDER BY orden LIMIT 1',
-                [nivelPantalla, ordenActual]
-            );
+            let siguiente = await executeSql('SELECT * FROM lecciones WHERE nivel_id = ? AND orden > ? ORDER BY orden LIMIT 1', [nivelPantalla, ordenActual]);
 
             if (!siguiente.length) {
                 // No hay más lecciones en este nivel, pasar al siguiente nivel
-                siguiente = await executeSql(
-                    'SELECT * FROM lecciones WHERE nivel_id = ? ORDER BY orden LIMIT 1',
-                    [nivelPantalla + 1]
-                );
+                siguiente = await executeSql('SELECT * FROM lecciones WHERE nivel_id = ? ORDER BY orden LIMIT 1', [nivelPantalla + 1]);
 
                 if (siguiente.length) {
                     // Aumentar niveles completados
@@ -257,19 +221,13 @@ export class ProgresoController {
             const siguienteLeccion = siguiente[0];
 
             // Calcular porcentaje
-            const totalLeccionesRes = await executeSql(
-                'SELECT COUNT(*) as total FROM lecciones WHERE nivel_id = ?',
-                [siguienteLeccion.nivel_id]
-            );
+            const totalLeccionesRes = await executeSql('SELECT COUNT(*) as total FROM lecciones WHERE nivel_id = ?', [siguienteLeccion.nivel_id]);
             const totalLecciones = totalLeccionesRes[0]?.total || 1;
             const porcentaje = Math.round(((siguienteLeccion.orden - 1) / totalLecciones) * 10000) / 100;
 
             // Actualizar progreso
-            await executeSql(
-                `UPDATE progreso SET nivel_id = ?, leccion_id = ?, porcentaje = ?, updated_at = datetime('now')
-         WHERE usuario_id = ?`,
-                [siguienteLeccion.nivel_id, siguienteLeccion.id, porcentaje, usuario_id]
-            );
+            await executeSql(`UPDATE progreso SET nivel_id = ?, leccion_id = ?, porcentaje = ?, updated_at = datetime('now')
+     WHERE usuario_id = ?`, [siguienteLeccion.nivel_id, siguienteLeccion.id, porcentaje, usuario_id]);
 
             return {
                 status: 200,
@@ -289,17 +247,11 @@ export class ProgresoController {
 
     // Incrementa niveles completados en progreso para usuario
     static async incrementarNivelesCompletados(usuario_id: number) {
-        const progresos = await executeSql(
-            'SELECT niveles_completados FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1',
-            [usuario_id]
-        );
+        const progresos = await executeSql('SELECT niveles_completados FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1', [usuario_id]);
         const actuales = progresos.length ? progresos[0].niveles_completados || 0 : 0;
         const nuevos = actuales + 1;
 
-        await executeSql(
-            'UPDATE progreso SET niveles_completados = ? WHERE usuario_id = ?',
-            [nuevos, usuario_id]
-        );
+        await executeSql('UPDATE progreso SET niveles_completados = ? WHERE usuario_id = ?', [nuevos, usuario_id]);
     }
 
     // Métodos específicos para avanzar a lecciones con parámetros fijos (igual que en PHP)

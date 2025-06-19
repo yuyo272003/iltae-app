@@ -20,7 +20,6 @@ function substituteParams(sql: string, params: any[]): string {
 /**
  * Ejecuta una sentencia SQL sobre tu DB síncrona y devuelve filas.
  * @param sql   - SQL con placeholders '?'
- * @param params- parámetros para sustituir en los '?' (solo para sustitución)
  */
 export function executeSql(sql: string, params: any[] = []): Promise<any[]> {
     return new Promise((resolve, reject) => {

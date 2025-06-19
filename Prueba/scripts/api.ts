@@ -22,11 +22,11 @@
 //
 // export default api;
 
-// src/services/api.ts
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AuthenticatedSessionController } from '@/controllers/AuthenticatedSessionController'
 import { ProgresoController } from '@/controllers/ProgresoController'
+import {RegisteredUserController} from "@/controllers/RegisteredUserController";
 
 const USE_LOCAL = true   // 🔀 Ponlo en false si quieres ir al backend PHP
 const LOCAL_BASE = `https://backapp-production-1bef.up.railway.app/api`
@@ -44,7 +44,26 @@ api.interceptors.request.use(async (config) => {
 
 export default {
     // ─── AUTENTICACIÓN ────────────────────────────
-    login: async (name: string) => {
+    // ── REGISTRO ─────────────────────────────────────────
+    register: async (
+        name: { name: string },
+        email?: string,
+        password?: string
+    ) => {
+        if (USE_LOCAL) {
+            const res = await RegisteredUserController.store({ name })
+            // opcional: guarda token en AsyncStorage
+            // @ts-ignore
+            await AsyncStorage.setItem('auth_token', res.json.token)
+            return res.json
+        } else {
+            const { data } = await api.post('/register', { name })
+            await AsyncStorage.setItem('auth_token', data.token)
+            return data
+        }
+    },
+
+    login: async (name: { name: string }) => {
         if (USE_LOCAL) {
             // llama a tu controlador local
             const res = await AuthenticatedSessionController.store({ name })

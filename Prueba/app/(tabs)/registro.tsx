@@ -134,7 +134,7 @@ export default function RegistroScreen() {
             return;
         }
         try {
-            const response = await api.post("/register", { name: nombre });
+            const response = await api.register({ name: nombre });
             const { token, user } = response.data;
             await AsyncStorage.setItem("auth_token", token);
             setUser(user);

@@ -135,7 +135,7 @@ export default function LoginScreen() {
             return;
         }
         try {
-            const response = await api.post("/login", { name: nombre });
+            const response = await api.login( { name: nombre });
             const { user, token, niveles_completados } = response.data;
             await AsyncStorage.setItem("auth_token", token);
             setUser({ ...user, niveles_completados });
