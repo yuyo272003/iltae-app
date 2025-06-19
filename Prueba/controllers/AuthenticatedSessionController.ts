@@ -24,16 +24,33 @@ export class AuthenticatedSessionController {
                 };
             }
 
-            // Simular login (no hay sesión real)
-            // Podrías guardar info localmente en AsyncStorage o contexto si quieres
-
-            // Simular token (puedes cambiar por JWT u otro método)
-            const token = 'fake-token-' + Math.random().toString(36).slice(2);
+            // Buscar token existente
+            const existing = await executeSql(
+                'SELECT token FROM personal_access_tokens WHERE tokenable_id = ? LIMIT 1',
+                [user.id]
+            );
+            let token: string;
+            if (existing.length) {
+                token = existing[0].token;
+            } else {
+                token = 'token-' + Math.random().toString(36).slice(2);
+                await executeSql(
+                    `INSERT INTO personal_access_tokens
+                     (tokenable_type, tokenable_id, name, token, abilities, created_at, updated_at)
+                     VALUES ('user', ?, 'API Token', ?, '["*"]', datetime('now'), datetime('now'))`,
+                    [user.id, token]
+                );
+            }
 
             // Obtener último progreso del usuario
-            const progresos = await executeSql('SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1', [user.id]);
+            const progresos = await executeSql(
+                'SELECT * FROM progreso WHERE usuario_id = ? ORDER BY id DESC LIMIT 1',
+                [user.id]
+            );
             const ultimoProgreso = progresos.length ? progresos[0] : null;
             const nivelesCompletados = ultimoProgreso?.niveles_completados || 0;
+            const nivel_id = ultimoProgreso?.nivel_id;
+            const leccion_id = ultimoProgreso?.leccion_id;
 
             return {
                 status: 200,
@@ -41,6 +58,8 @@ export class AuthenticatedSessionController {
                     user,
                     token,
                     niveles_completados: nivelesCompletados,
+                    nivel_id,
+                    leccion_id,
                 },
             };
         } catch (error) {
