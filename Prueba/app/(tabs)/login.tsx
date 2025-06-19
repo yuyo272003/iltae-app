@@ -135,15 +135,26 @@ export default function LoginScreen() {
             return;
         }
         try {
-            const response = await api.login( { name: nombre });
-            const { user, token, niveles_completados } = response.data;
+            // 1) Llama al wrapper con la string, no con un objeto
+            const { user, token, niveles_completados } = await api.login(nombre);
+
+            // 2) Como api.login ya guardó el token, no necesitas setearlo de nuevo
+            //    Pero si quieres hacerlo aquí, OK:
             await AsyncStorage.setItem("auth_token", token);
+
+            // 3) Actualiza tu contexto/estado
             setUser({ ...user, niveles_completados });
+
+            // 4) Navega
             router.push("/(tabs)/perfiles");
         } catch (error: any) {
-            Alert.alert("Error", error.response?.data?.message || "No se pudo iniciar sesión 😢");
+            Alert.alert(
+                "Error",
+                error.response?.data?.message || "No se pudo iniciar sesión 😢"
+            );
         }
     };
+
 
     // Función extraída para el TextInput
     const renderInput = () => (

@@ -2,7 +2,7 @@ import { executeSql } from "@/db/executeSql";
 
 export class AuthenticatedSessionController {
     // Maneja autenticación local por nombre de usuario
-    static async store(requestBody: { name: { name: string } }) {
+    static async store(requestBody: { name: string }) {
         try {
             if (!requestBody.name || requestBody.name.trim() === '') {
                 return {

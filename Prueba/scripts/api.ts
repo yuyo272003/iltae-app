@@ -46,9 +46,7 @@ export default {
     // ─── AUTENTICACIÓN ────────────────────────────
     // ── REGISTRO ─────────────────────────────────────────
     register: async (
-        name: { name: string },
-        email?: string,
-        password?: string
+        name: string
     ) => {
         if (USE_LOCAL) {
             const res = await RegisteredUserController.store({ name })
@@ -63,7 +61,7 @@ export default {
         }
     },
 
-    login: async (name: { name: string }) => {
+    login: async (name: string) => {
         if (USE_LOCAL) {
             // llama a tu controlador local
             const res = await AuthenticatedSessionController.store({ name })

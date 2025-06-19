@@ -134,15 +134,25 @@ export default function RegistroScreen() {
             return;
         }
         try {
-            const response = await api.register({ name: nombre });
-            const { token, user } = response.data;
+            // 1) Llamas así, pasándole solo el nombre (y opcionalmente email/password si los usas)
+            const { user, token } = await api.register(nombre);
+
+            // 2) Guardas el token (si no lo hizo ya el wrapper)
             await AsyncStorage.setItem("auth_token", token);
+
+            // 3) Actualizas tu estado/contexto de usuario
             setUser(user);
+
+            // 4) Navegas
             router.push("/(tabs)/perfiles");
         } catch (error: any) {
-            Alert.alert("Error", error.response?.data?.message || "Algo salió mal 😢");
+            Alert.alert(
+                "Error",
+                error.response?.data?.message || "Algo salió mal 😢"
+            );
         }
     };
+
 
     // --- Aquí extraemos el TextInput ---
     const renderInput = () => (

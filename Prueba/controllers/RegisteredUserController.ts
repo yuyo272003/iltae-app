@@ -4,7 +4,7 @@ export class RegisteredUserController {
     /**
      * Registra un nuevo usuario y su progreso inicial.
      */
-    static async store(requestBody: { name: { name: string } }) {
+    static async store(requestBody: { name: string }) {
         try {
             const { name, email } = requestBody;
             if (!name || name.trim() === "") {
