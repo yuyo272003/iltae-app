@@ -47,17 +47,25 @@ export class RegisteredUserController {
 
 
             // Obtener la primera lección disponible
-            const firstLesson = await executeSql("SELECT id, nivel_id FROM lecciones ORDER BY id LIMIT 1");
+            const firstLesson = await executeSql(
+                "SELECT id, nivel_id FROM lecciones ORDER BY id LIMIT 1"
+            );
+            let nivel_id: number | undefined;
+            let leccion_id: number | undefined;
             if (firstLesson.length) {
                 const lesson = firstLesson[0];
-                // Crear progreso inicial
-                await executeSql(`INSERT INTO progreso (usuario_id, nivel_id, leccion_id, porcentaje, niveles_completados, created_at, updated_at)
-       VALUES (?, ?, ?, 0, 0, datetime('now'), datetime('now'))`, [user.id, lesson.nivel_id, lesson.id]);
+                nivel_id = lesson.nivel_id;
+                leccion_id = lesson.id;
+                await executeSql(
+                    `INSERT INTO progreso (usuario_id, nivel_id, leccion_id, porcentaje, niveles_completados, created_at, updated_at)
+       VALUES (?, ?, ?, 0, 0, datetime('now'), datetime('now'))`,
+                    [user.id, lesson.nivel_id, lesson.id]
+                );
             }
 
             return {
                 status: 201,
-                json: { user, token },
+                json: { user, token, nivel_id, leccion_id, niveles_completados: 0 },
             };
         } catch (error) {
             console.error("Error registrando usuario:", error);

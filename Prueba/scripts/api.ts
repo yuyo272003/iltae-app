@@ -27,6 +27,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AuthenticatedSessionController } from '@/controllers/AuthenticatedSessionController'
 import { ProgresoController } from '@/controllers/ProgresoController'
 import {RegisteredUserController} from "@/controllers/RegisteredUserController";
+import { UserController } from '@/controllers/UserController'
 
 const USE_LOCAL = true   // 🔀 Ponlo en false si quieres ir al backend PHP
 const LOCAL_BASE = `https://backapp-production-1bef.up.railway.app/api`
@@ -74,6 +75,18 @@ export default {
         } else {
             const { data } = await api.post('/login', { name })
             await AsyncStorage.setItem('auth_token', data.token)
+            return data
+        }
+    },
+
+    getCurrentUser: async () => {
+        const token = await AsyncStorage.getItem('auth_token')
+        if (!token) return null
+        if (USE_LOCAL) {
+            const res = await UserController.showByToken(token)
+            return res.status === 200 ? res.json : null
+        } else {
+            const { data } = await api.get('/user')
             return data
         }
     },

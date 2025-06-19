@@ -58,9 +58,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
                 api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-                const response = await api.get("/user");
-                if (response?.data?.id) {
-                    setUser(response.data);
+                const response = await api.getCurrentUser();
+                if (response?.id) {
+                    setUser(response);
                 } else {
                     throw new Error("Perfil inválido");
                 }
